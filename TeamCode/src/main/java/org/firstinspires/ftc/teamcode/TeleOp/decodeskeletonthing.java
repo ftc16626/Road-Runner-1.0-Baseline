@@ -84,7 +84,7 @@ public class decodeskeletonthing extends LinearOpMode {
 
             loop();
             if (gamepad2.right_bumper){
-                shooter.setPower(1);
+                shooter.setPower(0.75);
             }
             else{
                 shooter.setPower(0);
