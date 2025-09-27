@@ -60,15 +60,16 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="EncoderTraining", group="Robot")
+@Autonomous(name="DecodeShooterAuto", group="Robot")
 
-public class EncoderTrainingNissaConfig extends LinearOpMode {
+public class DecodeShooterAuto extends LinearOpMode {
 
     /* Declare OpMode members. */
     private DcMotor         leftFrontDrive   = null;
     private DcMotor         rightFrontDrive  = null;
     private DcMotor         leftBackDrive   = null;
     private DcMotor         rightBackDrive  = null;
+    private DcMotor         shooter = null;
 
 
 
@@ -88,6 +89,7 @@ public class EncoderTrainingNissaConfig extends LinearOpMode {
     static final double     DRIVE_SPEED             = 0.6;
     static final double     TURN_SPEED              = 0.5;
 
+
     @Override
     public void runOpMode() {
 
@@ -96,6 +98,7 @@ public class EncoderTrainingNissaConfig extends LinearOpMode {
         rightFrontDrive = hardwareMap.get(DcMotor.class, "RFMotor");
         leftBackDrive  = hardwareMap.get(DcMotor.class, "LBMotor");
         rightBackDrive = hardwareMap.get(DcMotor.class, "RBMotor");
+        shooter = hardwareMap.get(DcMotor.class, "shooter");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
@@ -104,6 +107,7 @@ public class EncoderTrainingNissaConfig extends LinearOpMode {
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        shooter.setDirection(DcMotor.Direction.FORWARD);
 
         leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -130,9 +134,9 @@ public class EncoderTrainingNissaConfig extends LinearOpMode {
 
         // Step through each leg of the path,
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
-        encoderDrive(DRIVE_SPEED,   72, 72, 72, 72, false, 5);  // S2: Turn Right 12 Inches with 4 Sec timeout
-        encoderDrive(1, -13.5, 13.5, -13.5, 13.5, false, 25);  // S3: Reverse 24 Inches with 4 Sec timeout
-
+        //encoderDrive(DRIVE_SPEED,   72, 72, 72, 72, false, 0, 5);  // S2: Turn Right 12 Inches with 4 Sec timeout
+        //encoderDrive(1, -13.5, 13.5, -13.5, 13.5, false, 0,3);  // S3: Reverse 24 Inches with 4 Sec timeout
+        encoderDrive(0,0,0,0,0, false,0.6,5);
         telemetry.addData("Path", "Complete");
         telemetry.update();
         sleep(1000);  // pause to display final telemetry message.
@@ -148,7 +152,7 @@ public class EncoderTrainingNissaConfig extends LinearOpMode {
      */
     public void encoderDrive(double speed,
                              double leftFrontInches, double rightFrontInches,
-                             double leftBackInches, double rightBackInches, boolean strafe,
+                             double leftBackInches, double rightBackInches, boolean strafe, double shooterPower,
                              double timeoutS) {
         int newLeftFrontTarget;
         int newRightFrontTarget;
@@ -193,6 +197,10 @@ public class EncoderTrainingNissaConfig extends LinearOpMode {
             leftBackDrive.setPower(Math.abs(speed));
             rightBackDrive.setPower(Math.abs(speed));
 
+            while (opModeIsActive() && runtime.seconds() < timeoutS) {
+                shooter.setPower(shooterPower);
+            }
+
             // keep looping while we are still active, and there is time left, and both motors are running.
             // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
             // its target position, the motion will stop.  This is "safer" in the event that the robot will
@@ -215,6 +223,7 @@ public class EncoderTrainingNissaConfig extends LinearOpMode {
             rightFrontDrive.setPower(0);
             leftBackDrive.setPower(0);
             rightBackDrive.setPower(0);
+            shooter.setPower(0);
 
 
             // Turn off RUN_TO_POSITION
