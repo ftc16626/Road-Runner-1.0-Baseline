@@ -30,7 +30,7 @@ public class PhysicsTrajectoryCalculation extends LinearOpMode {
 
         telemetry.addData("Calculated Trajectory", calculatedDeltaY);
         telemetry.update();
-        sleep(2000); // Wait for telemetry to display
+        sleep( 2000); // Wait for telemetry to display
 
         // --- Calculation 2: Find the initial velocity required to hit a specific target (deltaX, deltaY) ---
         // This is a more common use case for FTC, where you need to adjust motor power
