@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.ComponentSubClasses;
 
-// All-purpose class for controlling the Illinois Jones configuration drive train
+// All-purpose class for controlling the Illinois James configuration drive train
 // for the 2025-2026 Decode Season
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
@@ -20,12 +20,14 @@ public class DriveTrain {
         double Turn = gamepad1.right_stick_x;
         double Strafe = gamepad1.left_stick_x;
 
+        //Combines all output from joysticks to result in proper motor power allocation for movement
         double LFPower = Drive + Turn - Strafe;
         double RFPower = Drive + Turn + Strafe;
         double LBPower = Drive - Turn + Strafe;
         double RBPower = Drive - Turn - Strafe;
         double max;
 
+        //Prevents max power values from exceeding -1 to 1 range
         max = Math.max(Math.abs(LFPower), Math.abs(RFPower));
         max = Math.max(max, Math.abs(LBPower));
         max = Math.max(max, Math.abs(RBPower));
@@ -43,27 +45,48 @@ public class DriveTrain {
         RBMotor.setPower(RBPower);
     }
 
-    /// Method used for setting motor modes (Encoders vs. Power)
-    public void trainMode(String Mode){
-        if (Mode == "Encoders"){
+    /// Method used for setting up encoder motor mode
+    public void setEncoder(){
+            //Sets encoder value to 0
             LFMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             RFMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             LBMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             RBMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
+            //Begins count of encoders
             LFMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             RFMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             RBMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             LBMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        }
+
     }
 
     /// Establishes relation between power output and wheel direction
-    public void setDriveDirection(){
-        LFMotor.setDirection(DcMotor.Direction.REVERSE);
-        LFMotor.setDirection(DcMotor.Direction.REVERSE);
-        LFMotor.setDirection(DcMotor.Direction.FORWARD);
-        LFMotor.setDirection(DcMotor.Direction.FORWARD);
+    public void setDriveDirection(String LFDirection, String RFDirection,
+                                  String LBDirection,String RBDirection){
+        if (LFDirection == "FORWARD") {
+            LFMotor.setDirection(DcMotor.Direction.FORWARD);
+        } else {
+            LFMotor.setDirection(DcMotor.Direction.REVERSE);
+        }
+
+        if (RFDirection == "FORWARD") {
+            RFMotor.setDirection(DcMotor.Direction.FORWARD);
+        } else {
+            RFMotor.setDirection(DcMotor.Direction.REVERSE);
+        }
+
+        if (LBDirection == "FORWARD") {
+            LBMotor.setDirection(DcMotor.Direction.FORWARD);
+        } else {
+            LBMotor.setDirection(DcMotor.Direction.REVERSE);
+        }
+
+        if (RBDirection == "FORWARD") {
+            RBMotor.setDirection(DcMotor.Direction.FORWARD);
+        } else {
+            RBMotor.setDirection(DcMotor.Direction.REVERSE);
+        }
     }
 
     /// Method used to configure the Drive Train according to DriverHub configuration

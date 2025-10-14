@@ -12,9 +12,9 @@ public class TestModularizedTeleOp extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        GotsWheels.setDriveDirection();
+        GotsWheels.setDriveDirection("REVERSE", "FORWARD", "REVERSE", "FORWARD");
         GotsWheels.getHardwareMap(hardwareMap);
-        GotsWheels.trainMode("Encoders");
+        GotsWheels.setEncoder();
         while(opModeIsActive()) {
             GotsWheels.DrivePower();
         }
