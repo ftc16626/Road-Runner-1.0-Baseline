@@ -184,6 +184,7 @@ public class decodeskeletonthing extends LinearOpMode {
         // Wait for the game to start (driver presses START)
         waitForStart();
         double colorFind = 0;
+        String obeliskCode;
         double areaOnex = 1.30;
         double areaOneAngle = Math.toRadians(79.967);
         double areaTwox = 0.675;
@@ -220,12 +221,11 @@ public class decodeskeletonthing extends LinearOpMode {
                 continue;
             }
             rateLimit.reset();
-
-            HuskyLens.Block[] blocks = allSeeingEye.blocks();
-            telemetry.addData("Block count", blocks.length);
-            for (int i = 0; i < blocks.length; i++) {
+            if (gamepad1.square){
+                HuskyLens.Block[] blocks = allSeeingEye.blocks();
+                telemetry.addData("Block count", blocks.length);
+                for (int i = 0; i < blocks.length; i++) {
                 telemetry.addData("Block", blocks[i].toString());
-                if (gamepad1.square){
                     if (blocks[i].id == 1){
                         telemetry.addData("Obelisk", "PGP");
                         colorFind = 1;
@@ -235,7 +235,9 @@ public class decodeskeletonthing extends LinearOpMode {
                     } else if (blocks[i].id == 5){
                         telemetry.addData("Obelisk", "GPP");
                         colorFind = 3;
-                    }
+                }
+
+
                 }
 
             }
@@ -252,131 +254,135 @@ public class decodeskeletonthing extends LinearOpMode {
             NormalizedRGBA Cola6 = sixth.getNormalizedColors();
             Color.colorToHSV(Cola6.toColor(), hsvValues);
 
+            if (gamepad1.right_bumper){
+                armThing.setPosition(1);
+            }
+            else if (gamepad1.left_bumper){
+                armThing.setPosition(0);
+            }
 
 
 
 
+// This program shoots balls
             if (gamepad2.triangle){
-                if(((Cola1.blue > .2 || Cola1.green > .2) || (Cola2.blue > .2 || Cola2.green > .2)) & ((Cola3.blue > .2 || Cola3.green > .2) || (Cola4.blue > .2 || Cola4.green > .2)) & ((Cola5.blue > .2 || Cola5.green > .2) || (Cola6.blue > .2 || Cola6.green > .2))){
-                    flipper1.setPosition(25);
-                    flipper2.setPosition(25);
-                    flipper3.setPosition(25);
+                    //
                     if (colorFind == 1) {
-                        if (Cola1.blue >= 0.20 || Cola2.blue >= 0.20) {
+                        if (Cola1.blue > Cola1.green || Cola2.blue > Cola2.green) {
                             flipper1.setPosition(50);
                             sleep(2000);
                             flipper1.setPosition(0);
-                        } else if (Cola3.blue >= 0.20 || Cola4.blue >= 0.20) {
+                        } else if (Cola3.blue > Cola3.green || Cola4.blue > Cola4.green) {
                             flipper2.setPosition(50);
                             sleep(2000);
                             flipper2.setPosition(0);
-                        }else if (Cola5.blue >= 0.20 || Cola6.blue >= 0.20) {
+                        }else if (Cola5.blue > Cola5.green || Cola6.blue > Cola6.green) {
                             flipper3.setPosition(50);
                             sleep(2000);
                             flipper3.setPosition(0);
                         }
-                        if (Cola1.green >= 0.20 || Cola2.green >= 0.20) {
+                        if (Cola1.green > Cola1.blue || Cola2.green > Cola2.blue) {
                             flipper1.setPosition(50);
                             sleep(2000);
                             flipper1.setPosition(0);
-                        } else if (Cola3.green >= 0.20 || Cola4.green >= 0.20) {
+                        } else if (Cola3.green > Cola3.blue || Cola4.green > Cola4.blue) {
                             flipper2.setPosition(50);
                             sleep(2000);
                             flipper2.setPosition(0);
-                        }else if (Cola5.green >= 0.20 || Cola6.green >= 0.20) {
+                        }else if (Cola5.green > Cola5.blue || Cola6.green > Cola6.blue) {
                             flipper3.setPosition(50);
                             sleep(2000);
                             flipper3.setPosition(0);
                         }
-                        if (Cola1.blue >= 0.20 || Cola2. blue >= 0.20) {
+                        if (Cola1.blue > Cola1.green || Cola2.blue > Cola2.green) {
                             flipper1.setPosition(50);
                             sleep(2000);
                             flipper1.setPosition(0);
-                        } else if (Cola3.blue >= 0.20 || Cola4.blue >= 0.20) {
+                        } else if (Cola3.blue > Cola3.green || Cola4.blue > Cola4.green) {
                             flipper2.setPosition(50);
                             sleep(2000);
                             flipper2.setPosition(0);
-                        }else if (Cola5.blue >= 0.20 || Cola6.blue >= 0.20) {
+                        }else if (Cola5.blue > Cola5.green || Cola6.blue > Cola6.green) {
                             flipper3.setPosition(50);
                             sleep(2000);
                             flipper3.setPosition(0);
                         }
                         if (colorFind == 2){
-                            if (Cola1.blue >= 0.20 || Cola2.blue >= 0.20) {
+                            if (Cola1.blue > Cola1.green || Cola2.blue > Cola2.green) {
                                 flipper1.setPosition(50);
                                 sleep(2000);
                                 flipper1.setPosition(0);
-                            } else if (Cola3.blue >= 0.20 || Cola4.blue >= 0.20) {
+                            } else if (Cola3.blue > Cola3.green || Cola4.blue > Cola4.green) {
                                 flipper2.setPosition(50);
                                 sleep(2000);
                                 flipper2.setPosition(0);
-                            }else if (Cola5.blue >= 0.20 || Cola6.blue >= 0.20) {
+                            }else if (Cola5.blue > Cola5.green || Cola6.blue > Cola6.green) {
                                 flipper3.setPosition(50);
                                 flipper3.setPosition(0);
                             }
-                            if (Cola1.blue >= 0.20 || Cola2.blue >= 0.20) {
+                            if (Cola1.blue > Cola1.green || Cola2.blue > Cola2.green) {
                                 flipper1.setPosition(50);
                                 sleep(2000);
                                 flipper1.setPosition(0);
-                            } else if (Cola3.blue >= 0.20 || Cola4.blue >= 0.20) {
+                            } else if (Cola3.blue > Cola3.green || Cola4.blue > Cola4.green) {
                                 flipper2.setPosition(50);
                                 sleep(2000);
                                 flipper2.setPosition(0);
-                            }else if (Cola5.blue >= 0.20 || Cola6.blue >= 0.20) {
+                            }else if (Cola5.blue > Cola5.green || Cola6.blue > Cola6.green) {
                                 flipper3.setPosition(50);
                                 sleep(2000);
                                 flipper3.setPosition(0);
                             }
-                            if (Cola1.green >= 0.20 || Cola2.green >= 0.20) {
+                            if (Cola1.green > Cola1.blue || Cola2.green > Cola2.blue) {
                                 flipper1.setPosition(50);
                                 sleep(2000);
                                 flipper1.setPosition(0);
-                            } else if (Cola3.green >= 0.20 || Cola4.green >= 0.20) {
+                            } else if (Cola3.green > Cola3.blue || Cola4.green > Cola4.blue) {
                                 flipper2.setPosition(50);
                                 sleep(2000);
                                 flipper2.setPosition(0);
-                            }else if (Cola5.green >= 0.20 || Cola6.green >= 0.20) {
+                            }else if (Cola5.green > Cola5.blue || Cola6.green > Cola6.blue) {
                                 flipper3.setPosition(50);
                                 sleep(2000);
                                 flipper3.setPosition(0);
                             }
                         }
                         if (colorFind == 3){
-                            if (Cola1.green >= 0.20 || Cola2.green >= 0.20) {
+                            if (Cola1.green > Cola1.blue || Cola2.green > Cola2.blue) {
                                 flipper1.setPosition(180);
                                 sleep(2000);
                                 flipper1.setPosition(0);
-                            } else if (Cola3.green >= 0.20 || Cola4.green >= 0.20) {
+                            } else if (Cola3.green > Cola3.blue || Cola4.green > Cola4.blue) {
                                 flipper2.setPosition(180);
                                 sleep(2000);
                                 flipper2.setPosition(0);
-                            }else if (Cola5.green >= 0.20 || Cola6.green >= 0.20) {
+                            }else if (Cola5.green > Cola5.blue || Cola6.green > Cola6.blue) {
                                 flipper3.setPosition(180);
                                 sleep(2000);
                                 flipper3.setPosition(0);
                             }
-                            if (Cola1.blue >= 0.20 || Cola2.blue >= 0.20) {
+                            if (Cola1.blue > Cola1.green || Cola2.blue > Cola2.green) {
                                 flipper1.setPosition(180);
                                 sleep(2000);
                                 flipper1.setPosition(0);
-                            } else if (Cola3.blue >= 0.20 || Cola4.blue >= 0.20) {
+                            } else if (Cola3.blue > Cola3.green || Cola4.blue > Cola4.green) {
                                 flipper2.setPosition(180);
                                 sleep(2000);
                                 flipper2.setPosition(0);
-                            }else if (Cola5.blue >= 0.20 || Cola6.blue >= 0.20) {
+                            }else if (Cola5.blue > Cola5.green || Cola6.blue > Cola6.green) {
                                 flipper3.setPosition(180);
                                 sleep(2000);
                                 flipper3.setPosition(0);
                             }
-                            if (Cola1.blue >= 0.20 || Cola2.blue >= 0.20) {
+                            if (Cola1.blue > Cola1.green || Cola2.blue > Cola2.green) {
                                 flipper1.setPosition(180);
                                 sleep(2000);
                                 flipper1.setPosition(0);
-                            } else if (Cola3.blue >= 0.20 || Cola4.blue >= 0.20) {
+                            } else if (Cola3.blue > Cola3.green || Cola4.blue > Cola4.green) {
                                 flipper2.setPosition(180);
                                 sleep(2000);
                                 flipper2.setPosition(0);
-                            }else if (Cola5.blue >= 0.20 || Cola6.blue >= 0.20) {
+                            }else if (Cola5.blue > Cola5.green || Cola6.blue > Cola6.green) {
                                 flipper3.setPosition(180);
                                 sleep(2000);
                                 flipper3.setPosition(0);
@@ -416,6 +422,7 @@ public class decodeskeletonthing extends LinearOpMode {
             rightFront = drive - turn + strafe;
             rightBack = drive - turn - strafe;
 
+            //shoot from closer zone
             if (gamepad2.dpad_right){
                 targetDeltaX = areaTwox;
                 theta = areaTwoAngle;
@@ -423,6 +430,7 @@ public class decodeskeletonthing extends LinearOpMode {
                 denominator = 2 * Math.pow(Math.cos(launchAngle), 2) * (targetDeltaX * Math.tan(launchAngle) - targetDeltaY);
                 initialVelocitySquared = numerator / denominator;
                 requiredInitialVelocity = Math.sqrt(initialVelocitySquared);
+            //shoot from farther zone
             } else if (gamepad2.dpad_left){
                 targetDeltaX = areaOnex;
                 theta = areaOneAngle;
@@ -473,4 +481,4 @@ public class decodeskeletonthing extends LinearOpMode {
         }
     }
 
-}}}
+}}

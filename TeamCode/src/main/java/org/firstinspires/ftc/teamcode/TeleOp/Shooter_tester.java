@@ -40,6 +40,30 @@ public class Shooter_tester extends LinearOpMode{
     public void runOpMode() {
         final double GRAVITY = 9.81;
         float gain = 2;
+        double areaOnex = 1.30;
+        double areaOneAngle = Math.toRadians(79.967);
+        double areaTwox = 0.675;
+        double areaTwoAngle = Math.toRadians(71.184);
+        double initialVelocity = 0; // Example initial velocity (m/s)
+        double deltaX = areaOnex;          // Example horizontal distance (m)
+        double theta = areaOneAngle; // Example launch angle (45 degrees)
+        //double calculatedDeltaY = (deltaX * Math.tan(theta)) - (GRAVITY * Math.pow(deltaX, 2)) / (2 * Math.pow(initialVelocity * Math.cos(theta), 2));
+        //telemetry.addData("Calculated Trajectory", calculatedDeltaY);
+        telemetry.update();
+        sleep( 2000);
+        double targetDeltaX = areaTwox;    // Target horizontal distance (m)
+        double targetDeltaY = 0.23;    // Target vertical distance (m)
+        double launchAngle = Math.toRadians(30); // Target launch angle (30 degrees)
+        // run until the end of the match (driver presses STOP)
+        double numerator = GRAVITY * Math.pow(targetDeltaX, 2);
+        double denominator = 2 * Math.pow(Math.cos(areaTwoAngle), 2) * (targetDeltaX * Math.tan(areaTwoAngle) - targetDeltaY);
+        if (denominator <= 0) {
+            telemetry.addData("Error", "No valid initial velocity found for these parameters.");
+            telemetry.update();
+            return;
+        }
+        double initialVelocitySquared = numerator / denominator;
+        double requiredInitialVelocity = Math.sqrt(initialVelocitySquared);
         int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
         relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
 
@@ -86,19 +110,35 @@ public class Shooter_tester extends LinearOpMode{
 
             if (gamepad2.triangle) {
                flipper1.setPosition(0.25);
-                if (Cola1.blue < 0.20) {
-                    sleep(2000);
+                if (Cola1.green > Cola1.blue) {
                     flipper1.setPosition(1);
                     sleep(2000);
                     flipper1.setPosition(0);
                 }
 
+                telemetry.addLine()
+                        .addData("Red", "%.3f", Cola1.red)
+                        .addData("Green", "%.3f", Cola1.green)
+                        .addData("Blue", "%.3f", Cola1.blue);
+                telemetry.addLine()
+                        .addData("Hue", "%.3f", hsvValues[0])
+                        .addData("Saturation", "%.3f", hsvValues[1])
+                        .addData("Value", "%.3f", hsvValues[2]);
+                telemetry.addData("Alpha", "%.3f", Cola1.alpha);
                 //      flipper2.setPosition(25);
                 //      flipper3.setPosition(25);
 
-                shooter.setPower(1);
+
 
             }
+            loop();
+            if (gamepad2.circle){
+                shooter.setPower(0.75);
+            }
+            else {
+                shooter.setPower(0);
+            }
+
 
         }}
 
