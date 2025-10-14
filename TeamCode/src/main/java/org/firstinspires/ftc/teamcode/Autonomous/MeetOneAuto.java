@@ -134,6 +134,17 @@ public class MeetOneAuto extends LinearOpMode {
      *  2) Move runs out of time
      *  3) Driver stops the OpMode running.
      */
+    public void getRequiredInitialVelocity(double GRAVITY, double launchAngle,
+                                           double targetDeltaX, double targetDeltaY){
+        GRAVITY = 9.81;
+        targetDeltaX = 2.0;
+        targetDeltaY = 0.5;
+        launchAngle = Math.toRadians(30);
+        double numerator = GRAVITY * Math.pow(targetDeltaX, 2);
+        double denominator = 2 * Math.pow(Math.cos(launchAngle), 2) * (targetDeltaX * Math.tan(launchAngle) - targetDeltaY);
+        double initialVelocitySquared = numerator/denominator;
+        double requiredInitialVelocity = Math.sqrt(initialVelocitySquared);
+    }
     public void encoderDrive(double speed,
                              double leftFrontInches, double rightFrontInches,
                              double leftBackInches, double rightBackInches, boolean strafe, boolean Shooting, double shooterPower,
