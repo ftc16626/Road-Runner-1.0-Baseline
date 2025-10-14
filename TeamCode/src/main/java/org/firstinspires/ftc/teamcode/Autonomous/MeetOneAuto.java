@@ -39,7 +39,7 @@ public class MeetOneAuto extends LinearOpMode {
             (WHEEL_DIAMETER_INCHES * 3.141592653589);
     static final double     DRIVE_SPEED             = 0.6;
     static final double     TURN_SPEED              = 0.5;
-    public String artifiactPattern;
+    public String artifactPattern;
 
 
 
@@ -103,13 +103,13 @@ public class MeetOneAuto extends LinearOpMode {
         HuskyLens.Block block = null;
         //PPG = 4 GPP = 5 PGP = 1
         if (block.id == 1) {
-            artifiactPattern = "PGP";
+            artifactPattern = "PGP";
         }
         if(block.id == 4) {
-            artifiactPattern = "PPG";
+            artifactPattern = "PPG";
         }
         if(block.id == 5) {
-               artifiactPattern = "GPP";
+               artifactPattern = "GPP";
         }
 
 
@@ -209,14 +209,14 @@ public class MeetOneAuto extends LinearOpMode {
                     (runtime.seconds() < timeoutS) &&
                     (leftFrontDrive.isBusy() && rightFrontDrive.isBusy() && leftBackDrive.isBusy() && rightBackDrive.isBusy())) {
 
-                if (colors.green > colors.blue) {
+                if (colors.green > 0.5 && colors.blue < 0.5) {
                     Color = "Green";
                 } else {
                     Color = "Purple";
                 }
 
                 if(Shooting) {
-                    if (artifiactPattern == "PGP"){
+                    if (artifactPattern == "PGP"){
                         if(shootingStep == 1 && Color == "Purple"){
                             shooter.setPower(shooterPower);
                             shootingStep = shootingStep + 1;
@@ -230,7 +230,7 @@ public class MeetOneAuto extends LinearOpMode {
                             shootingStep = 1;
                         }
                     }
-                    if (artifiactPattern == "PPG"){
+                    if (artifactPattern == "PPG"){
                         if(shootingStep == 1 && Color == "Purple"){
                             shooter.setPower(shooterPower);
                             shootingStep = shootingStep + 1;
@@ -244,7 +244,7 @@ public class MeetOneAuto extends LinearOpMode {
                             shootingStep = 1;
                         }
                     }
-                    if (artifiactPattern == "GPP"){
+                    if (artifactPattern == "GPP"){
                         if(shootingStep == 1 && Color == "Green"){
                             shooter.setPower(shooterPower);
                             shootingStep = shootingStep + 1;
