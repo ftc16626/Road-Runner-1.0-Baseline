@@ -55,6 +55,10 @@ public class PhysicsTrajectoryCalculation extends LinearOpMode {
 
         double initialVelocitySquared = numerator / denominator;
         double requiredInitialVelocity = Math.sqrt(initialVelocitySquared);
+        double drivingSpeed = GRAVITY * Math.pow(targetDeltaX,2) / 2 * (Math.pow(Math.cos(theta), 2)) * (targetDeltaX * Math.tan(theta) - targetDeltaY);
+        double requiredDrivingSpeed = Math.sqrt(drivingSpeed);
+        double wheelRadius = 2;
+        double omega = requiredDrivingSpeed / wheelRadius;
 
         telemetry.addData("Initial Velocity^2 (required)", initialVelocitySquared);
         telemetry.addData("Initial Velocity (required)", requiredInitialVelocity);
