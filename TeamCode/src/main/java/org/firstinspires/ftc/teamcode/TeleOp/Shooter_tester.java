@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 public class Shooter_tester extends LinearOpMode{
    // private DcMotor shooter;
     private Servo flipper1;
-    private DcMotor shooter;
+     private DcMotor shooter;
   //  private Servo flipper2;
  //   private Servo flipper3;
     private NormalizedColorSensor first;
@@ -105,14 +105,23 @@ public class Shooter_tester extends LinearOpMode{
       //  shooter.setDirection(DcMotorSimple.Direction.FORWARD);
         waitForStart();
         while (opModeIsActive()) {
+            if (gamepad1.triangle) {
+                flipper1.setPosition(0.5);// center
+            }
+            else if (gamepad1.circle) {
+                flipper1.setPosition(1);//straight down
+            }
+            else if (gamepad1.square){
+                flipper1.setPosition(0.1); // up for some reason
+            }
 
 
             NormalizedRGBA Cola1 = first.getNormalizedColors();
             Color.colorToHSV(Cola1.toColor(), hsvValues);
 
-            if (gamepad2.triangle) {
+            //if (gamepad2.triangle) {
 
-                flipper1.setPosition(-.1);
+               // flipper1.setPosition(-.1);
               //  if (Cola1.green > Cola1.blue) {
                 //    flipper1.setPosition(-0.1);
                   //  sleep(2000);
@@ -147,4 +156,4 @@ public class Shooter_tester extends LinearOpMode{
 
 
 
-            }
+
