@@ -3,10 +3,12 @@ package org.firstinspires.ftc.teamcode.Autonomous;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.SwitchableLight;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -19,7 +21,17 @@ public class MeetOneAuto extends LinearOpMode {
     private DcMotor         leftBackDrive   = null;
     private DcMotor         rightBackDrive  = null;
     private DcMotor         shooter = null;
-    private NormalizedColorSensor colorSensor;
+    private Servo servoI;
+    private Servo servoII;
+    private Servo servoIII;
+    private CRServo intakeServoI;
+    private CRServo intakeServoII;
+    private NormalizedColorSensor colorSensorI;
+    private NormalizedColorSensor colorSensorII;
+    private NormalizedColorSensor colorSensorIII;
+    private NormalizedColorSensor colorSensorIV;
+    private NormalizedColorSensor colorSensorV;
+    private NormalizedColorSensor colorSensorVI;
     private HuskyLens huskyLens;
 
 
@@ -52,7 +64,17 @@ public class MeetOneAuto extends LinearOpMode {
         leftBackDrive  = hardwareMap.get(DcMotor.class, "LBMotor");
         rightBackDrive = hardwareMap.get(DcMotor.class, "RBMotor");
         shooter = hardwareMap.get(DcMotor.class, "shooter");
-        colorSensor = hardwareMap.get(NormalizedColorSensor.class, "sensor_color");
+        servoI = hardwareMap.get(Servo.class, "flipper1");
+        servoII = hardwareMap.get(Servo.class, "flipper2");
+        servoIII = hardwareMap.get(Servo.class, "flipper3");
+        intakeServoI = hardwareMap.get(CRServo.class, "");
+        intakeServoII = hardwareMap.get(CRServo.class, "");
+        colorSensorI = hardwareMap.get(NormalizedColorSensor.class, "first");
+        colorSensorII = hardwareMap.get(NormalizedColorSensor.class, "second");
+        colorSensorIII = hardwareMap.get(NormalizedColorSensor.class, "third");
+        colorSensorIV = hardwareMap.get(NormalizedColorSensor.class, "fourth");
+        colorSensorV = hardwareMap.get(NormalizedColorSensor.class, "fifth");
+        colorSensorVI = hardwareMap.get(NormalizedColorSensor.class, "sixth");
         huskyLens = hardwareMap.get(HuskyLens.class, "huskylens");
 
         if (!huskyLens.knock()) {
@@ -83,11 +105,31 @@ public class MeetOneAuto extends LinearOpMode {
         leftBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        if (colorSensor instanceof SwitchableLight) {
-            ((SwitchableLight)colorSensor).enableLight(true);
+        if (colorSensorI instanceof SwitchableLight) {
+            ((SwitchableLight)colorSensorI).enableLight(true);
+        }
+        if (colorSensorII instanceof SwitchableLight) {
+            ((SwitchableLight)colorSensorII).enableLight(true);
+        }
+        if (colorSensorIII instanceof SwitchableLight) {
+            ((SwitchableLight)colorSensorIII).enableLight(true);
+        }
+        if (colorSensorIV instanceof SwitchableLight) {
+            ((SwitchableLight)colorSensorIV).enableLight(true);
+        }
+        if (colorSensorV instanceof SwitchableLight) {
+            ((SwitchableLight)colorSensorV).enableLight(true);
+        }
+        if (colorSensorVI instanceof SwitchableLight) {
+            ((SwitchableLight)colorSensorVI).enableLight(true);
         }
 
-        colorSensor.setGain(1);
+        colorSensorI.setGain(1);
+        colorSensorII.setGain(1);
+        colorSensorIII.setGain(1);
+        colorSensorIV.setGain(1);
+        colorSensorV.setGain(1);
+        colorSensorVI.setGain(1);
 
 
         // Send telemetry message to indicate successful Encoder reset
@@ -109,7 +151,7 @@ public class MeetOneAuto extends LinearOpMode {
             artifactPattern = "PPG";
         }
         if(block.id == 5) {
-               artifactPattern = "GPP";
+            artifactPattern = "GPP";
         }
 
 
@@ -120,7 +162,7 @@ public class MeetOneAuto extends LinearOpMode {
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
         //encoderDrive(DRIVE_SPEED,   72, 72, 72, 72, false, 0, 5);  // S2: Turn Right 12 Inches with 4 Sec timeout
         //encoderDrive(1, -13.5, 13.5, -13.5, 13.5, false, 0,3);  // S3: Reverse 24 Inches with 4 Sec timeout
-        encoderDrive(0,0,0,0,0, false,true,0.6,5);
+        encoderDrive(0,0,0,0,0, false, 0,true,0.6,5);
         telemetry.addData("Path", "Complete");
         telemetry.update();
         sleep(1000);  // pause to display final telemetry message.
@@ -136,7 +178,7 @@ public class MeetOneAuto extends LinearOpMode {
      */
 
     ///Step used prior to EncoderDrive reference with Shooting = true, retrieves velocity artifact needs to travel
-    public double getRequiredInitialVelocity( double launchAngle,
+    public double getRequiredInitialVelocity(double launchAngle,
                                            double targetDeltaX, double targetDeltaY){
         double GRAVITY = 9.81; //  m/s^2
         launchAngle = Math.toRadians(launchAngle);
@@ -148,15 +190,22 @@ public class MeetOneAuto extends LinearOpMode {
     }
     public void encoderDrive(double speed,
                              double leftFrontInches, double rightFrontInches,
-                             double leftBackInches, double rightBackInches, boolean strafe, boolean Shooting, double shooterPower,
+                             double leftBackInches, double rightBackInches, boolean strafe, double IntakePower, boolean Shooting, double shooterPower,
                              double timeoutS) {
         int newLeftFrontTarget;
         int newRightFrontTarget;
         int newLeftBackTarget;
         int newRightBackTarget;
         int shootingStep = 1;
-        String Color = "Empty";
-        NormalizedRGBA colors = colorSensor.getNormalizedColors();
+        String ColorI = "Empty";
+        String ColorII = "Empty";
+        String ColorIII = "Empty";
+        NormalizedRGBA colorsI = colorSensorI.getNormalizedColors();
+        NormalizedRGBA colorsII = colorSensorII.getNormalizedColors();
+        NormalizedRGBA colorsIII = colorSensorIII.getNormalizedColors();
+        NormalizedRGBA colorsIV = colorSensorIV.getNormalizedColors();
+        NormalizedRGBA colorsV = colorSensorV.getNormalizedColors();
+        NormalizedRGBA colorsVI = colorSensorVI.getNormalizedColors();
 
 
         // Ensure that the OpMode is still active
@@ -209,52 +258,175 @@ public class MeetOneAuto extends LinearOpMode {
                     (runtime.seconds() < timeoutS) &&
                     (leftFrontDrive.isBusy() && rightFrontDrive.isBusy() && leftBackDrive.isBusy() && rightBackDrive.isBusy())) {
 
-                if (colors.green > 0.5 && colors.blue < 0.5) {
-                    Color = "Green";
+
+                intakeServoI.setPower(IntakePower);
+                intakeServoII.setPower(-IntakePower);
+
+                if (colorsI.green > 0.5 && colorsI.blue < 0.5 || colorsII.green > 0.5 && colorsII.blue < 0.5) {
+                    ColorI = "Green";
                 } else {
-                    Color = "Purple";
+                    ColorI = "Purple";
+                }
+                if (colorsIII.green > 0.5 && colorsIII.blue < 0.5 || colorsIV.green > 0.5 && colorsIV.blue < 0.5) {
+                    ColorII = "Green";
+                } else {
+                    ColorII = "Purple";
+                }
+                if (colorsV.green > 0.5 && colorsV.blue < 0.5 || colorsVI.green > 0.5 && colorsVI.blue < 0.5) {
+                    ColorIII = "Green";
+                } else {
+                    ColorIII = "Purple";
                 }
 
                 if(Shooting) {
-                    if (artifactPattern == "PGP"){
-                        if(shootingStep == 1 && Color == "Purple"){
+                    if (artifactPattern == "PGP") {
+                            //Shooting the first artifact of the pattern
+                            if (ColorI == "Purple" && shootingStep == 1) {
+                                shooter.setPower(shooterPower);
+                                servoI.setPosition(0.1);
+                                shootingStep += 1;
+                            }
+                            if (ColorII == "Purple" && shootingStep == 1) {
+                                shooter.setPower(shooterPower);
+                                servoII.setPosition(0.9);
+                                shootingStep += 1;
+                            }
+                            if (ColorIII == "Purple" && shootingStep == 1) {
+                                shooter.setPower(shooterPower);
+                                servoIII.setPosition(0.9);
+                                shootingStep += 1;
+                            }
+
+                            //Shooting the second artifact of the pattern
+                            if (ColorI == "Green" && shootingStep == 2) {
+                                    shooter.setPower(shooterPower);
+                                    servoI.setPosition(0.1);
+                                    shootingStep += 1;
+                            }
+                            if (ColorII == "Green" && shootingStep == 2) {
+                                    shooter.setPower(shooterPower);
+                                    servoII.setPosition(0.9);
+                                    shootingStep += 1;
+                            }
+                            if (ColorIII == "Green" && shootingStep == 2) {
+                                    shooter.setPower(shooterPower);
+                                    servoIII.setPosition(0.9);
+                                    shootingStep += 1;
+                            }
+
+                        //Shooting the third artifact of the pattern
+                        if (ColorI == "Purple" && shootingStep == 3) {
                             shooter.setPower(shooterPower);
-                            shootingStep = shootingStep + 1;
-                        }
-                        if(shootingStep == 2 && Color == "Green"){
-                            shooter.setPower(shooterPower);
-                            shootingStep = shootingStep + 1;
-                        }
-                        if(shootingStep == 3 && Color == "Purple"){
-                            shooter.setPower(shooterPower);
+                            servoI.setPosition(0.1);
                             shootingStep = 1;
                         }
+                        if (ColorII == "Purple" && shootingStep == 3) {
+                            shooter.setPower(shooterPower);
+                            servoII.setPosition(0.9);
+                            shootingStep = 1;
+                        }
+                        if (ColorIII == "Purple" && shootingStep == 3) {
+                            shooter.setPower(shooterPower);
+                            servoIII.setPosition(0.9);
+                            shootingStep = 1;
+                        }
+
                     }
                     if (artifactPattern == "PPG"){
-                        if(shootingStep == 1 && Color == "Purple"){
+                        if (ColorI == "Purple" && shootingStep == 1) {
                             shooter.setPower(shooterPower);
-                            shootingStep = shootingStep + 1;
+                            servoI.setPosition(0.1);
+                            shootingStep += 1;
                         }
-                        if(shootingStep == 2 && Color == "Purple"){
+                        if (ColorII == "Purple" && shootingStep == 1) {
                             shooter.setPower(shooterPower);
-                            shootingStep = shootingStep + 1;
+                            servoII.setPosition(0.9);
+                            shootingStep += 1;
                         }
-                        if(shootingStep == 3 && Color == "Green"){
+                        if (ColorIII == "Purple" && shootingStep == 1) {
                             shooter.setPower(shooterPower);
+                            servoIII.setPosition(0.9);
+                            shootingStep += 1;
+                        }
+
+                        if (ColorI == "Purple" && shootingStep == 2) {
+                            shooter.setPower(shooterPower);
+                            servoI.setPosition(0.1);
+                            shootingStep += 1;
+                        }
+                        if (ColorII == "Purple" && shootingStep == 2) {
+                            shooter.setPower(shooterPower);
+                            servoII.setPosition(0.9);
+                            shootingStep += 1;
+                        }
+                        if (ColorIII == "Purple" && shootingStep == 2) {
+                            shooter.setPower(shooterPower);
+                            servoIII.setPosition(0.9);
+                            shootingStep += 1;
+                        }
+
+                        if (ColorI == "Green" && shootingStep == 3) {
+                            shooter.setPower(shooterPower);
+                            servoI.setPosition(0.1);
+                            shootingStep = 1;
+                        }
+                        if (ColorII == "Green" && shootingStep == 3) {
+                            shooter.setPower(shooterPower);
+                            servoII.setPosition(0.9);
+                            shootingStep = 1;
+                        }
+                        if (ColorIII == "Green" && shootingStep == 3) {
+                            shooter.setPower(shooterPower);
+                            servoIII.setPosition(0.9);
                             shootingStep = 1;
                         }
                     }
                     if (artifactPattern == "GPP"){
-                        if(shootingStep == 1 && Color == "Green"){
+                        if (ColorI == "Green" && shootingStep == 1) {
                             shooter.setPower(shooterPower);
-                            shootingStep = shootingStep + 1;
+                            servoI.setPosition(0.1);
+                            shootingStep += 1;
                         }
-                        if(shootingStep == 2 && Color == "Purple"){
+                        if (ColorII == "Green" && shootingStep == 1) {
                             shooter.setPower(shooterPower);
-                            shootingStep = shootingStep + 1;
+                            servoII.setPosition(0.9);
+                            shootingStep += 1;
                         }
-                        if(shootingStep == 3 && Color == "Purple"){
+                        if (ColorIII == "Green" && shootingStep == 1) {
                             shooter.setPower(shooterPower);
+                            servoIII.setPosition(0.9);
+                            shootingStep += 1;
+                        }
+
+                        if (ColorI == "Purple" && shootingStep == 2) {
+                            shooter.setPower(shooterPower);
+                            servoI.setPosition(0.1);
+                            shootingStep += 1;
+                        }
+                        if (ColorII == "Purple" && shootingStep == 2) {
+                            shooter.setPower(shooterPower);
+                            servoII.setPosition(0.9);
+                            shootingStep += 1;
+                        }
+                        if (ColorIII == "Purple" && shootingStep == 2) {
+                            shooter.setPower(shooterPower);
+                            servoIII.setPosition(0.9);
+                            shootingStep += 1;
+                        }
+
+                        if (ColorI == "Purple" && shootingStep == 3) {
+                            shooter.setPower(shooterPower);
+                            servoI.setPosition(0.1);
+                            shootingStep = 1;
+                        }
+                        if (ColorII == "Purple" && shootingStep == 3) {
+                            shooter.setPower(shooterPower);
+                            servoII.setPosition(0.9);
+                            shootingStep = 1;
+                        }
+                        if (ColorIII == "Purple" && shootingStep == 3) {
+                            shooter.setPower(shooterPower);
+                            servoIII.setPosition(0.9);
                             shootingStep = 1;
                         }
                     }
@@ -267,11 +439,11 @@ public class MeetOneAuto extends LinearOpMode {
                 telemetry.addData("Currently at",  " at %7d :%7d",
                         leftFrontDrive.getCurrentPosition(), rightFrontDrive.getCurrentPosition(), leftBackDrive.getCurrentPosition(), rightBackDrive.getCurrentPosition());
                 telemetry.addLine()
-                        .addData("Color:", Color);
+                        .addData("ColorI:", ColorI);
                 telemetry.addLine()
-                        .addData("Red", colors.red)
-                        .addData("Green", colors.green)
-                        .addData("Blue", colors.blue);
+                        .addData("Red", colorsI.red)
+                        .addData("Green", colorsI.green)
+                        .addData("Blue", colorsI.blue);
                 telemetry.update();
             }
 
