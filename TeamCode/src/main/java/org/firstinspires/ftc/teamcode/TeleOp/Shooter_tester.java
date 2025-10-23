@@ -24,19 +24,20 @@ import java.util.concurrent.TimeUnit;
 
 @TeleOp  (name = "Shooter Tester", group = "robot")
 public class Shooter_tester extends LinearOpMode{
-   // private DcMotor shooter;
     private Servo flipper1;
      private DcMotor shooter;
-  //  private Servo flipper2;
- //   private Servo flipper3;
+    private Servo flipper2;
+    private Servo flipper3;
     private NormalizedColorSensor first;
     private NormalizedColorSensor second;
     private NormalizedColorSensor third;
     private NormalizedColorSensor fourth;
     private NormalizedColorSensor fifth;
     private NormalizedColorSensor sixth;
+
     View relativeLayout;
     public void runOpMode() {
+
         final double GRAVITY = 9.81;
         float gain = 2;
         double areaOnex = 1.30;
@@ -55,7 +56,7 @@ public class Shooter_tester extends LinearOpMode{
         double launchAngle = Math.toRadians(30); // Target launch angle (30 degrees)
         // run until the end of the match (driver presses STOP)
         double numerator = GRAVITY * Math.pow(deltaXOne, 2);
-        double denominator = 2 * Math.pow(Math.cos(areaTwoAngle), 2) * (deltaXOne * Math.tan(areaTwoAngle) - targetDeltaY);
+        double denominator = 2 * Math.pow(Math.cos(areaOneAngle), 2) * (deltaXOne * Math.tan(areaOneAngle) - targetDeltaY);
         double drivingSpeed = GRAVITY * Math.pow(deltaXOne,2) / 2 * (Math.pow(Math.cos(theta), 2)) * (deltaXOne * Math.tan(theta) - targetDeltaY);
         double requiredDrivingSpeed = Math.sqrt(drivingSpeed);
         double wheelRadius = 2;
@@ -98,21 +99,25 @@ public class Shooter_tester extends LinearOpMode{
         shooter = hardwareMap.get(DcMotor.class, "shooter");
 
         flipper1 = hardwareMap.get(Servo.class, "flipper1");
-        //flipper2 = hardwareMap.get(Servo.class, "flipper2");
-        //flipper3 = hardwareMap.get(Servo.class, "flipper3");
+        flipper2 = hardwareMap.get(Servo.class, "flipper2");
+        flipper3 = hardwareMap.get(Servo.class, "flipper3");
         first.setGain(gain);
+        shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
       //  shooter.setDirection(DcMotorSimple.Direction.FORWARD);
         waitForStart();
         while (opModeIsActive()) {
             if (gamepad1.triangle) {
                 flipper1.setPosition(0.5);// center
-            }
-            else if (gamepad1.circle) {
-                flipper1.setPosition(1);//straight down
+                flipper2.setPosition(0.5);
+                flipper3.setPosition(0.51);
             }
             else if (gamepad1.square){
-                flipper1.setPosition(0.1); // up for some reason
+                flipper1.setPosition(0.1);
+            } else if (gamepad1.circle) {
+                flipper2.setPosition(0.9);
+            } else if (gamepad1.a) {
+                flipper3.setPosition(0.89);
             }
 
 
@@ -139,17 +144,16 @@ public class Shooter_tester extends LinearOpMode{
                 telemetry.addData("Alpha", "%.3f", Cola1.alpha);
                 //      flipper2.setPosition(25);
                 //      flipper3.setPosition(25);
-
-
-
-            }
-            loop();
             if (gamepad2.circle){
-                shooter.setPower(requiredOmega);
+                shooter.setPower(0.75);
             }
             else {
                 shooter.setPower(0);
             }
+
+
+            }
+
 
 
         }}
