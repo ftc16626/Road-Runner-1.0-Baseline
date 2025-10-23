@@ -24,8 +24,7 @@ public class MeetOneAuto extends LinearOpMode {
     private Servo servoI;
     private Servo servoII;
     private Servo servoIII;
-    private CRServo intakeServoI;
-    private CRServo intakeServoII;
+    private CRServo intakeServo;
     private NormalizedColorSensor colorSensorI;
     private NormalizedColorSensor colorSensorII;
     private NormalizedColorSensor colorSensorIII;
@@ -67,8 +66,7 @@ public class MeetOneAuto extends LinearOpMode {
         servoI = hardwareMap.get(Servo.class, "flipper1");
         servoII = hardwareMap.get(Servo.class, "flipper2");
         servoIII = hardwareMap.get(Servo.class, "flipper3");
-        intakeServoI = hardwareMap.get(CRServo.class, "");
-        intakeServoII = hardwareMap.get(CRServo.class, "");
+        intakeServo = hardwareMap.get(CRServo.class, "");
         colorSensorI = hardwareMap.get(NormalizedColorSensor.class, "first");
         colorSensorII = hardwareMap.get(NormalizedColorSensor.class, "second");
         colorSensorIII = hardwareMap.get(NormalizedColorSensor.class, "third");
@@ -259,8 +257,7 @@ public class MeetOneAuto extends LinearOpMode {
                     (leftFrontDrive.isBusy() && rightFrontDrive.isBusy() && leftBackDrive.isBusy() && rightBackDrive.isBusy())) {
 
 
-                intakeServoI.setPower(IntakePower);
-                intakeServoII.setPower(-IntakePower);
+                intakeServo.setPower(IntakePower);
 
                 if (colorsI.green > 0.5 && colorsI.blue < 0.5 || colorsII.green > 0.5 && colorsII.blue < 0.5) {
                     ColorI = "Green";
