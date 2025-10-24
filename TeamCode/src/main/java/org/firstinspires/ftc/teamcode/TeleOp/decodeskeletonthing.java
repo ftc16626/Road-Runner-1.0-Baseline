@@ -24,14 +24,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.concurrent.TimeUnit;
 
-@TeleOp (name = "decode skeleton code", group = "robot")
+@TeleOp (name = "mainTeleop", group = "robot")
 public class decodeskeletonthing extends LinearOpMode {
     private DcMotor leftFrontMotor;
     private DcMotor leftBackMotor;
     private DcMotor  rightFrontMotor;
     private DcMotor  rightBackMotor;
     private DcMotor shooter;
-    private CRServo conveyorServo;
+    //private CRServo conveyorServo;
     private CRServo rollerServo;
     private Servo armThing;
     private Servo flipper1;
@@ -55,7 +55,6 @@ public class decodeskeletonthing extends LinearOpMode {
         double rightBack;
         double drive;
         double turn;
-        double max;
         double strafe;
         final double GRAVITY = 9.81;
         float gain = 2;
@@ -92,9 +91,9 @@ public class decodeskeletonthing extends LinearOpMode {
         leftBackMotor  = hardwareMap.get(DcMotor.class, "LBMotor");
         rightBackMotor = hardwareMap.get(DcMotor.class, "RBMotor");
         shooter = hardwareMap.get(DcMotor.class, "shooter");
-        conveyorServo =  hardwareMap.get(CRServo.class, "conveyor");
+       // conveyorServo =  hardwareMap.get(CRServo.class, "conveyor");
         rollerServo =  hardwareMap.get(CRServo.class, "roller");
-        armThing = hardwareMap.get(Servo.class, "armThing");
+        //armThing = hardwareMap.get(Servo.class, "armThing");
         allSeeingEye = hardwareMap.get(HuskyLens.class, "allSeeingEye");
         first = hardwareMap.get(NormalizedColorSensor.class, "first");
         second = hardwareMap.get(NormalizedColorSensor.class, "first");
@@ -105,6 +104,11 @@ public class decodeskeletonthing extends LinearOpMode {
         flipper1 = hardwareMap.get(Servo.class, "flipper1");
         flipper2 = hardwareMap.get(Servo.class, "flipper2");
         flipper3 = hardwareMap.get(Servo.class, "flipper3");
+        leftBackMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftFrontMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBackMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFrontMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         first.setGain(gain);
         second.setGain(gain);
@@ -166,13 +170,18 @@ public class decodeskeletonthing extends LinearOpMode {
         rightFrontMotor.setDirection(DcMotor.Direction.FORWARD);
         shooter.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        IMU imu = hardwareMap.get(IMU.class, "imu");
+        leftFrontMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightFrontMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftBackMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightBackMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+       // IMU imu = hardwareMap.get(IMU.class, "imu");
         // Adjust the orientation parameters to match your robot
-        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+       // IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+        //        RevHubOrientationOnRobot.LogoFacingDirection.UP,
+        //        RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
         // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
-        imu.initialize(parameters);
+       // imu.initialize(parameters);
         // Define and initialize ALL installed servos.
 
 
@@ -183,6 +192,7 @@ public class decodeskeletonthing extends LinearOpMode {
 
         // Wait for the game to start (driver presses START)
         waitForStart();
+
         double colorFind = 0;
         String obeliskCode;
         double areaOnex = 1.30;
@@ -212,11 +222,11 @@ public class decodeskeletonthing extends LinearOpMode {
         telemetry.addData("Initial Velocity^2 (required)", initialVelocitySquared);
         telemetry.addData("Initial Velocity (required)", requiredInitialVelocity);
         telemetry.update();
-
-        sleep(10000); // Wait for telemetry to
+        // Wait for telemetry to
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            double max;
             if (!rateLimit.hasExpired()) {
                 continue;
             }
@@ -254,12 +264,12 @@ public class decodeskeletonthing extends LinearOpMode {
             NormalizedRGBA Cola6 = sixth.getNormalizedColors();
             Color.colorToHSV(Cola6.toColor(), hsvValues);
 
-            if (gamepad1.right_bumper){
-                armThing.setPosition(1);
-            }
-            else if (gamepad1.left_bumper){
-                armThing.setPosition(0);
-            }
+            //if (gamepad1.right_bumper){
+               // armThing.setPosition(1);
+            //}
+           // else if (gamepad1.left_bumper){
+                //armThing.setPosition(0);
+            //}
 
 
 
@@ -388,7 +398,7 @@ public class decodeskeletonthing extends LinearOpMode {
                                 flipper3.setPosition(0);
                             }
                 }
-                }
+                }}
 
 
 
@@ -403,16 +413,16 @@ public class decodeskeletonthing extends LinearOpMode {
             turn  =  gamepad1.right_stick_x;
             strafe = gamepad1.left_stick_x;
 
-            if (gamepad1.options) {
-                imu.resetYaw();
-            }
+      //      if (gamepad1.options) {
+       //         imu.resetYaw();
+         //   }
 
-            double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+           // double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
-            double rotX = strafe * Math.cos(-botHeading) - drive * Math.sin(-botHeading);
-            double rotY = strafe * Math.sin(-botHeading) + drive * Math.cos(-botHeading);
+       //     double rotX = strafe * Math.cos(-botHeading) - drive * Math.sin(-botHeading);
+          //  double rotY = strafe * Math.sin(-botHeading) + drive * Math.cos(-botHeading);
 
-            rotX = rotX * 1.1;  // Counteract imperfect strafing
+            //rotX = rotX * 1.1;  // Counteract imperfect strafing
             // Combine drive and turn for blended motion.
 
 
@@ -422,23 +432,33 @@ public class decodeskeletonthing extends LinearOpMode {
             rightFront = drive - turn + strafe;
             rightBack = drive - turn - strafe;
 
-            //shoot from closer zone
-            if (gamepad2.dpad_right){
-                targetDeltaX = areaTwox;
-                theta = areaTwoAngle;
-                numerator = GRAVITY * Math.pow(targetDeltaX, 2);
-                denominator = 2 * Math.pow(Math.cos(launchAngle), 2) * (targetDeltaX * Math.tan(launchAngle) - targetDeltaY);
-                initialVelocitySquared = numerator / denominator;
-                requiredInitialVelocity = Math.sqrt(initialVelocitySquared);
-            //shoot from farther zone
-            } else if (gamepad2.dpad_left){
-                targetDeltaX = areaOnex;
-                theta = areaOneAngle;
-                numerator = GRAVITY * Math.pow(targetDeltaX, 2);
-                denominator = 2 * Math.pow(Math.cos(launchAngle), 2) * (targetDeltaX * Math.tan(launchAngle) - targetDeltaY);
-                initialVelocitySquared = numerator / denominator;
-                requiredInitialVelocity = Math.sqrt(initialVelocitySquared);
+            max = Math.max(Math.abs(leftFront), Math.abs(rightFront));
+            max = Math.max(max, Math.abs(leftBack));
+            max = Math.max(max, Math.abs(rightBack));
+            if (max > 1.0) {
+                leftFront /= max;
+                rightFront /= max;
+                leftBack /= max;
+                rightBack /= max;
             }
+
+            //shoot from closer zone
+            //if (gamepad2.dpad_right){
+               // targetDeltaX = areaTwox;
+                //theta = areaTwoAngle;
+                //numerator = GRAVITY * Math.pow(targetDeltaX, 2);
+                //denominator = 2 * Math.pow(Math.cos(launchAngle), 2) * (targetDeltaX * Math.tan(launchAngle) - targetDeltaY);
+                //initialVelocitySquared = numerator / denominator;
+                //requiredInitialVelocity = Math.sqrt(initialVelocitySquared);
+            //shoot from farther zone
+           // } else if (gamepad2.dpad_left){
+                //targetDeltaX = areaOnex;
+                //theta = areaOneAngle;
+                //numerator = GRAVITY * Math.pow(targetDeltaX, 2);
+                //denominator = 2 * Math.pow(Math.cos(launchAngle), 2) * (targetDeltaX * Math.tan(launchAngle) - targetDeltaY);
+                //initialVelocitySquared = numerator / denominator;
+                //requiredInitialVelocity = Math.sqrt(initialVelocitySquared);
+            //}
 
 
 
@@ -449,11 +469,16 @@ public class decodeskeletonthing extends LinearOpMode {
             rightFrontMotor.setPower(rightFront);
             leftBackMotor.setPower(leftBack);
             rightBackMotor.setPower(rightBack);
-            conveyorServo.setPower(1);
-            rollerServo.setPower(1);
-            shooter.setPower(requiredInitialVelocity);
-            while (gamepad1.left_bumper){
-                shooter.setPower(-1);
+            //conveyorServo.setPower(1);
+            if (gamepad1.right_bumper) {
+                rollerServo.setPower(1);
+            } else if (gamepad1.left_bumper) {
+                rollerServo.setPower(-1);
+            }
+            if (gamepad2.right_bumper){
+                shooter.setPower(0.6);
+            }else if (gamepad2.left_bumper){
+                shooter.setPower(-0.4);
             }
 
 
@@ -478,7 +503,7 @@ public class decodeskeletonthing extends LinearOpMode {
 
             // Pace this loop so jaw action is reasonable speed.
             sleep(50);
-        }
+
     }
 
 }}
