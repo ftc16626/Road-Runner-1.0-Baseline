@@ -33,6 +33,7 @@ public class BlueDownAuto extends LinearOpMode {
     private NormalizedColorSensor colorSensorV;
     private NormalizedColorSensor colorSensorVI;
     private HuskyLens huskyLens;
+    double artifactPattern;
 
 
 
@@ -156,9 +157,10 @@ public class BlueDownAuto extends LinearOpMode {
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
 
 
-        //encoderDrive(0.2,-15.5,-15.5,-15.5,-15.5, false, 0,false,false,0.6, 5);
-        encoderDrive(0,0,0,0,0, false, 0, true, false, 0.6, 2);
-        //encoderDrive(0.2, -3.1, 3.1, -3.1, 3.1, false,0, false,false, 0.6,5);
+        encoderDrive(0.2,-21.5,-21.5,-21.5,-21.5, false, 0,false,false,0.6, 5);
+        encoderDrive(0,0,0,0,0, false, 0, true, false, 0.6, 5);
+        encoderDrive(0.2, -3.1, 3.1, -3.1, 3.1, false,0, false,false, 0.6,5);
+        encoderDrive(0.2,-3,-3,-3,-3,false,0,false,false,0,5);
         encoderDrive(0, 0, 0, 0, 0, false,0, false,true, 0.6,5);
         telemetry.addData("Path", "Complete");
         telemetry.update();
@@ -187,7 +189,6 @@ public class BlueDownAuto extends LinearOpMode {
         String ColorI = "Empty";
         String ColorII = "Empty";
         String ColorIII = "Empty";
-        double artifactPattern = 0 ;
         NormalizedRGBA colorsI = colorSensorI.getNormalizedColors();
         NormalizedRGBA colorsII = colorSensorII.getNormalizedColors();
         NormalizedRGBA colorsIII = colorSensorIII.getNormalizedColors();
@@ -326,6 +327,10 @@ public class BlueDownAuto extends LinearOpMode {
             leftBackDrive.setPower(0);
             rightBackDrive.setPower(0);
             shooter.setPower(0);
+
+            servoI.setPosition(0.5);
+            servoII.setPosition(0.5);
+            servoIII.setPosition(0.51);
 
 
             // Turn off RUN_TO_POSITION
