@@ -157,11 +157,13 @@ public class BlueDownAuto extends LinearOpMode {
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
 
 
-        encoderDrive(0.2,-21.5,-21.5,-21.5,-21.5, false, 0,false,false,0.6, 5);
+        encoderDrive(0.2,-12,-12,-12,-12, false, 0,false,false,0.6, 3);
         encoderDrive(0,0,0,0,0, false, 0, true, false, 0.6, 5);
-        encoderDrive(0.2, -3.1, 3.1, -3.1, 3.1, false,0, false,false, 0.6,5);
-        encoderDrive(0.2,-3,-3,-3,-3,false,0,false,false,0,5);
-        encoderDrive(0, 0, 0, 0, 0, false,0, false,true, 0.6,5);
+        encoderDrive(0.2,-8,-8,-8,-8, false, 0,false,false,0.6, 2);
+        encoderDrive(0.2, -5.6, 5.6, -5.6, 5.6, false,0, false,false, 0.6,5);
+        encoderDrive(0.2,-2.4,-2.4,-2.4,-2.4,false,0,false,false,0.7,5);
+        encoderDrive(0, 0, 0, 0, 0, false,0, false,true, 0.7,5);
+        encoderDrive(0.4, 3,3,3,3,false,0,false,false,0,3);
         telemetry.addData("Path", "Complete");
         telemetry.update();
         sleep(1000);  // pause to display final telemetry message.
@@ -221,16 +223,24 @@ public class BlueDownAuto extends LinearOpMode {
                     purple, green, purple*/
                 if (artifactPattern == 1) {
                     servoI.setPosition(0.9);
+                    sleep(1000);
                     servoII.setPosition(0.9);
+                    sleep(1000);
                     servoIII.setPosition(0.1);
                 } else if (artifactPattern == 2){
                     servoI.setPosition(0.9);
+                    sleep(1000);
                     servoIII.setPosition(0.1);
+                    sleep(1000);
                     servoII.setPosition(0.9);
                 } else if (artifactPattern == 3) {
                     servoII.setPosition(0.9);
+                    sleep(1000);
                     servoI.setPosition(0.9);
+                    sleep(1000);
                     servoIII.setPosition(0.1);
+                } else{
+                    servoI.setPosition(0.9);
                 }
             }
 

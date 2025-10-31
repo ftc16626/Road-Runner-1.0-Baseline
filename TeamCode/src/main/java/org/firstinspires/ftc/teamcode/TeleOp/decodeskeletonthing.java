@@ -56,6 +56,7 @@ public class decodeskeletonthing extends LinearOpMode {
         double drive;
         double turn;
         double strafe;
+        double shoot;
         final double GRAVITY = 9.81;
         float gain = 2;
 
@@ -91,7 +92,7 @@ public class decodeskeletonthing extends LinearOpMode {
         leftBackMotor  = hardwareMap.get(DcMotor.class, "LBMotor");
         rightBackMotor = hardwareMap.get(DcMotor.class, "RBMotor");
         shooter = hardwareMap.get(DcMotor.class, "shooter");
-       // conveyorServo =  hardwareMap.get(CRServo.class, "conveyor");
+        // conveyorServo =  hardwareMap.get(CRServo.class, "conveyor");
         rollerServo =  hardwareMap.get(CRServo.class, "roller");
         //armThing = hardwareMap.get(Servo.class, "armThing");
         allSeeingEye = hardwareMap.get(HuskyLens.class, "allSeeingEye");
@@ -170,18 +171,19 @@ public class decodeskeletonthing extends LinearOpMode {
         rightFrontMotor.setDirection(DcMotor.Direction.FORWARD);
         shooter.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        leftFrontMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightFrontMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        leftBackMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightBackMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftFrontMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightFrontMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftBackMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightBackMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-       // IMU imu = hardwareMap.get(IMU.class, "imu");
+        // IMU imu = hardwareMap.get(IMU.class, "imu");
         // Adjust the orientation parameters to match your robot
-       // IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+        // IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
         //        RevHubOrientationOnRobot.LogoFacingDirection.UP,
         //        RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
         // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
-       // imu.initialize(parameters);
+        // imu.initialize(parameters);
         // Define and initialize ALL installed servos.
 
 
@@ -227,31 +229,119 @@ public class decodeskeletonthing extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             double max;
-            if (!rateLimit.hasExpired()) {
-                continue;
-            }
-            rateLimit.reset();
-            if (gamepad1.square){
-                HuskyLens.Block[] blocks = allSeeingEye.blocks();
-                telemetry.addData("Block count", blocks.length);
-                for (int i = 0; i < blocks.length; i++) {
-                telemetry.addData("Block", blocks[i].toString());
-                    if (blocks[i].id == 1){
-                        telemetry.addData("Obelisk", "PGP");
-                        colorFind = 1;
-                    } else if (blocks[i].id == 4){
-                        telemetry.addData("Obelisk", "PPG");
-                        colorFind = 2;
-                    } else if (blocks[i].id == 5){
-                        telemetry.addData("Obelisk", "GPP");
-                        colorFind = 3;
+            double driveTrainDenominator;
+            drive = gamepad1.left_stick_y;
+            turn = gamepad1.right_stick_x;
+            strafe = -gamepad1.left_stick_x;
+
+
+            //      if (gamepad1.options) {
+            //         imu.resetYaw();
+            //   }
+
+            // double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+
+            //     double rotX = strafe * Math.cos(-botHeading) - drive * Math.sin(-botHeading);
+            //  double rotY = strafe * Math.sin(-botHeading) + drive * Math.cos(-botHeading);
+
+            //rotX = rotX * 1.1;  // Counteract imperfect strafing
+            // Combine drive and turn for blended motion.
+
+
+            // Normalize the values so neither exceed +/- 1.0
+            leftFront = drive + turn - strafe;
+            leftBack = drive + turn + strafe;
+            rightFront = drive - turn + strafe;
+            rightBack = drive - turn - strafe;
+
+            driveTrainDenominator = Math.max(Math.abs(drive) + Math.abs(turn) + Math.abs(strafe), 1);
+
+
+            if (gamepad2.right_bumper) {
+
+                for (double i = 0; i <= 0.6; ) {
+                    shooter.setPower(i + 0.2);
+                    i = i + 0.2;
+                }
+
+                shooter.setPower(0.2);
+                shooter.setPower(0.4);
+                shooter.setPower(0.6);
+
+                if (gamepad2.right_bumper) {
+                    for (double i = 0; i <= 0.6; ) {
+                        shooter.setPower(i + 0.2);
+                        i = i + 0.2;
+                    }
+                } else if (gamepad2.left_bumper) {
+                    shooter.setPower(-0.025);
+                } else {
+                    shooter.setPower(0);
+
+                }
+
+                //shoot from closer zone
+                //if (gamepad2.dpad_right){
+                // targetDeltaX = areaTwox;
+                //theta = areaTwoAngle;
+                //numerator = GRAVITY * Math.pow(targetDeltaX, 2);
+                //denominator = 2 * Math.pow(Math.cos(launchAngle), 2) * (targetDeltaX * Math.tan(launchAngle) - targetDeltaY);
+                //initialVelocitySquared = numerator / denominator;
+                //requiredInitialVelocity = Math.sqrt(initialVelocitySquared);
+                //shoot from farther zone
+                // } else if (gamepad2.dpad_left){
+                //targetDeltaX = areaOnex;
+                //theta = areaOneAngle;
+                //numerator = GRAVITY * Math.pow(targetDeltaX, 2);
+                //denominator = 2 * Math.pow(Math.cos(launchAngle), 2) * (targetDeltaX * Math.tan(launchAngle) - targetDeltaY);
+                //initialVelocitySquared = numerator / denominator;
+                //requiredInitialVelocity = Math.sqrt(initialVelocitySquared);
+                //}
+
+
+                // Output the safe vales to the motor drives.
+                leftFrontMotor.setPower(leftFront / driveTrainDenominator);
+                rightFrontMotor.setPower(rightFront / driveTrainDenominator);
+                leftBackMotor.setPower(leftBack / driveTrainDenominator);
+                rightBackMotor.setPower(rightBack / driveTrainDenominator);
+
+
+                if (gamepad1.right_bumper) {
+                    rollerServo.setPower(1);
+                } else if (gamepad1.left_bumper) {
+                    rollerServo.setPower(-1);
+                } else {
+                    rollerServo.setPower(0);
                 }
 
 
+                //rateLimit.reset();
+                if (gamepad2.square) {
+                    flipper3.setPosition(0.1);
+                }
+                if (gamepad2.a) {
+                    flipper2.setPosition(0.9);
+                }
+                if (gamepad2.circle) {
+                    flipper1.setPosition(0.9);
                 }
 
-            }
-            NormalizedRGBA Cola1 = first.getNormalizedColors();
+                if (gamepad2.triangle) {
+                    flipper1.setPosition(0.53);
+                    flipper2.setPosition(0.53);
+                    flipper3.setPosition(0.49);
+                }
+
+                if (gamepad2.dpad_down) {
+                    flipper1.setPosition(0.47);
+                    flipper2.setPosition(0.47);
+                    flipper3.setPosition(0.53);
+                }
+
+                // }
+
+
+           /*/ NormalizedRGBA Cola1 = first.getNormalizedColors();
             Color.colorToHSV(Cola1.toColor(), hsvValues);
             NormalizedRGBA Cola2 = second.getNormalizedColors();
             Color.colorToHSV(Cola2.toColor(), hsvValues);
@@ -262,248 +352,59 @@ public class decodeskeletonthing extends LinearOpMode {
             NormalizedRGBA Cola5 = fifth.getNormalizedColors();
             Color.colorToHSV(Cola5.toColor(), hsvValues);
             NormalizedRGBA Cola6 = sixth.getNormalizedColors();
-            Color.colorToHSV(Cola6.toColor(), hsvValues);
+            Color.colorToHSV(Cola6.toColor(), hsvValues);/*/
 
-            //if (gamepad1.right_bumper){
-               // armThing.setPosition(1);
-            //}
-           // else if (gamepad1.left_bumper){
+                //if (gamepad1.right_bumper){
+                // armThing.setPosition(1);
+                //}
+                // else if (gamepad1.left_bumper){
                 //armThing.setPosition(0);
-            //}
-
-
+                //}
 
 
 // This program shoots balls
-            if (gamepad2.triangle){
-                    //
-                    if (colorFind == 1) {
-                        if (Cola1.blue > Cola1.green || Cola2.blue > Cola2.green) {
-                            flipper1.setPosition(50);
-                            sleep(2000);
-                            flipper1.setPosition(0);
-                        } else if (Cola3.blue > Cola3.green || Cola4.blue > Cola4.green) {
-                            flipper2.setPosition(50);
-                            sleep(2000);
-                            flipper2.setPosition(0);
-                        }else if (Cola5.blue > Cola5.green || Cola6.blue > Cola6.green) {
-                            flipper3.setPosition(50);
-                            sleep(2000);
-                            flipper3.setPosition(0);
-                        }
-                        if (Cola1.green > Cola1.blue || Cola2.green > Cola2.blue) {
-                            flipper1.setPosition(50);
-                            sleep(2000);
-                            flipper1.setPosition(0);
-                        } else if (Cola3.green > Cola3.blue || Cola4.green > Cola4.blue) {
-                            flipper2.setPosition(50);
-                            sleep(2000);
-                            flipper2.setPosition(0);
-                        }else if (Cola5.green > Cola5.blue || Cola6.green > Cola6.blue) {
-                            flipper3.setPosition(50);
-                            sleep(2000);
-                            flipper3.setPosition(0);
-                        }
-                        if (Cola1.blue > Cola1.green || Cola2.blue > Cola2.green) {
-                            flipper1.setPosition(50);
-                            sleep(2000);
-                            flipper1.setPosition(0);
-                        } else if (Cola3.blue > Cola3.green || Cola4.blue > Cola4.green) {
-                            flipper2.setPosition(50);
-                            sleep(2000);
-                            flipper2.setPosition(0);
-                        }else if (Cola5.blue > Cola5.green || Cola6.blue > Cola6.green) {
-                            flipper3.setPosition(50);
-                            sleep(2000);
-                            flipper3.setPosition(0);
-                        }
-                        if (colorFind == 2){
-                            if (Cola1.blue > Cola1.green || Cola2.blue > Cola2.green) {
-                                flipper1.setPosition(50);
-                                sleep(2000);
-                                flipper1.setPosition(0);
-                            } else if (Cola3.blue > Cola3.green || Cola4.blue > Cola4.green) {
-                                flipper2.setPosition(50);
-                                sleep(2000);
-                                flipper2.setPosition(0);
-                            }else if (Cola5.blue > Cola5.green || Cola6.blue > Cola6.green) {
-                                flipper3.setPosition(50);
-                                flipper3.setPosition(0);
-                            }
-                            if (Cola1.blue > Cola1.green || Cola2.blue > Cola2.green) {
-                                flipper1.setPosition(50);
-                                sleep(2000);
-                                flipper1.setPosition(0);
-                            } else if (Cola3.blue > Cola3.green || Cola4.blue > Cola4.green) {
-                                flipper2.setPosition(50);
-                                sleep(2000);
-                                flipper2.setPosition(0);
-                            }else if (Cola5.blue > Cola5.green || Cola6.blue > Cola6.green) {
-                                flipper3.setPosition(50);
-                                sleep(2000);
-                                flipper3.setPosition(0);
-                            }
-                            if (Cola1.green > Cola1.blue || Cola2.green > Cola2.blue) {
-                                flipper1.setPosition(50);
-                                sleep(2000);
-                                flipper1.setPosition(0);
-                            } else if (Cola3.green > Cola3.blue || Cola4.green > Cola4.blue) {
-                                flipper2.setPosition(50);
-                                sleep(2000);
-                                flipper2.setPosition(0);
-                            }else if (Cola5.green > Cola5.blue || Cola6.green > Cola6.blue) {
-                                flipper3.setPosition(50);
-                                sleep(2000);
-                                flipper3.setPosition(0);
-                            }
-                        }
-                        if (colorFind == 3){
-                            if (Cola1.green > Cola1.blue || Cola2.green > Cola2.blue) {
-                                flipper1.setPosition(180);
-                                sleep(2000);
-                                flipper1.setPosition(0);
-                            } else if (Cola3.green > Cola3.blue || Cola4.green > Cola4.blue) {
-                                flipper2.setPosition(180);
-                                sleep(2000);
-                                flipper2.setPosition(0);
-                            }else if (Cola5.green > Cola5.blue || Cola6.green > Cola6.blue) {
-                                flipper3.setPosition(180);
-                                sleep(2000);
-                                flipper3.setPosition(0);
-                            }
-                            if (Cola1.blue > Cola1.green || Cola2.blue > Cola2.green) {
-                                flipper1.setPosition(180);
-                                sleep(2000);
-                                flipper1.setPosition(0);
-                            } else if (Cola3.blue > Cola3.green || Cola4.blue > Cola4.green) {
-                                flipper2.setPosition(180);
-                                sleep(2000);
-                                flipper2.setPosition(0);
-                            }else if (Cola5.blue > Cola5.green || Cola6.blue > Cola6.green) {
-                                flipper3.setPosition(180);
-                                sleep(2000);
-                                flipper3.setPosition(0);
-                            }
-                            if (Cola1.blue > Cola1.green || Cola2.blue > Cola2.green) {
-                                flipper1.setPosition(180);
-                                sleep(2000);
-                                flipper1.setPosition(0);
-                            } else if (Cola3.blue > Cola3.green || Cola4.blue > Cola4.green) {
-                                flipper2.setPosition(180);
-                                sleep(2000);
-                                flipper2.setPosition(0);
-                            }else if (Cola5.blue > Cola5.green || Cola6.blue > Cola6.green) {
-                                flipper3.setPosition(180);
-                                sleep(2000);
-                                flipper3.setPosition(0);
-                            }
+
+
+                // Run wheels in POV mode (note: The joystick goes negative when pushed forward, so negate it)
+                // In this mode the Left stick moves the robot fwd and back, the Right stick turns left and right.
+                // This way it's also easy to just drive straight, or just turn.
+
+                //conveyorServo.setPower(1);
+                if (gamepad1.right_bumper) {
+                    rollerServo.setPower(1);
+                } else if (gamepad1.left_bumper) {
+                    rollerServo.setPower(-1);
                 }
-                }}
+                if (gamepad2.right_bumper) {
+                    shooter.setPower(0.6);
+                } else if (gamepad2.left_bumper) {
+                    shooter.setPower(-0.4);
+                }
 
 
+                // Use gamepad left & right Bumpers to open and close the claw
 
 
+                // Move both servos to new position.  Assume servos are mirror image of each other.
 
 
-
-            // Run wheels in POV mode (note: The joystick goes negative when pushed forward, so negate it)
-            // In this mode the Left stick moves the robot fwd and back, the Right stick turns left and right.
-            // This way it's also easy to just drive straight, or just turn.
-            drive = -gamepad1.left_stick_y;
-            turn  =  gamepad1.right_stick_x;
-            strafe = gamepad1.left_stick_x;
-
-      //      if (gamepad1.options) {
-       //         imu.resetYaw();
-         //   }
-
-           // double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-
-       //     double rotX = strafe * Math.cos(-botHeading) - drive * Math.sin(-botHeading);
-          //  double rotY = strafe * Math.sin(-botHeading) + drive * Math.cos(-botHeading);
-
-            //rotX = rotX * 1.1;  // Counteract imperfect strafing
-            // Combine drive and turn for blended motion.
+                // Use gamepad buttons to move arm up (Y) and down (A)
 
 
-            // Normalize the values so neither exceed +/- 1.0
-            leftFront  = drive + turn - strafe;
-            leftBack = drive + turn + strafe;
-            rightFront = drive - turn + strafe;
-            rightBack = drive - turn - strafe;
+                // Send telemetry message to signify robot running;
 
-            max = Math.max(Math.abs(leftFront), Math.abs(rightFront));
-            max = Math.max(max, Math.abs(leftBack));
-            max = Math.max(max, Math.abs(rightBack));
-            if (max > 1.0) {
-                leftFront /= max;
-                rightFront /= max;
-                leftBack /= max;
-                rightBack /= max;
+                //Values of motor encoders, displayed on screen
+                String LFEncoders = Integer.toString(leftFrontMotor.getCurrentPosition());
+                String RFEncoders = Integer.toString(rightFrontMotor.getCurrentPosition());
+                String LBEncoders = Integer.toString(leftBackMotor.getCurrentPosition());
+                String RBEncoders = Integer.toString(rightBackMotor.getCurrentPosition());
+
+
+                // Pace this loop so jaw action is reasonable speed.
+                sleep(50);
+
             }
 
-            //shoot from closer zone
-            //if (gamepad2.dpad_right){
-               // targetDeltaX = areaTwox;
-                //theta = areaTwoAngle;
-                //numerator = GRAVITY * Math.pow(targetDeltaX, 2);
-                //denominator = 2 * Math.pow(Math.cos(launchAngle), 2) * (targetDeltaX * Math.tan(launchAngle) - targetDeltaY);
-                //initialVelocitySquared = numerator / denominator;
-                //requiredInitialVelocity = Math.sqrt(initialVelocitySquared);
-            //shoot from farther zone
-           // } else if (gamepad2.dpad_left){
-                //targetDeltaX = areaOnex;
-                //theta = areaOneAngle;
-                //numerator = GRAVITY * Math.pow(targetDeltaX, 2);
-                //denominator = 2 * Math.pow(Math.cos(launchAngle), 2) * (targetDeltaX * Math.tan(launchAngle) - targetDeltaY);
-                //initialVelocitySquared = numerator / denominator;
-                //requiredInitialVelocity = Math.sqrt(initialVelocitySquared);
-            //}
-
-
-
-
-
-            // Output the safe vales to the motor drives.
-            leftFrontMotor.setPower(leftFront);
-            rightFrontMotor.setPower(rightFront);
-            leftBackMotor.setPower(leftBack);
-            rightBackMotor.setPower(rightBack);
-            //conveyorServo.setPower(1);
-            if (gamepad1.right_bumper) {
-                rollerServo.setPower(1);
-            } else if (gamepad1.left_bumper) {
-                rollerServo.setPower(-1);
-            }
-            if (gamepad2.right_bumper){
-                shooter.setPower(0.6);
-            }else if (gamepad2.left_bumper){
-                shooter.setPower(-0.4);
-            }
-
-
-            // Use gamepad left & right Bumpers to open and close the claw
-
-
-            // Move both servos to new position.  Assume servos are mirror image of each other.
-
-
-            // Use gamepad buttons to move arm up (Y) and down (A)
-
-
-            // Send telemetry message to signify robot running;
-
-            //Values of motor encoders, displayed on screen
-            String LFEncoders = Integer.toString(leftFrontMotor.getCurrentPosition());
-            String RFEncoders = Integer.toString(rightFrontMotor.getCurrentPosition());
-            String LBEncoders = Integer.toString(leftBackMotor.getCurrentPosition());
-            String RBEncoders = Integer.toString(rightBackMotor.getCurrentPosition());
-
-
-
-            // Pace this loop so jaw action is reasonable speed.
-            sleep(50);
-
+        }
     }
-
-}}
+}
