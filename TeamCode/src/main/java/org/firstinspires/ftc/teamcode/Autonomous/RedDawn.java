@@ -13,8 +13,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.SwitchableLight;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name="BlueDownAuto", group="Robot")
-public class BlueDownAuto extends LinearOpMode {
+@Autonomous(name="RedDawn", group="Robot")
+public class RedDawn extends LinearOpMode {
 
     /* Declare OpMode members. */
     private DcMotor         leftFrontDrive   = null;
@@ -160,7 +160,7 @@ public class BlueDownAuto extends LinearOpMode {
         encoderDrive(0.2,-12,-12,-12,-12, false, 0,false,false,0.6, 3);
         encoderDrive(0,0,0,0,0, false, 0, true, false, 0.6, 5);
         encoderDrive(0.2,-8,-8,-8,-8, false, 0,false,false,0.6, 2);
-        encoderDrive(0.2, -7.6, 7.6, -7.6, 7.6, false,0, false,false, 0.6,5);
+        encoderDrive(0.2, 7.6, -7.6, 7.6, -7.6, false,0, false,false, 0.6,5);
         encoderDrive(0.2,-2.4,-2.4,-2.4,-2.4,false,0,false,false,0.7,5);
         encoderDrive(0, 0, 0, 0, 0, false,0, false,true, 0.7,5);
         encoderDrive(0.4, 3,3,3,3,false,0,false,false,0,3);
