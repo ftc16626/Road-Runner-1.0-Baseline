@@ -157,13 +157,13 @@ public class BlueDownAuto extends LinearOpMode {
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
 
 
-        encoderDrive(0.2,-12,-12,-12,-12, false, 0,false,false,0.6, 3);
-        encoderDrive(0,0,0,0,0, false, 0, true, false, 0.6, 5);
-        encoderDrive(0.2,-8,-8,-8,-8, false, 0,false,false,0.6, 2);
-        encoderDrive(0.2, -7.6, 7.6, -7.6, 7.6, false,0, false,false, 0.6,5);
-        encoderDrive(0.2,-2.4,-2.4,-2.4,-2.4,false,0,false,false,0.7,5);
-        encoderDrive(0, 0, 0, 0, 0, false,0, false,true, 0.7,5);
-        encoderDrive(0.4, 3,3,3,3,false,0,false,false,0,3);
+        encoderDrive(0.2,-12,-12,-12,-12, false, 0,false,false,0.6, 3); // Moving halfway forward
+        encoderDrive(0,0,0,0,0, false, 0, true, false, 0.6, 5); // Scan obelisk
+        encoderDrive(0.2,-8,-8,-8,-8, false, 0,false,false,0.6, 2); // Finish moving forward
+        encoderDrive(0.2, -7.6, 7.6, -7.6, 7.6, false,0, false,false, 0.6,5); // Turn left ~45 degrees
+        encoderDrive(0.2,-2.4,-2.4,-2.4,-2.4,false,0,false,false,0.7,5); // Move towards goal
+        encoderDrive(0, 0, 0, 0, 0, false,0, false,true, 0.7,5); // Launch artifacts
+        encoderDrive(0.4, 3,3,3,3,false,0,false,false,0,3); // Move out of launch zone
         telemetry.addData("Path", "Complete");
         telemetry.update();
         sleep(1000);  // pause to display final telemetry message.
