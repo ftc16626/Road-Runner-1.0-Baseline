@@ -24,7 +24,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.concurrent.TimeUnit;
 
-@TeleOp (name = "mainTeleop", group = "robot")
+@TeleOp (name = "mainTeleop1", group = "robot")
 public class decodeskeletonthing extends LinearOpMode {
     private DcMotor leftFrontMotor;
     private DcMotor leftBackMotor;
@@ -257,27 +257,19 @@ public class decodeskeletonthing extends LinearOpMode {
             driveTrainDenominator = Math.max(Math.abs(drive) + Math.abs(turn) + Math.abs(strafe), 1);
 
 
-            if (gamepad2.right_bumper) {
 
-                for (double i = 0; i <= 0.6; ) {
-                    shooter.setPower(i + 0.2);
-                    i = i + 0.2;
-                }
 
-                shooter.setPower(0.2);
-                shooter.setPower(0.4);
-                shooter.setPower(0.6);
 
                 if (gamepad2.right_bumper) {
                     for (double i = 0; i <= 0.6; ) {
                         shooter.setPower(i + 0.2);
                         i = i + 0.2;
                     }
-                } else if (gamepad2.left_bumper) {
-                    shooter.setPower(-0.025);
-                } else {
+                } else if (gamepad2.left_bumper){
+                    shooter.setPower(-0.25);
+                }
+                else {
                     shooter.setPower(0);
-
                 }
 
                 //shoot from closer zone
@@ -370,16 +362,7 @@ public class decodeskeletonthing extends LinearOpMode {
                 // This way it's also easy to just drive straight, or just turn.
 
                 //conveyorServo.setPower(1);
-                if (gamepad1.right_bumper) {
-                    rollerServo.setPower(1);
-                } else if (gamepad1.left_bumper) {
-                    rollerServo.setPower(-1);
-                }
-                if (gamepad2.right_bumper) {
-                    shooter.setPower(0.6);
-                } else if (gamepad2.left_bumper) {
-                    shooter.setPower(-0.4);
-                }
+
 
 
                 // Use gamepad left & right Bumpers to open and close the claw
@@ -405,6 +388,4 @@ public class decodeskeletonthing extends LinearOpMode {
 
             }
 
-        }
-    }
-}
+        }}

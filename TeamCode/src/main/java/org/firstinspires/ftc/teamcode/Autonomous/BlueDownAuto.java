@@ -156,14 +156,15 @@ public class BlueDownAuto extends LinearOpMode {
         // Step through each leg of the path,
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
 
-
+        //encoderDrive(0,0,0,0,0,false,0,false, false, 0, 5); //Optional wait period
         encoderDrive(0.2,-12,-12,-12,-12, false, 0,false,false,0.6, 3); // Moving halfway forward
-        encoderDrive(0,0,0,0,0, false, 0, true, false, 0.6, 5); // Scan obelisk
+        encoderDrive(0,0,0,0,0, false, 0, true, false, 0.6, 8); // Scan obelisk
         encoderDrive(0.2,-8,-8,-8,-8, false, 0,false,false,0.6, 2); // Finish moving forward
-        encoderDrive(0.2, -7.6, 7.6, -7.6, 7.6, false,0, false,false, 0.6,5); // Turn left ~45 degrees
+        encoderDrive(0.2, -7.9, 7.9, -7.9, 7.9, false,0, false,false, 0.6,5); // Turn left ~45 degrees
         encoderDrive(0.2,-2.4,-2.4,-2.4,-2.4,false,0,false,false,0.7,5); // Move towards goal
-        encoderDrive(0, 0, 0, 0, 0, false,0, false,true, 0.7,5); // Launch artifacts
-        encoderDrive(0.4, 3,3,3,3,false,0,false,false,0,3); // Move out of launch zone
+        encoderDrive(0, 0, 0, 0, 0, false,0, false,true, 0.68,5); // Launch artifacts
+        encoderDrive(0.2,7.8, -7.8, 7.8, -7.8, false, 0, false, false, 0,5 ); // Turn right ~45 degrees
+        encoderDrive(0.4, 6,6,6,6,false,0,false,false,0,3); // Move out of launch zone
         telemetry.addData("Path", "Complete");
         telemetry.update();
         sleep(1000);  // pause to display final telemetry message.
@@ -209,7 +210,7 @@ public class BlueDownAuto extends LinearOpMode {
                     if (blocks[i].id == 1) {
                         telemetry.addData("Obelisk", "PGP");
                         artifactPattern = 1;
-                    } else if (blocks[i].id == 2) {
+                    } else if (blocks[i].id == 4) {
                         telemetry.addData("Obelisk", "PPG");
                         artifactPattern = 2;
                     } else if (blocks[i].id == 5) {
@@ -223,21 +224,21 @@ public class BlueDownAuto extends LinearOpMode {
                     purple, green, purple*/
                 if (artifactPattern == 1) {
                     servoI.setPosition(0.9);
-                    sleep(1000);
+                    sleep(500);
                     servoII.setPosition(0.9);
-                    sleep(1000);
+                    sleep(500);
                     servoIII.setPosition(0.1);
                 } else if (artifactPattern == 2){
                     servoI.setPosition(0.9);
-                    sleep(1000);
+                    sleep(500);
                     servoIII.setPosition(0.1);
-                    sleep(1000);
+                    sleep(500);
                     servoII.setPosition(0.9);
                 } else if (artifactPattern == 3) {
                     servoII.setPosition(0.9);
-                    sleep(1000);
+                    sleep(500);
                     servoI.setPosition(0.9);
-                    sleep(1000);
+                    sleep(500);
                     servoIII.setPosition(0.1);
                 } else{
                     servoI.setPosition(0.9);
