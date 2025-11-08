@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -20,6 +21,8 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.SwitchableLight;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.PIDTuning;
 import org.firstinspires.ftc.teamcode.tuning.PIDFController;
@@ -32,7 +35,7 @@ public class decodeskeletonthing extends LinearOpMode {
     private DcMotor leftBackMotor;
     private DcMotor  rightFrontMotor;
     private DcMotor  rightBackMotor;
-    private DcMotor shooter;
+    private DcMotorEx shooter;
     //private CRServo conveyorServo;
     private CRServo rollerServo;
     private Servo armThing;
@@ -40,7 +43,16 @@ public class decodeskeletonthing extends LinearOpMode {
     private Servo flipper2;
     private Servo flipper3;
     private final int READ_PERIOD = 1;
-
+    private double Kp = 0.4;
+    private double Ki = 0.0008;
+    private double Kd = 0.1;
+    private  double latestError;
+    private double Sum;
+    ElapsedTime timer = new ElapsedTime();
+    double currentVelocity;
+    public double targetRPM = 2300;
+    public double ticksPerRevolution = 28;
+    public double targetVelocity = (targetRPM / 60) * ticksPerRevolution;
     private HuskyLens allSeeingEye;
     private NormalizedColorSensor first;
     private NormalizedColorSensor second;
@@ -67,41 +79,41 @@ public class decodeskeletonthing extends LinearOpMode {
         relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
 
         if (first instanceof SwitchableLight) {
-            ((SwitchableLight)first).enableLight(true);
+            ((SwitchableLight) first).enableLight(true);
         }
         if (second instanceof SwitchableLight) {
-            ((SwitchableLight)second).enableLight(true);
+            ((SwitchableLight) second).enableLight(true);
         }
 
         if (third instanceof SwitchableLight) {
-            ((SwitchableLight)third).enableLight(true);
-        }        if (fourth instanceof SwitchableLight) {
-            ((SwitchableLight)fourth).enableLight(true);
+            ((SwitchableLight) third).enableLight(true);
+        }
+        if (fourth instanceof SwitchableLight) {
+            ((SwitchableLight) fourth).enableLight(true);
         }
         if (fifth instanceof SwitchableLight) {
-            ((SwitchableLight)fifth).enableLight(true);
+            ((SwitchableLight) fifth).enableLight(true);
         }
 
         if (sixth instanceof SwitchableLight) {
-            ((SwitchableLight)sixth).enableLight(true);
+            ((SwitchableLight) sixth).enableLight(true);
         }
         final float[] hsvValues = new float[3];
 
 
-
         // Define and Initialize Motors
-        leftFrontMotor  = hardwareMap.get(DcMotor.class, "LFMotor");
+        leftFrontMotor = hardwareMap.get(DcMotor.class, "LFMotor");
         rightFrontMotor = hardwareMap.get(DcMotor.class, "RFMotor");
-        leftBackMotor  = hardwareMap.get(DcMotor.class, "LBMotor");
+        leftBackMotor = hardwareMap.get(DcMotor.class, "LBMotor");
         rightBackMotor = hardwareMap.get(DcMotor.class, "RBMotor");
-        shooter = hardwareMap.get(DcMotor.class, "shooter");
+        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
         // conveyorServo =  hardwareMap.get(CRServo.class, "conveyor");
-        rollerServo =  hardwareMap.get(CRServo.class, "roller");
+        rollerServo = hardwareMap.get(CRServo.class, "roller");
         //armThing = hardwareMap.get(Servo.class, "armThing");
         allSeeingEye = hardwareMap.get(HuskyLens.class, "allSeeingEye");
         first = hardwareMap.get(NormalizedColorSensor.class, "first");
         second = hardwareMap.get(NormalizedColorSensor.class, "first");
-        third= hardwareMap.get(NormalizedColorSensor.class, "third");
+        third = hardwareMap.get(NormalizedColorSensor.class, "third");
         fourth = hardwareMap.get(NormalizedColorSensor.class, "fourth");
         fifth = hardwareMap.get(NormalizedColorSensor.class, "fifth");
         sixth = hardwareMap.get(NormalizedColorSensor.class, "sixth");
@@ -164,7 +176,6 @@ public class decodeskeletonthing extends LinearOpMode {
         allSeeingEye.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION);
 
 
-
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
@@ -210,7 +221,7 @@ public class decodeskeletonthing extends LinearOpMode {
         //double calculatedDeltaY = (deltaX * Math.tan(theta)) - (GRAVITY * Math.pow(deltaX, 2)) / (2 * Math.pow(initialVelocity * Math.cos(theta), 2));
         //telemetry.addData("Calculated Trajectory", calculatedDeltaY);
         telemetry.update();
-        sleep( 2000);
+        sleep(2000);
         double targetDeltaX = areaOnex;    // Target horizontal distance (m)
         double targetDeltaY = 0.23;    // Target vertical distance (m)
         double launchAngle = Math.toRadians(30); // Target launch angle (30 degrees)
@@ -260,80 +271,74 @@ public class decodeskeletonthing extends LinearOpMode {
             driveTrainDenominator = Math.max(Math.abs(drive) + Math.abs(turn) + Math.abs(strafe), 1);
 
 
+            if (gamepad2.right_bumper) {
+                shooter.setPower(PIDControl(targetVelocity, currentVelocity));
+
+        } else if (gamepad2.left_bumper) {
+            shooter.setPower(-0.25);
+        } else {
+            shooter.setPower(0);
+        }
+
+        //shoot from closer zone
+        //if (gamepad2.dpad_right){
+        // targetDeltaX = areaTwox;
+        //theta = areaTwoAngle;
+        //numerator = GRAVITY * Math.pow(targetDeltaX, 2);
+        //denominator = 2 * Math.pow(Math.cos(launchAngle), 2) * (targetDeltaX * Math.tan(launchAngle) - targetDeltaY);
+        //initialVelocitySquared = numerator / denominator;
+        //requiredInitialVelocity = Math.sqrt(initialVelocitySquared);
+        //shoot from farther zone
+        // } else if (gamepad2.dpad_left){
+        //targetDeltaX = areaOnex;
+        //theta = areaOneAngle;
+        //numerator = GRAVITY * Math.pow(targetDeltaX, 2);
+        //denominator = 2 * Math.pow(Math.cos(launchAngle), 2) * (targetDeltaX * Math.tan(launchAngle) - targetDeltaY);
+        //initialVelocitySquared = numerator / denominator;
+        //requiredInitialVelocity = Math.sqrt(initialVelocitySquared);
+        //}
 
 
-
-                if (gamepad2.right_bumper) {
-                    for (double i = 0; i <= 0.6; ) {
-                        shooter.setPower(i + 0.2);
-                        i = i + 0.2;
-                    }
-                } else if (gamepad2.left_bumper){
-                    shooter.setPower(-0.25);
-                }
-                else {
-                    shooter.setPower(0);
-                }
-
-                //shoot from closer zone
-                //if (gamepad2.dpad_right){
-                // targetDeltaX = areaTwox;
-                //theta = areaTwoAngle;
-                //numerator = GRAVITY * Math.pow(targetDeltaX, 2);
-                //denominator = 2 * Math.pow(Math.cos(launchAngle), 2) * (targetDeltaX * Math.tan(launchAngle) - targetDeltaY);
-                //initialVelocitySquared = numerator / denominator;
-                //requiredInitialVelocity = Math.sqrt(initialVelocitySquared);
-                //shoot from farther zone
-                // } else if (gamepad2.dpad_left){
-                //targetDeltaX = areaOnex;
-                //theta = areaOneAngle;
-                //numerator = GRAVITY * Math.pow(targetDeltaX, 2);
-                //denominator = 2 * Math.pow(Math.cos(launchAngle), 2) * (targetDeltaX * Math.tan(launchAngle) - targetDeltaY);
-                //initialVelocitySquared = numerator / denominator;
-                //requiredInitialVelocity = Math.sqrt(initialVelocitySquared);
-                //}
+        // Output the safe vales to the motor drives.
+        leftFrontMotor.setPower(leftFront / driveTrainDenominator);
+        rightFrontMotor.setPower(rightFront / driveTrainDenominator);
+        leftBackMotor.setPower(leftBack / driveTrainDenominator);
+        rightBackMotor.setPower(rightBack / driveTrainDenominator);
 
 
-                // Output the safe vales to the motor drives.
-                leftFrontMotor.setPower(leftFront / driveTrainDenominator);
-                rightFrontMotor.setPower(rightFront / driveTrainDenominator);
-                leftBackMotor.setPower(leftBack / driveTrainDenominator);
-                rightBackMotor.setPower(rightBack / driveTrainDenominator);
+        if (gamepad1.right_bumper) {
+            rollerServo.setPower(1);
+        } else if (gamepad1.left_bumper) {
+            rollerServo.setPower(-1);
+        } else {
+            rollerServo.setPower(0);
+        }
 
 
-                if (gamepad1.right_bumper) {
-                    rollerServo.setPower(1);
-                } else if (gamepad1.left_bumper) {
-                    rollerServo.setPower(-1);
-                } else {
-                    rollerServo.setPower(0);
-                }
+        //rateLimit.reset();
+        if (gamepad2.square) {
+            flipper3.setPosition(0.1);
+        }
+        if (gamepad2.a) {
+            flipper2.setPosition(0.9);
+        }
+        if (gamepad2.circle) {
+            flipper1.setPosition(0.9);
+        }
 
+        if (gamepad2.triangle) {
+            flipper1.setPosition(0.53);
+            flipper2.setPosition(0.53);
+            flipper3.setPosition(0.49);
+        }
 
-                //rateLimit.reset();
-                if (gamepad2.square) {
-                    flipper3.setPosition(0.1);
-                }
-                if (gamepad2.a) {
-                    flipper2.setPosition(0.9);
-                }
-                if (gamepad2.circle) {
-                    flipper1.setPosition(0.9);
-                }
+        if (gamepad2.dpad_down) {
+            flipper1.setPosition(0.47);
+            flipper2.setPosition(0.47);
+            flipper3.setPosition(0.53);
+        }
 
-                if (gamepad2.triangle) {
-                    flipper1.setPosition(0.53);
-                    flipper2.setPosition(0.53);
-                    flipper3.setPosition(0.49);
-                }
-
-                if (gamepad2.dpad_down) {
-                    flipper1.setPosition(0.47);
-                    flipper2.setPosition(0.47);
-                    flipper3.setPosition(0.53);
-                }
-
-                // }
+        // }
 
 
            /*/ NormalizedRGBA Cola1 = first.getNormalizedColors();
@@ -349,46 +354,63 @@ public class decodeskeletonthing extends LinearOpMode {
             NormalizedRGBA Cola6 = sixth.getNormalizedColors();
             Color.colorToHSV(Cola6.toColor(), hsvValues);/*/
 
-                //if (gamepad1.right_bumper){
-                // armThing.setPosition(1);
-                //}
-                // else if (gamepad1.left_bumper){
-                //armThing.setPosition(0);
-                //}
+        //if (gamepad1.right_bumper){
+        // armThing.setPosition(1);
+        //}
+        // else if (gamepad1.left_bumper){
+        //armThing.setPosition(0);
+        //}
 
 
 // This program shoots balls
 
 
-                // Run wheels in POV mode (note: The joystick goes negative when pushed forward, so negate it)
-                // In this mode the Left stick moves the robot fwd and back, the Right stick turns left and right.
-                // This way it's also easy to just drive straight, or just turn.
+        // Run wheels in POV mode (note: The joystick goes negative when pushed forward, so negate it)
+        // In this mode the Left stick moves the robot fwd and back, the Right stick turns left and right.
+        // This way it's also easy to just drive straight, or just turn.
 
-                //conveyorServo.setPower(1);
-
-
-
-                // Use gamepad left & right Bumpers to open and close the claw
+        //conveyorServo.setPower(1);
 
 
-                // Move both servos to new position.  Assume servos are mirror image of each other.
+        // Use gamepad left & right Bumpers to open and close the claw
 
 
-                // Use gamepad buttons to move arm up (Y) and down (A)
+        // Move both servos to new position.  Assume servos are mirror image of each other.
 
 
-                // Send telemetry message to signify robot running;
-
-                //Values of motor encoders, displayed on screen
-                String LFEncoders = Integer.toString(leftFrontMotor.getCurrentPosition());
-                String RFEncoders = Integer.toString(rightFrontMotor.getCurrentPosition());
-                String LBEncoders = Integer.toString(leftBackMotor.getCurrentPosition());
-                String RBEncoders = Integer.toString(rightBackMotor.getCurrentPosition());
+        // Use gamepad buttons to move arm up (Y) and down (A)
 
 
-                // Pace this loop so jaw action is reasonable speed.
-                sleep(50);
+        // Send telemetry message to signify robot running;
 
-            }
+        //Values of motor encoders, displayed on screen
+        String LFEncoders = Integer.toString(leftFrontMotor.getCurrentPosition());
+        String RFEncoders = Integer.toString(rightFrontMotor.getCurrentPosition());
+        String LBEncoders = Integer.toString(leftBackMotor.getCurrentPosition());
+        String RBEncoders = Integer.toString(rightBackMotor.getCurrentPosition());
 
-        }}
+
+        // Pace this loop so jaw action is reasonable speed.
+        sleep(50);
+
+     }
+    }
+    public double PIDControl (double reference, double state){
+        currentVelocity = shooter.getVelocity();
+        double deltaTime = timer.seconds();
+        timer.reset();
+
+        double error = targetVelocity - currentVelocity;
+        Sum += error * deltaTime;
+        latestError = error;
+        double derivative = (error - latestError) / timer.seconds();
+        if (currentVelocity >= ((targetRPM / 60) * ticksPerRevolution)){
+            gamepad2.rumble(500);
+        }
+        timer.reset();
+
+        double output = (error * Kp) + (derivative + Kd) + (Sum * Ki);
+        return output;
+    }
+}
+
