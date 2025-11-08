@@ -2,16 +2,27 @@ package org.firstinspires.ftc.teamcode.Autonomous;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
+import android.app.Activity;
+import android.view.View;
+
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.SwitchableLight;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
+import java.util.List;
 
 @Autonomous(name="RedDawn", group="Robot")
 public class RedDawn extends LinearOpMode {
@@ -21,23 +32,38 @@ public class RedDawn extends LinearOpMode {
     private DcMotor         rightFrontDrive  = null;
     private DcMotor         leftBackDrive   = null;
     private DcMotor         rightBackDrive  = null;
-    private DcMotor         shooter = null;
+    private DcMotorEx shooter = null;
+    private double Kp = 0.4;
+    private double Ki = 0; // og Ki is 0.0008
+    private double Kd = 0.1;
+    private  double latestError;
+    private double Sum;
+    ElapsedTime timer = new ElapsedTime();
+    double currentVelocity;
+    public double targetRPM = 3000;
+    public double ticksPerRevolution = 28;
+    public double targetVelocity = (targetRPM / 60) * ticksPerRevolution;
     private Servo servoI;
     private Servo servoII;
     private Servo servoIII;
     private CRServo intakeServo;
+    private Servo rightHoodServo;
+    private Servo leftHoodServo;
     private NormalizedColorSensor colorSensorI;
     private NormalizedColorSensor colorSensorII;
     private NormalizedColorSensor colorSensorIII;
     private NormalizedColorSensor colorSensorIV;
     private NormalizedColorSensor colorSensorV;
     private NormalizedColorSensor colorSensorVI;
-    private HuskyLens huskyLens;
+    private VisionPortal allSeeingEye;
+    private AprilTagProcessor aprilTag;
     double artifactPattern;
 
 
 
+
     private ElapsedTime     runtime = new ElapsedTime();
+    private ElapsedTime servoTimer = new ElapsedTime();
 
     // Calculate the COUNTS_PER_INCH for your specific drive train.
     // Go to your motor vendor website to determine your motor's COUNTS_PER_MOTOR_REV
@@ -52,47 +78,47 @@ public class RedDawn extends LinearOpMode {
             (WHEEL_DIAMETER_INCHES * 3.141592653589);
     static final double     DRIVE_SPEED             = 0.6;
     static final double     TURN_SPEED              = 0.5;
+    View relativeLayout;
 
 
 
 
     @Override
     public void runOpMode() {
+        initAprilTag();
+
+        int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
+        relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
 
         // Initialize the drive system variables.
         leftFrontDrive  = hardwareMap.get(DcMotor.class, "LFMotor");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "RFMotor");
         leftBackDrive  = hardwareMap.get(DcMotor.class, "LBMotor");
         rightBackDrive = hardwareMap.get(DcMotor.class, "RBMotor");
-        shooter = hardwareMap.get(DcMotor.class, "shooter");
+        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
         servoI = hardwareMap.get(Servo.class, "flipper1");
         servoII = hardwareMap.get(Servo.class, "flipper2");
         servoIII = hardwareMap.get(Servo.class, "flipper3");
         intakeServo = hardwareMap.get(CRServo.class, "roller");
+        rightHoodServo = hardwareMap.get(Servo.class, "rightHoodServo");
+        leftHoodServo = hardwareMap.get(Servo.class, "leftHoodServo");
         colorSensorI = hardwareMap.get(NormalizedColorSensor.class, "first");
         colorSensorII = hardwareMap.get(NormalizedColorSensor.class, "second");
         colorSensorIII = hardwareMap.get(NormalizedColorSensor.class, "third");
         colorSensorIV = hardwareMap.get(NormalizedColorSensor.class, "fourth");
         colorSensorV = hardwareMap.get(NormalizedColorSensor.class, "fifth");
         colorSensorVI = hardwareMap.get(NormalizedColorSensor.class, "sixth");
-        huskyLens = hardwareMap.get(HuskyLens.class, "allSeeingEye");
 
-        if (!huskyLens.knock()) {
-            telemetry.addData(">>", "Problem communicating with " + huskyLens.getDeviceName());
-        } else {
-            telemetry.addData(">>", "Press start to continue");
-        }
-
-        huskyLens.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION);
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         shooter.setDirection(DcMotor.Direction.FORWARD);
+        leftHoodServo.setDirection(Servo.Direction.REVERSE);
 
         leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -152,19 +178,20 @@ public class RedDawn extends LinearOpMode {
         // Wait for the game to start (driver presses START)
         waitForStart();
 
+        leftHoodServo.setPosition(0);
+        rightHoodServo.setPosition(0);
+
 
         // Step through each leg of the path,
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
+        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+        allSeeingEye.close();
 
 
-        encoderDrive(0.2,-12,-12,-12,-12, false, 0,false,false,0.6, 3); // Moving halfway forward
-        encoderDrive(0,0,0,0,0, false, 0, true, false, 0.6, 3); // Scan obelisk
-        encoderDrive(0.2,-8,-8,-8,-8, false, 0,false,false,0.6, 2); // Finish moving forward
-        encoderDrive(0.2, 7.8, -7.8, 7.8, -7.8, false,0, false,false, 0.6,5); // Turn right ~45 degrees
-        encoderDrive(0.2,-2.4,-2.4,-2.4,-2.4,false,0,false,false,0.7,5); // Move towards goal
-        encoderDrive(0, 0, 0, 0, 0, false,0, false,true, 0.75,7); // Launch artifacts
-        encoderDrive(0.2, -7.8, 7.8, -7.8, 7.8, false,0, false,false, 0.6,5); // Turn left ~45 degrees
-        encoderDrive(0.4, 6,6,6,6,false,0,false,false,0,3); // Move out of launch zone
+        encoderDrive(0,0,0,0,0,false,0,true,false,0.4,PIDControl(targetVelocity, currentVelocity),2);
+        encoderDrive(0.2,2,-2,2,-2,false,0,false,false,0.4,PIDControl(targetVelocity, currentVelocity),4);
+        encoderDrive(0,0,0,0,0,false,0,false,true,0.4,PIDControl(targetVelocity, currentVelocity),4);
+
         telemetry.addData("Path", "Complete");
         telemetry.update();
         sleep(1000);  // pause to display final telemetry message.
@@ -182,7 +209,7 @@ public class RedDawn extends LinearOpMode {
     ///Step used prior to EncoderDrive reference with Shooting = true, retrieves velocity artifact needs to travel
     public void encoderDrive(double speed,
                              double leftFrontInches, double rightFrontInches,
-                             double leftBackInches, double rightBackInches, boolean strafe, double IntakePower, boolean HuskyLens, boolean Shooting, double shootingPower,
+                             double leftBackInches, double rightBackInches, boolean strafe, double IntakePower, boolean Sense, boolean Shooting, double Angulinator, double shootingPower,
                              double timeoutS) {
         int newLeftFrontTarget;
         int newRightFrontTarget;
@@ -202,46 +229,65 @@ public class RedDawn extends LinearOpMode {
         // Ensure that the OpMode is still active
         if (opModeIsActive()) {
 
-            if(HuskyLens) {
-                HuskyLens.Block[] blocks = huskyLens.blocks();
-                telemetry.addData("Block count", blocks.length);
-                for (int i = 0; i < blocks.length; i++) {
-                    telemetry.addData("Block", blocks[i].toString());
-                    if (blocks[i].id == 1) {
-                        telemetry.addData("Obelisk", "PGP");
-                        artifactPattern = 1;
-                    } else if (blocks[i].id == 4) {
-                        telemetry.addData("Obelisk", "PPG");
-                        artifactPattern = 2;
-                    } else if (blocks[i].id == 5) {
-                        telemetry.addData("Obelisk", "GPP");
-                        artifactPattern = 3;
+            if(Sense) {
+                List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+
+                if (!currentDetections.isEmpty()) {
+                    for (AprilTagDetection detection : currentDetections) {
+                        if (detection.metadata != null) {
+                            artifactPattern = detection.id;
+                            telemetry.addData("ID", detection.id);
+                            telemetry.addData("XYZ", detection.ftcPose.x + ", " + detection.ftcPose.y + ", " + detection.ftcPose.z);
+                            telemetry.addData("Rotation", detection.ftcPose.roll + ", " + detection.ftcPose.pitch + ", " + detection.ftcPose.yaw);
+                        }
                     }
+                } else {
+                    telemetry.addData("AprilTag", "Not detected");
                 }
+                telemetry.update();
+                allSeeingEye.close();
             }
             if(Shooting) {
-                    /*This assumes artifacts are loaded, left to right
-                    purple, green, purple*/
-                if (artifactPattern == 1) {
-                    servoI.setPosition(0.9);
-                    sleep(500);
+                    /*ID21 = GPP | ID22 = PGP | ID23 = PPG*/
+                /* Current paradigm has the middle servo (II) carrying green, rest are purple */
+                if (artifactPattern == 21) {
+                    servoTimer.reset();
                     servoII.setPosition(0.9);
-                    sleep(500);
-                    servoIII.setPosition(0.1);
-                } else if (artifactPattern == 2){
+                    while (servoTimer.milliseconds() < 500){
+                        servoI.setPosition(0.47);
+                    }
                     servoI.setPosition(0.9);
-                    sleep(500);
+                    while (servoTimer.milliseconds() < 500){
+                        servoIII.setPosition(0.53);
+                    }
                     servoIII.setPosition(0.1);
-                    sleep(500);
-                    servoII.setPosition(0.9);
-                } else if (artifactPattern == 3) {
-                    servoII.setPosition(0.9);
-                    sleep(500);
+
+                } else if (artifactPattern == 22){
+                    servoTimer.reset();
                     servoI.setPosition(0.9);
-                    sleep(500);
+                    while (servoTimer.milliseconds() < 500){
+                        servoII.setPosition(0.47);
+                    }
+                    servoI.setPosition(0.9);
+                    while (servoTimer.milliseconds() < 500){
+                        servoIII.setPosition(0.53);
+                    }
                     servoIII.setPosition(0.1);
+                } else if (artifactPattern == 23) {
+                    servoTimer.reset();
+                    servoI.setPosition(0.9);
+                    while (servoTimer.milliseconds() < 500){
+                        servoIII.setPosition(0.53);
+                    }
+                    servoIII.setPosition(0.1);
+                    while (servoTimer.milliseconds() < 500){
+                        servoII.setPosition(0.47);
+                    }
+                    servoII.setPosition(0.9);
                 } else{
                     servoI.setPosition(0.9);
+                    servoII.setPosition(0.9);
+                    servoIII.setPosition(0.1);
                 }
             }
 
@@ -296,6 +342,8 @@ public class RedDawn extends LinearOpMode {
 
 
                 intakeServo.setPower(IntakePower);
+                rightHoodServo.setPosition(Angulinator);
+                leftHoodServo.setPosition(Angulinator);
                 shooter.setPower(shootingPower);
                 if (colorsI.green > colorsI.blue || colorsII.green > colorsII.blue) {
                     ColorI = "Green";
@@ -320,7 +368,7 @@ public class RedDawn extends LinearOpMode {
                 telemetry.addData("Currently at",  " at %7d :%7d",
                         leftFrontDrive.getCurrentPosition(), rightFrontDrive.getCurrentPosition(), leftBackDrive.getCurrentPosition(), rightBackDrive.getCurrentPosition());
                 telemetry.addLine()
-                        .addData("Artifact Pattern:", artifactPattern);
+                        .addData("Tag ID:", artifactPattern);
                 telemetry.addLine()
                         .addData("ColorI:", ColorI);
                 telemetry.addLine()
@@ -352,5 +400,35 @@ public class RedDawn extends LinearOpMode {
 
             sleep(250);   // optional pause after each move.
         }
+    }
+    private void initAprilTag() {
+        aprilTag = new AprilTagProcessor.Builder()
+                .setDrawTagID(true)
+                .setDrawTagOutline(true)
+                .setDrawAxes(true)
+                .setDrawCubeProjection(true)
+                .build();
+
+        allSeeingEye = new VisionPortal.Builder()
+                .setCamera(hardwareMap.get(WebcamName.class, "allSeeingEye")) // Use your webcam's configured name
+                .addProcessor(aprilTag)
+                .build();
+    }
+    public double PIDControl (double reference, double state){
+        currentVelocity = shooter.getVelocity();
+        double deltaTime = timer.seconds();
+        timer.reset();
+
+        double error = targetVelocity - currentVelocity;
+        Sum += error * deltaTime;
+        latestError = error;
+        double derivative = (error - latestError) / timer.seconds();
+        if (currentVelocity >= ((targetRPM / 60) * ticksPerRevolution)){
+            gamepad2.rumble(500);
+        }
+        timer.reset();
+
+        double output = (error * Kp) + (derivative + Kd) + (Sum * Ki);
+        return output;
     }
 }
