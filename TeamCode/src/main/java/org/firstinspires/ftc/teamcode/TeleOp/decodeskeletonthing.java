@@ -58,7 +58,8 @@ public class decodeskeletonthing extends LinearOpMode {
     private double Sum;
     ElapsedTime timer = new ElapsedTime();
     double currentVelocity;
-    public double targetRPM = 3000;
+    public double targetRPM = 2300;
+    public double servoPosition = 0.225;
     public double ticksPerRevolution = 28;
     public double targetVelocity = (targetRPM / 60) * ticksPerRevolution;
     private VisionPortal allSeeingEye;
@@ -230,7 +231,7 @@ public class decodeskeletonthing extends LinearOpMode {
         //double calculatedDeltaY = (deltaX * Math.tan(theta)) - (GRAVITY * Math.pow(deltaX, 2)) / (2 * Math.pow(initialVelocity * Math.cos(theta), 2));
         //telemetry.addData("Calculated Trajectory", calculatedDeltaY);
         telemetry.update();
-        sleep(2000);
+
         double targetDeltaX = areaOnex;    // Target horizontal distance (m)
         double targetDeltaY = 0.23;    // Target vertical distance (m)
         double launchAngle = Math.toRadians(30); // Target launch angle (30 degrees)
@@ -310,16 +311,29 @@ public class decodeskeletonthing extends LinearOpMode {
 
             driveTrainDenominator = Math.max(Math.abs(drive) + Math.abs(turn) + Math.abs(strafe), 1);
 
+            if (gamepad2.dpad_left){
+                targetRPM = 2300;
+                targetVelocity = (targetRPM / 60) * ticksPerRevolution;
+                servoPosition = 0.225;
+            } else if (gamepad2.dpad_right){
+                targetRPM = 3000;
+                targetVelocity = (targetRPM / 60) * ticksPerRevolution;
+                servoPosition = 0.4;
+            }
 //DO NOT GO HIGHER THAN 0.425 FOR HOOD SERVOS!!!!!!! YOU WILL HAVE TO PAY FOR DAMAGES ):<
-if (gamepad2.right_bumper) {
-                rightHoodServo.setPosition(0.4);
-                leftHoodServo.setPosition(0.4);
+        if (gamepad2.right_bumper) {
+                rightHoodServo.setPosition(servoPosition);
+                leftHoodServo.setPosition(servoPosition);
                 shooter.setPower(PIDControl(targetVelocity, currentVelocity));
         } else if (gamepad2.left_bumper) {
             shooter.setPower(-0.25);
+            flipper1.setPosition(0.6);
+            flipper2.setPosition(0.6);
+            flipper3.setPosition(0.52);
         } else {
             shooter.setPower(0);
         }
+
 
         //shoot from closer zone
         //if (gamepad2.dpad_right){
@@ -351,6 +365,7 @@ if (gamepad2.right_bumper) {
             rollerServo.setPower(1);
         } else if (gamepad1.left_bumper) {
             rollerServo.setPower(-1);
+
         } else {
             rollerServo.setPower(0);
         }
@@ -367,16 +382,16 @@ if (gamepad2.right_bumper) {
         //rateLimit.reset();
         if (gamepad2.circle) {
             flipper3.setPosition(0.1);
-            sleep(500);
-            flipper3.setPosition(0.49);
+            sleep(100);
+            flipper3.setPosition(0.53);
         } else if (gamepad2.a) {
             flipper2.setPosition(0.9);
-            sleep(500);
-            flipper2.setPosition(0.53);
+            sleep(100);
+            flipper2.setPosition(0.47);
         } else if (gamepad2.square) {
             flipper1.setPosition(0.9);
-            sleep(500);
-            flipper1.setPosition(0.53);
+            sleep(100);
+            flipper1.setPosition(0.47);
         }
 
         if (gamepad2.triangle) {
