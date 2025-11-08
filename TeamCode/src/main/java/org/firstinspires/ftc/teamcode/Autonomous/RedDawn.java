@@ -40,7 +40,7 @@ public class RedDawn extends LinearOpMode {
     private double Sum;
     ElapsedTime timer = new ElapsedTime();
     double currentVelocity;
-    public double targetRPM = 3000;
+    public double targetRPM = 3200;
     public double ticksPerRevolution = 28;
     public double targetVelocity = (targetRPM / 60) * ticksPerRevolution;
     private Servo servoI;
@@ -64,6 +64,7 @@ public class RedDawn extends LinearOpMode {
 
     private ElapsedTime     runtime = new ElapsedTime();
     private ElapsedTime servoTimer = new ElapsedTime();
+    private ElapsedTime shooterTimer = new ElapsedTime();
 
     // Calculate the COUNTS_PER_INCH for your specific drive train.
     // Go to your motor vendor website to determine your motor's COUNTS_PER_MOTOR_REV
@@ -188,9 +189,9 @@ public class RedDawn extends LinearOpMode {
         allSeeingEye.close();
 
 
-        encoderDrive(0,0,0,0,0,false,0,true,false,0.4,PIDControl(targetVelocity, currentVelocity),2);
-        encoderDrive(0.2,2,-2,2,-2,false,0,false,false,0.4,PIDControl(targetVelocity, currentVelocity),4);
-        encoderDrive(0,0,0,0,0,false,0,false,true,0.4,PIDControl(targetVelocity, currentVelocity),4);
+        encoderDrive(0,0,0,0,0,false,0,true,false,0.4,false,2);
+        encoderDrive(0.2,2,-2,2,-2,false,0,false,false,0.4,true,4);
+        encoderDrive(0,0,0,0,0,false,0,false,true,0.4,true,4);
 
         telemetry.addData("Path", "Complete");
         telemetry.update();
@@ -209,7 +210,7 @@ public class RedDawn extends LinearOpMode {
     ///Step used prior to EncoderDrive reference with Shooting = true, retrieves velocity artifact needs to travel
     public void encoderDrive(double speed,
                              double leftFrontInches, double rightFrontInches,
-                             double leftBackInches, double rightBackInches, boolean strafe, double IntakePower, boolean Sense, boolean Shooting, double Angulinator, double shootingPower,
+                             double leftBackInches, double rightBackInches, boolean strafe, double IntakePower, boolean Sense, boolean Shooting, double Angulinator, boolean shootingPower,
                              double timeoutS) {
         int newLeftFrontTarget;
         int newRightFrontTarget;
@@ -247,6 +248,11 @@ public class RedDawn extends LinearOpMode {
                 telemetry.update();
                 allSeeingEye.close();
             }
+            if (shootingPower){
+                while (currentVelocity < targetVelocity){
+                shooter.setPower(PIDControl(targetVelocity, currentVelocity));
+            }
+            }
             if(Shooting) {
                     /*ID21 = GPP | ID22 = PGP | ID23 = PPG*/
                 /* Current paradigm has the middle servo (II) carrying green, rest are purple */
@@ -257,7 +263,7 @@ public class RedDawn extends LinearOpMode {
                         servoI.setPosition(0.47);
                     }
                     servoI.setPosition(0.9);
-                    while (servoTimer.milliseconds() < 500){
+                    while (servoTimer.milliseconds() < 1000){
                         servoIII.setPosition(0.53);
                     }
                     servoIII.setPosition(0.1);
@@ -268,8 +274,8 @@ public class RedDawn extends LinearOpMode {
                     while (servoTimer.milliseconds() < 500){
                         servoII.setPosition(0.47);
                     }
-                    servoI.setPosition(0.9);
-                    while (servoTimer.milliseconds() < 500){
+                    servoII.setPosition(0.9);
+                    while (servoTimer.milliseconds() < 1000){
                         servoIII.setPosition(0.53);
                     }
                     servoIII.setPosition(0.1);
@@ -280,7 +286,7 @@ public class RedDawn extends LinearOpMode {
                         servoIII.setPosition(0.53);
                     }
                     servoIII.setPosition(0.1);
-                    while (servoTimer.milliseconds() < 500){
+                    while (servoTimer.milliseconds() < 1000){
                         servoII.setPosition(0.47);
                     }
                     servoII.setPosition(0.9);
@@ -344,7 +350,6 @@ public class RedDawn extends LinearOpMode {
                 intakeServo.setPower(IntakePower);
                 rightHoodServo.setPosition(Angulinator);
                 leftHoodServo.setPosition(Angulinator);
-                shooter.setPower(shootingPower);
                 if (colorsI.green > colorsI.blue || colorsII.green > colorsII.blue) {
                     ColorI = "Green";
                 } else {
@@ -423,9 +428,7 @@ public class RedDawn extends LinearOpMode {
         Sum += error * deltaTime;
         latestError = error;
         double derivative = (error - latestError) / timer.seconds();
-        if (currentVelocity >= ((targetRPM / 60) * ticksPerRevolution)){
-            gamepad2.rumble(500);
-        }
+
         timer.reset();
 
         double output = (error * Kp) + (derivative + Kd) + (Sum * Ki);
