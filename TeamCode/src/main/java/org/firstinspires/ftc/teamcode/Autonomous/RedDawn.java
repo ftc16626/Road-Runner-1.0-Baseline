@@ -61,7 +61,9 @@ public class RedDawn extends LinearOpMode {
 
 
 
+
     private ElapsedTime     runtime = new ElapsedTime();
+    private ElapsedTime servoTimer = new ElapsedTime();
 
     // Calculate the COUNTS_PER_INCH for your specific drive train.
     // Go to your motor vendor website to determine your motor's COUNTS_PER_MOTOR_REV
@@ -111,10 +113,10 @@ public class RedDawn extends LinearOpMode {
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         shooter.setDirection(DcMotor.Direction.FORWARD);
         leftHoodServo.setDirection(Servo.Direction.REVERSE);
 
@@ -186,14 +188,10 @@ public class RedDawn extends LinearOpMode {
         allSeeingEye.close();
 
 
-        encoderDrive(0.2,-12,-12,-12,-12, false, 0,false,false,0.4, PIDControl(targetVelocity,currentVelocity), 3); // Moving halfway forward
-        encoderDrive(0,0,0,0,0, false, 0, true, false,0.4, PIDControl(targetVelocity,currentVelocity), 3); // Scan obelisk
-        encoderDrive(0.2,-8,-8,-8,-8, false, 0,false,false,0.4,PIDControl(targetVelocity,currentVelocity), 2); // Finish moving forward
-        encoderDrive(0.2, 7.8, -7.8, 7.8, -7.8, false,0, false,false,0.4, PIDControl(targetVelocity,currentVelocity),5); // Turn right ~45 degrees
-        encoderDrive(0.2,-2.4,-2.4,-2.4,-2.4,false,0,false,false,0.4,PIDControl(targetVelocity,currentVelocity),5); // Move towards goal
-        encoderDrive(0, 0, 0, 0, 0, false,0, false,true,0.4, PIDControl(targetVelocity,currentVelocity),7); // Launch artifacts
-        encoderDrive(0.2, -7.8, 7.8, -7.8, 7.8, false,0, false,false, 0.4 ,0,5); // Turn left ~45 degrees
-        encoderDrive(0.4, 6,6,6,6,false,0,false,false,0.4,0,3); // Move out of launch zone
+        encoderDrive(0,0,0,0,0,false,0,true,false,0.4,PIDControl(targetVelocity, currentVelocity),2);
+        encoderDrive(0.2,2,-2,2,-2,false,0,false,false,0.4,PIDControl(targetVelocity, currentVelocity),4);
+        encoderDrive(0,0,0,0,0,false,0,false,true,0.4,PIDControl(targetVelocity, currentVelocity),4);
+
         telemetry.addData("Path", "Complete");
         telemetry.update();
         sleep(1000);  // pause to display final telemetry message.
@@ -253,22 +251,38 @@ public class RedDawn extends LinearOpMode {
                     /*ID21 = GPP | ID22 = PGP | ID23 = PPG*/
                 /* Current paradigm has the middle servo (II) carrying green, rest are purple */
                 if (artifactPattern == 21) {
+                    servoTimer.reset();
                     servoII.setPosition(0.9);
-                    sleep(500);
+                    while (servoTimer.milliseconds() < 500){
+                        servoI.setPosition(0.47);
+                    }
                     servoI.setPosition(0.9);
-                    sleep(500);
+                    while (servoTimer.milliseconds() < 500){
+                        servoIII.setPosition(0.53);
+                    }
                     servoIII.setPosition(0.1);
+
                 } else if (artifactPattern == 22){
+                    servoTimer.reset();
                     servoI.setPosition(0.9);
-                    sleep(500);
-                    servoII.setPosition(0.9);
-                    sleep(500);
+                    while (servoTimer.milliseconds() < 500){
+                        servoII.setPosition(0.47);
+                    }
+                    servoI.setPosition(0.9);
+                    while (servoTimer.milliseconds() < 500){
+                        servoIII.setPosition(0.53);
+                    }
                     servoIII.setPosition(0.1);
                 } else if (artifactPattern == 23) {
+                    servoTimer.reset();
                     servoI.setPosition(0.9);
-                    sleep(500);
+                    while (servoTimer.milliseconds() < 500){
+                        servoIII.setPosition(0.53);
+                    }
                     servoIII.setPosition(0.1);
-                    sleep(500);
+                    while (servoTimer.milliseconds() < 500){
+                        servoII.setPosition(0.47);
+                    }
                     servoII.setPosition(0.9);
                 } else{
                     servoI.setPosition(0.9);
