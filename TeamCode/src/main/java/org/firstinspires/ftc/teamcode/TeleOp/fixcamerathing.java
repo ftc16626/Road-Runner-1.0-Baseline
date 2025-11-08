@@ -1,33 +1,21 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
 
 import android.app.Activity;
-import android.graphics.Color;
 import android.view.View;
 
-import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
-import org.firstinspires.ftc.robotcore.internal.system.Deadline;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.SwitchableLight;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.PIDTuning;
-import org.firstinspires.ftc.teamcode.tuning.PIDFController;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -35,16 +23,14 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@TeleOp (name = "pickme", group = "robot")
-public class decodeskeletonthing extends LinearOpMode {
+@TeleOp (name = "mainTeleop1", group = "robot")
+public class fixcamerathing extends LinearOpMode {
     private DcMotor leftFrontMotor;
     private DcMotor leftBackMotor;
     private DcMotor  rightFrontMotor;
     private DcMotor  rightBackMotor;
     private DcMotorEx shooter;
     //private CRServo conveyorServo;
-    private Servo rightHoodServo;
-    private Servo leftHoodServo;
     private CRServo rollerServo;
     private Servo armThing;
     private Servo flipper1;
@@ -58,7 +44,7 @@ public class decodeskeletonthing extends LinearOpMode {
     private double Sum;
     ElapsedTime timer = new ElapsedTime();
     double currentVelocity;
-    public double targetRPM = 3000;
+    public double targetRPM = 2300;
     public double ticksPerRevolution = 28;
     public double targetVelocity = (targetRPM / 60) * ticksPerRevolution;
     private VisionPortal allSeeingEye;
@@ -130,14 +116,11 @@ public class decodeskeletonthing extends LinearOpMode {
         flipper1 = hardwareMap.get(Servo.class, "flipper1");
         flipper2 = hardwareMap.get(Servo.class, "flipper2");
         flipper3 = hardwareMap.get(Servo.class, "flipper3");
-        rightHoodServo = hardwareMap.get(Servo.class, "rightHoodServo");
-        leftHoodServo = hardwareMap.get(Servo.class, "leftHoodServo");
         leftBackMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftFrontMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightBackMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightFrontMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        leftHoodServo.setDirection(Servo.Direction.REVERSE);
 
         first.setGain(gain);
         second.setGain(gain);
@@ -216,8 +199,7 @@ public class decodeskeletonthing extends LinearOpMode {
 
         // Wait for the game to start (driver presses START)
         waitForStart();
-        leftHoodServo.setPosition(0);
-        rightHoodServo.setPosition(0);
+
         double colorFind = 0;
         String obeliskCode;
         double areaOnex = 1.30;
@@ -251,7 +233,7 @@ public class decodeskeletonthing extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-
+            initAprilTag();
 
             telemetry.addData("DS preview on", "EasyOpenCV");
             telemetry.addData("Camera preview on", "Webcam");
@@ -259,12 +241,10 @@ public class decodeskeletonthing extends LinearOpMode {
 
             waitForStart();
 
+            while (opModeIsActive()) {
+                List<AprilTagDetection> currentDetections = aprilTag.getDetections();
 
-            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-
-            // Process detections
-            if (gamepad1.square) {
-
+                // Process detections
                 if (!currentDetections.isEmpty()) {
                     for (AprilTagDetection detection : currentDetections) {
                         if (detection.metadata != null) {
@@ -280,11 +260,9 @@ public class decodeskeletonthing extends LinearOpMode {
             }
 
             allSeeingEye.close();
-
-
             double max;
             double driveTrainDenominator;
-            drive = -gamepad1.left_stick_y;
+            drive = gamepad1.left_stick_y;
             turn = gamepad1.right_stick_x;
             strafe = -gamepad1.left_stick_x;
 
@@ -310,11 +288,10 @@ public class decodeskeletonthing extends LinearOpMode {
 
             driveTrainDenominator = Math.max(Math.abs(drive) + Math.abs(turn) + Math.abs(strafe), 1);
 
-//DO NOT GO HIGHER THAN 0.425 FOR HOOD SERVOS!!!!!!! YOU WILL HAVE TO PAY FOR DAMAGES ):<
-if (gamepad2.right_bumper) {
-                rightHoodServo.setPosition(0.4);
-                leftHoodServo.setPosition(0.4);
+
+            if (gamepad2.right_bumper) {
                 shooter.setPower(PIDControl(targetVelocity, currentVelocity));
+
         } else if (gamepad2.left_bumper) {
             shooter.setPower(-0.25);
         } else {
@@ -355,28 +332,16 @@ if (gamepad2.right_bumper) {
             rollerServo.setPower(0);
         }
 
-            if (gamepad1.dpad_up) {
-                rightHoodServo.setPosition(0.225);
-                leftHoodServo.setPosition(0.225);
-            } else if (gamepad1.dpad_down) {
-                rightHoodServo.setPosition(0.0);
-                leftHoodServo.setPosition(0.0);
-            }
-
 
         //rateLimit.reset();
-        if (gamepad2.circle) {
+        if (gamepad2.square) {
             flipper3.setPosition(0.1);
-            sleep(500);
-            flipper3.setPosition(0.49);
-        } else if (gamepad2.a) {
+        }
+        if (gamepad2.a) {
             flipper2.setPosition(0.9);
-            sleep(500);
-            flipper2.setPosition(0.53);
-        } else if (gamepad2.square) {
+        }
+        if (gamepad2.circle) {
             flipper1.setPosition(0.9);
-            sleep(500);
-            flipper1.setPosition(0.53);
         }
 
         if (gamepad2.triangle) {
@@ -391,7 +356,7 @@ if (gamepad2.right_bumper) {
             flipper3.setPosition(0.53);
         }
 
-         }
+        // }
 
 
            /*/ NormalizedRGBA Cola1 = first.getNormalizedColors();
@@ -447,7 +412,7 @@ if (gamepad2.right_bumper) {
         sleep(50);
 
      }
-
+    }
     private void initAprilTag() {
         aprilTag = new AprilTagProcessor.Builder()
                 .setDrawTagID(true)
