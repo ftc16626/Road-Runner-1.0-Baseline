@@ -38,7 +38,7 @@ public class PIDTuning extends OpMode {
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        ShooterMotor = hardwareMap.get(DcMotorEx.class,"Shooter");
+        ShooterMotor = hardwareMap.get(DcMotorEx.class,"shooter");
     }
 
     @Override
