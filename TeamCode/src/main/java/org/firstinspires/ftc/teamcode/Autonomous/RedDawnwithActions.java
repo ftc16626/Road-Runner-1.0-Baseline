@@ -5,12 +5,16 @@ import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 import android.app.Activity;
 import android.view.View;
 
-import com.qualcomm.hardware.dfrobot.HuskyLens;
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -22,10 +26,13 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.ftc.Actions;
+
 import java.util.List;
 
-@Autonomous(name="RedDawn", group="Robot")
-public class RedDawn extends LinearOpMode {
+@Autonomous(name="TheRedDownAutoYouShouldUse", group="Robot")
+public class RedDawnwithActions extends LinearOpMode {
 
     /* Declare OpMode members. */
     private DcMotor         leftFrontDrive   = null;
@@ -34,18 +41,16 @@ public class RedDawn extends LinearOpMode {
     private DcMotor         rightBackDrive  = null;
     private DcMotorEx shooter = null;
     private double Kp = 0.4;
-    private double Ki = 0; // og Ki is 0.0008
+    private double Ki = 0.0008; // og Ki is 0.0008
     private double Kd = 0.1;
     private  double latestError;
     private double Sum;
     ElapsedTime timer = new ElapsedTime();
     double currentVelocity;
-    public double targetRPM = 3000;
+    public double targetRPM = 2600;
     public double ticksPerRevolution = 28;
     public double targetVelocity = (targetRPM / 60) * ticksPerRevolution;
-    private Servo servoI;
-    private Servo servoII;
-    private Servo servoIII;
+
     private CRServo intakeServo;
     private Servo rightHoodServo;
     private Servo leftHoodServo;
@@ -59,7 +64,10 @@ public class RedDawn extends LinearOpMode {
     private AprilTagProcessor aprilTag;
     double artifactPattern;
 
-
+    private DcMotorEx Shooter;
+    private Servo servoI;
+    private Servo servoII;
+    private Servo servoIII;
 
 
     private ElapsedTime     runtime = new ElapsedTime();
@@ -80,7 +88,185 @@ public class RedDawn extends LinearOpMode {
     static final double     DRIVE_SPEED             = 0.6;
     static final double     TURN_SPEED              = 0.5;
     View relativeLayout;
+    public class Shooter {
+        private DcMotorEx Shooter;
+        private Servo servoI;
+        private Servo servoII;
+        private Servo servoIII;
+        private double isReady = 0;
+        ElapsedTime timer;
+        public Shooter (HardwareMap hardwareMapmap){
+            shooter  = hardwareMap.get(DcMotorEx.class, "shooter");
+            rightFrontDrive = hardwareMap.get(DcMotor.class, "RFMotor");
+            leftBackDrive  = hardwareMap.get(DcMotor.class, "LBMotor");
+            rightBackDrive = hardwareMap.get(DcMotor.class, "RBMotor");
+            shooter = hardwareMap.get(DcMotorEx.class, "shooter");
+            servoI = hardwareMap.get(Servo.class, "flipper1");
+            servoII = hardwareMap.get(Servo.class, "flipper2");
+            servoIII = hardwareMap.get(Servo.class, "flipper3");
+        }
+        public Action shooterPower(){
+            return new Action() {
+                private boolean initialized = false;
 
+                @Override
+                public boolean run(@NonNull TelemetryPacket packet) {
+                    if (!initialized){
+                            shooter.setPower(PIDControl(targetVelocity, currentVelocity));
+                            while (currentVelocity != targetVelocity){
+                                isReady = 0;
+                            }
+                            if (currentVelocity == targetVelocity){
+                                isReady = 1;
+                            }
+                        initialized = true;
+                        timer = new ElapsedTime();
+                    }
+
+                    return timer.seconds() < 2;
+                }
+            };
+        }
+        public Action Fire() {
+            return new Action() {
+                private boolean initialized = false;
+
+                @Override
+                public boolean run(@NonNull TelemetryPacket packet){
+                    if (!initialized){
+                        while (isReady == 0){
+                            servoI.setPosition(0.47);
+                            servoII.setPosition(0.47);
+                            servoIII.setPosition(0.51);
+                        }
+
+                        if (isReady == 1){
+                            if (artifactPattern == 21) {
+                                servoTimer.reset();
+                                while (servoTimer.milliseconds() < 5000) {
+                                    servoII.setPosition(0.47);
+                             }
+                                servoII.setPosition(0.9);
+                                while (servoTimer.milliseconds() < 6000){
+                                    servoI.setPosition(0.47);
+                                }
+                             servoI.setPosition(0.9);
+                                while (servoTimer.milliseconds() < 7000){
+                                   servoIII.setPosition(0.53);
+                             }
+                             servoIII.setPosition(0.1);
+
+                            } else if (artifactPattern == 22){
+                                servoTimer.reset();
+                                while (servoTimer.milliseconds() < 1000){
+                                    servoI.setPosition(0.47);
+                                }
+                                servoI.setPosition(0.9);
+                                while (servoTimer.milliseconds() < 2000){
+                                   servoII.setPosition(0.47);
+                             }
+                                servoII.setPosition(0.9);
+                             while (servoTimer.milliseconds() < 3000){
+                                    servoIII.setPosition(0.51);
+                             }
+                                servoIII.setPosition(0.1);
+                            } else if (artifactPattern == 23) {
+                              servoTimer.reset();
+                             while (servoTimer.milliseconds() < 500){
+                                servoII.setPosition(0.47);
+                             }
+                                servoII.setPosition(0.9);
+                             while (servoTimer.milliseconds() < 1500){
+                                    servoI.setPosition(0.47);
+                                }
+                               servoIII.setPosition(0.9);
+                               while (servoTimer.milliseconds() < 2500){
+                                   servoIII.setPosition(0.51);
+                               }
+                              servoI.setPosition(0.1);
+                         } else{
+                                servoI.setPosition(0.9);
+                                servoII.setPosition(0.9);
+                                 servoIII.setPosition(0.1);
+                        }
+                        }
+
+                        initialized = true;
+                        timer = new ElapsedTime();
+                    }
+
+                    return timer.seconds() < 1;
+                }
+            };
+        }
+        public Action Scan(){
+            return new Action() {
+                private boolean initialized = false;
+
+                @Override
+                public boolean run(@NonNull TelemetryPacket packet) {
+                    if (!initialized){
+                        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+
+                        if (!currentDetections.isEmpty()) {
+                            for (AprilTagDetection detection : currentDetections) {
+                                if (detection.metadata != null) {
+                                    if (detection.id == 24 || detection.id == 25) {
+                                        continue;
+                                    }
+                                    artifactPattern = detection.id;
+                                    telemetry.addData("ID", detection.id);
+                                    telemetry.addData("XYZ", detection.ftcPose.x + ", " + detection.ftcPose.y + ", " + detection.ftcPose.z);
+                                    telemetry.addData("Rotation", detection.ftcPose.roll + ", " + detection.ftcPose.pitch + ", " + detection.ftcPose.yaw);
+                                }
+                            }
+                        } else {
+                            telemetry.addData("AprilTag", "Not detected");
+                        }
+                        telemetry.update();
+                        allSeeingEye.close();
+                        initialized = true;
+                        timer = new ElapsedTime();
+                    }
+
+                    return timer.seconds() < 2;
+                }
+            };
+        }
+        public Action getInPosition(){
+            return new Action() {
+                private boolean initialized = false;
+
+                @Override
+                public boolean run(@NonNull TelemetryPacket packet) {
+                    if (!initialized){
+                        encoderDrive(0.2,2,-2,2,-2,false,0,0.4,2);
+                        initialized = true;
+                        timer = new ElapsedTime();
+                    }
+
+                    return timer.seconds() < 2;
+                }
+            };
+        }
+        public Action outOfShootingArea(){
+            return new Action() {
+                private boolean initialized = false;
+
+                @Override
+                public boolean run(@NonNull TelemetryPacket packet) {
+                    if (!initialized){
+                        encoderDrive(0.2,3,3,3,3,false,0,0,2);
+                        initialized = true;
+                        timer = new ElapsedTime();
+                    }
+
+                    return timer.seconds() < 2;
+                }
+            };
+        }
+
+    }
 
 
 
@@ -90,19 +276,18 @@ public class RedDawn extends LinearOpMode {
 
         int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
         relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
-
+        Shooter shoot = new Shooter(hardwareMap);
         // Initialize the drive system variables.
         leftFrontDrive  = hardwareMap.get(DcMotor.class, "LFMotor");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "RFMotor");
         leftBackDrive  = hardwareMap.get(DcMotor.class, "LBMotor");
         rightBackDrive = hardwareMap.get(DcMotor.class, "RBMotor");
-        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
-        servoI = hardwareMap.get(Servo.class, "flipper1");
-        servoII = hardwareMap.get(Servo.class, "flipper2");
-        servoIII = hardwareMap.get(Servo.class, "flipper3");
         intakeServo = hardwareMap.get(CRServo.class, "roller");
         rightHoodServo = hardwareMap.get(Servo.class, "rightHoodServo");
         leftHoodServo = hardwareMap.get(Servo.class, "leftHoodServo");
+        servoI = hardwareMap.get(Servo.class, "flipper1");
+        servoII = hardwareMap.get(Servo.class, "flipper2");
+        servoIII = hardwareMap.get(Servo.class, "flipper3");
         colorSensorI = hardwareMap.get(NormalizedColorSensor.class, "first");
         colorSensorII = hardwareMap.get(NormalizedColorSensor.class, "second");
         colorSensorIII = hardwareMap.get(NormalizedColorSensor.class, "third");
@@ -188,13 +373,10 @@ public class RedDawn extends LinearOpMode {
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         allSeeingEye.close();
 
-
-        encoderDrive(0,0,0,0,0,false,0,true,false,0,true,6 );
-        encoderDrive(0.2,1.75,-1.75,1.75,-1.75,false,0,false,false,0.4,false,2);
-        encoderDrive(0,0,0,0,0,false,0,false,false,0,true,6 );
-        encoderDrive(0,0,0,0,0,false,0,false,true,0.4,true, 8);
-        encoderDrive(0.2,-3,-3,-3,-3,false,0,false,false,0.4,false,2);
-
+        Actions.runBlocking(new SequentialAction(shoot.Scan()));
+        Actions.runBlocking(new SequentialAction(shoot.getInPosition()));
+        Actions.runBlocking(new SequentialAction(shoot.shooterPower(), shoot.Fire()));
+        Actions.runBlocking(new SequentialAction(shoot.outOfShootingArea()));
         telemetry.addData("Path", "Complete");
         telemetry.update();
         sleep(1000);  // pause to display final telemetry message.
@@ -212,7 +394,7 @@ public class RedDawn extends LinearOpMode {
     ///Step used prior to EncoderDrive reference with Shooting = true, retrieves velocity artifact needs to travel
     public void encoderDrive(double speed,
                              double leftFrontInches, double rightFrontInches,
-                             double leftBackInches, double rightBackInches, boolean strafe, double IntakePower, boolean Sense, boolean Shooting, double Angulinator, boolean ready,
+                             double leftBackInches, double rightBackInches, boolean strafe, double IntakePower, double Angulinator,
                              double timeoutS) {
         int newLeftFrontTarget;
         int newRightFrontTarget;
@@ -232,79 +414,14 @@ public class RedDawn extends LinearOpMode {
         // Ensure that the OpMode is still active
         if (opModeIsActive()) {
 
-            if(Sense) {
-                List<AprilTagDetection> currentDetections = aprilTag.getDetections();
 
-                if (!currentDetections.isEmpty()) {
-                    for (AprilTagDetection detection : currentDetections) {
-                        if (detection.id == 24 || detection.id == 25) {
-                            continue;
-                        }
-                        if (detection.id == 21 || detection.id == 22 || detection.id == 23) {
-                            artifactPattern = detection.id;
-                            telemetry.addData("ID", detection.id);
-                            telemetry.addData("XYZ", detection.ftcPose.x + ", " + detection.ftcPose.y + ", " + detection.ftcPose.z);
-                            telemetry.addData("Rotation", detection.ftcPose.roll + ", " + detection.ftcPose.pitch + ", " + detection.ftcPose.yaw);
-                        }
-                    }
-                } else {
-                    telemetry.addData("AprilTag", "Not detected");
-                }
-                telemetry.update();
-                allSeeingEye.close();
-            }
 
-            if(Shooting) {
 
                     /*ID21 = GPP | ID22 = PGP | ID23 = PPG*/
                 /* Current paradigm has the middle servo (II) carrying green, rest are purple */
-                if (artifactPattern == 21) {
-                    servoTimer.reset();
-                    servoII.setPosition(0.9);
-                    while (servoTimer.milliseconds() < 1000){
-                        servoI.setPosition(0.47);
-                    }
-                    servoI.setPosition(0.9);
-                    while (servoTimer.milliseconds() < 2000){
-                        servoIII.setPosition(0.53);
-                    }
-                    servoIII.setPosition(0.1);
 
-                } else if (artifactPattern == 22){
-                    servoTimer.reset();
-                    servoII.setPosition(0.9);
-                    while (servoTimer.milliseconds() < 1000){
-                        servoI.setPosition(0.47);
-                    }
-                    servoI.setPosition(0.9);
-                    while (servoTimer.milliseconds() < 2000){
-                        servoIII.setPosition(0.53);
-                    }
-                    servoIII.setPosition(0.1);
-                } else if (artifactPattern == 23) {
-                    servoTimer.reset();
-                    servoI.setPosition(0.9);
-                    while (servoTimer.milliseconds() < 1000){
-                        servoIII.setPosition(0.53);
-                    }
-                    servoIII.setPosition(0.1);
-                    while (servoTimer.milliseconds() < 2000){
-                        servoII.setPosition(0.47);
-                    }
-                    servoII.setPosition(0.9);
-                } else{
-                    servoI.setPosition(0.9);
-                    servoII.setPosition(0.9);
-                    servoIII.setPosition(0.1);
-                }
-            }
 
-            if (ready){
-                shooter.getVelocity();
-                while(currentVelocity <= targetVelocity){
-                    shooter.setPower(PIDControl(targetVelocity, currentVelocity));
-                }
-            }
+
             if (strafe){
                 leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
                 rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
@@ -353,11 +470,7 @@ public class RedDawn extends LinearOpMode {
             while (opModeIsActive() &&
                     (runtime.seconds() < timeoutS) &&
                     (leftFrontDrive.isBusy() && rightFrontDrive.isBusy() && leftBackDrive.isBusy() && rightBackDrive.isBusy())) {
-
-                shooter.setPower(PIDControl(targetVelocity, currentVelocity));
-                intakeServo.setPower(IntakePower);
-                rightHoodServo.setPosition(Angulinator);
-                leftHoodServo.setPosition(Angulinator);
+               
                 if (colorsI.green > colorsI.blue || colorsII.green > colorsII.blue) {
                     ColorI = "Green";
                 } else {
@@ -429,6 +542,7 @@ public class RedDawn extends LinearOpMode {
     }
     public double PIDControl (double reference, double state){
         currentVelocity = shooter.getVelocity();
+        
         double deltaTime = timer.seconds();
         timer.reset();
 

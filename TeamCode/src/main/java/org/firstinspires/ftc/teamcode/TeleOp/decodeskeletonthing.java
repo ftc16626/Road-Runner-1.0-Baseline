@@ -269,6 +269,7 @@ public class decodeskeletonthing extends LinearOpMode {
                 if (!currentDetections.isEmpty()) {
                     for (AprilTagDetection detection : currentDetections) {
                         if (detection.metadata != null) {
+                            colorFind = detection.id;
                             telemetry.addData("ID", detection.id);
                             telemetry.addData("XYZ", detection.ftcPose.x + ", " + detection.ftcPose.y + ", " + detection.ftcPose.z);
                             telemetry.addData("Rotation", detection.ftcPose.roll + ", " + detection.ftcPose.pitch + ", " + detection.ftcPose.yaw);
@@ -334,7 +335,42 @@ public class decodeskeletonthing extends LinearOpMode {
             shooter.setPower(0);
         }
 
-
+            if (gamepad2.dpad_up) {
+                if (colorFind == 22) {
+                    timer.reset();
+                    flipper1.setPosition(0.9);
+                    while (timer.milliseconds() < 500) {
+                        flipper2.setPosition(0.47);
+                    }
+                    flipper2.setPosition(0.9);
+                    while (timer.milliseconds() < 1000) {
+                        flipper3.setPosition(0.53);
+                    }
+                    flipper3.setPosition(0.1);
+                } else if (colorFind == 23) {
+                    timer.reset();
+                    flipper1.setPosition(0.9);
+                    while (timer.milliseconds() < 500) {
+                        flipper3.setPosition(0.53);
+                    }
+                    flipper3.setPosition(0.1);
+                    while (timer.milliseconds() < 1000) {
+                        flipper2.setPosition(0.49);
+                    }
+                    flipper3.setPosition(0.9);
+                } else if (colorFind == 21) {
+                    timer.reset();
+                    flipper2.setPosition(0.9);
+                    while (timer.milliseconds() < 500) {
+                        flipper1.setPosition(0.47);
+                    }
+                    flipper1.setPosition(0.9);
+                    while (timer.milliseconds() < 1000) {
+                        flipper3.setPosition(0.53);
+                    }
+                    flipper3.setPosition(0.1);
+                }
+            }
         //shoot from closer zone
         //if (gamepad2.dpad_right){
         // targetDeltaX = areaTwox;
