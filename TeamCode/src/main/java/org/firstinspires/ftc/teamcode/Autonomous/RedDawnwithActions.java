@@ -47,7 +47,7 @@ public class RedDawnwithActions extends LinearOpMode {
     private double Sum;
     ElapsedTime timer = new ElapsedTime();
     double currentVelocity;
-    public double targetRPM = 2600;
+    public double targetRPM = 2300;
     public double ticksPerRevolution = 28;
     public double targetVelocity = (targetRPM / 60) * ticksPerRevolution;
 
@@ -63,8 +63,7 @@ public class RedDawnwithActions extends LinearOpMode {
     private VisionPortal allSeeingEye;
     private AprilTagProcessor aprilTag;
     double artifactPattern;
-
-    private DcMotorEx Shooter;
+    
     private Servo servoI;
     private Servo servoII;
     private Servo servoIII;
@@ -89,7 +88,7 @@ public class RedDawnwithActions extends LinearOpMode {
     static final double     TURN_SPEED              = 0.5;
     View relativeLayout;
     public class Shooter {
-        private DcMotorEx Shooter;
+        private DcMotorEx shooter;
         private Servo servoI;
         private Servo servoII;
         private Servo servoIII;
@@ -97,6 +96,7 @@ public class RedDawnwithActions extends LinearOpMode {
         ElapsedTime timer;
         public Shooter (HardwareMap hardwareMapmap){
             shooter  = hardwareMap.get(DcMotorEx.class, "shooter");
+            //leftFrontDrive = hardwareMap.get(DcMotor.class, "LFMotor");
             rightFrontDrive = hardwareMap.get(DcMotor.class, "RFMotor");
             leftBackDrive  = hardwareMap.get(DcMotor.class, "LBMotor");
             rightBackDrive = hardwareMap.get(DcMotor.class, "RBMotor");
@@ -113,11 +113,13 @@ public class RedDawnwithActions extends LinearOpMode {
                 public boolean run(@NonNull TelemetryPacket packet) {
                     if (!initialized){
                             shooter.setPower(PIDControl(targetVelocity, currentVelocity));
-                            while (currentVelocity != targetVelocity){
-                                isReady = 0;
-                            }
-                            if (currentVelocity == targetVelocity){
-                                isReady = 1;
+                            while (isReady != 1) {
+                                if (currentVelocity < targetVelocity) {
+                                    isReady = 0;
+                                }
+                                if (currentVelocity >= targetVelocity) {
+                                    isReady = 1;
+                                }
                             }
                         initialized = true;
                         timer = new ElapsedTime();
