@@ -473,57 +473,45 @@ public class RedDawnwithActions extends LinearOpMode {
                 case Fling:
                     if (artifactPattern == 21) {
                         servoTimer.reset();
-                        while (servoTimer.milliseconds() < 4000) {
-                            servoII.setPosition(0.47);
-                        }
                         servoII.setPosition(0.9);
-                        while (servoTimer.milliseconds() < 4500){
+                        while (servoTimer.milliseconds() < 500){
                             servoI.setPosition(0.47);
                         }
                         servoI.setPosition(0.9);
-                        while (servoTimer.milliseconds() < 5000){
+                        while (servoTimer.milliseconds() < 1000){
                             servoIII.setPosition(0.53);
                         }
                         servoIII.setPosition(0.1);
                     } else if (artifactPattern == 22){
                         servoTimer.reset();
-                        while (servoTimer.milliseconds() < 4000){
-                            servoI.setPosition(0.47);
-                        }
                         servoI.setPosition(0.9);
-                        while (servoTimer.milliseconds() < 4500){
+                        while (servoTimer.milliseconds() < 500){
                             servoII.setPosition(0.47);
                         }
                         servoII.setPosition(0.9);
-                        while (servoTimer.milliseconds() < 5000){
+                        while (servoTimer.milliseconds() < 1000){
                             servoIII.setPosition(0.51);
                         }
                         servoIII.setPosition(0.1);
                     } else if (artifactPattern == 23) {
                         servoTimer.reset();
-                        while (servoTimer.milliseconds() < 4000){
-                            servoII.setPosition(0.47);
-                        }
                         servoII.setPosition(0.9);
-                        while (servoTimer.milliseconds() < 4500){
+                        while (servoTimer.milliseconds() < 500){
                             servoI.setPosition(0.47);
                         }
                         servoIII.setPosition(0.9);
-                        while (servoTimer.milliseconds() < 5000){
+                        while (servoTimer.milliseconds() < 1000){
                             servoIII.setPosition(0.51);
                         }
                         servoI.setPosition(0.1);
                     } else {
                         servoTimer.reset();
-                        while (servoTimer.milliseconds() < 4000) {
-                            servoII.setPosition(0.47);
-                        }
                         servoII.setPosition(0.9);
-                        while (servoTimer.milliseconds() < 4500) {
+                        while (servoTimer.milliseconds() < 500) {
                             servoI.setPosition(0.47);
                         }
                         servoI.setPosition(0.9);
-                        while (servoTimer.milliseconds() < 5000) {
+                        while (servoTimer.milliseconds() < 1000) {
                             servoIII.setPosition(0.53);
                         }
                         servoIII.setPosition(0.1);
