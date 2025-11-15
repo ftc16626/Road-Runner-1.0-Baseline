@@ -64,12 +64,12 @@ public class decodeskeletonthing extends LinearOpMode {
     public double targetVelocity = (targetRPM / 60) * ticksPerRevolution;
     private VisionPortal allSeeingEye;
     private AprilTagProcessor aprilTag;
-    private NormalizedColorSensor first;
-    private NormalizedColorSensor second;
-    private NormalizedColorSensor third;
-    private NormalizedColorSensor fourth;
-    private NormalizedColorSensor fifth;
-    private NormalizedColorSensor sixth;
+    //private NormalizedColorSensor first;
+  //  private NormalizedColorSensor second;
+  //  private NormalizedColorSensor third;
+  //  private NormalizedColorSensor fourth;
+   // private NormalizedColorSensor fifth;
+  //  private NormalizedColorSensor sixth;
 
     View relativeLayout;
 
@@ -90,7 +90,7 @@ public class decodeskeletonthing extends LinearOpMode {
         int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
         relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
 
-        if (first instanceof SwitchableLight) {
+     /*   if (first instanceof SwitchableLight) {
             ((SwitchableLight) first).enableLight(true);
         }
         if (second instanceof SwitchableLight) {
@@ -112,6 +112,8 @@ public class decodeskeletonthing extends LinearOpMode {
         }
         final float[] hsvValues = new float[3];
 
+      */
+
 
         // Define and Initialize Motors
         leftFrontMotor = hardwareMap.get(DcMotor.class, "LFMotor");
@@ -122,12 +124,12 @@ public class decodeskeletonthing extends LinearOpMode {
         // conveyorServo =  hardwareMap.get(CRServo.class, "conveyor");
         rollerServo = hardwareMap.get(CRServo.class, "roller");
         //armThing = hardwareMap.get(Servo.class, "armThing");
-        first = hardwareMap.get(NormalizedColorSensor.class, "first");
-        second = hardwareMap.get(NormalizedColorSensor.class, "first");
-        third = hardwareMap.get(NormalizedColorSensor.class, "third");
-        fourth = hardwareMap.get(NormalizedColorSensor.class, "fourth");
-        fifth = hardwareMap.get(NormalizedColorSensor.class, "fifth");
-        sixth = hardwareMap.get(NormalizedColorSensor.class, "sixth");
+       // first = hardwareMap.get(NormalizedColorSensor.class, "first");
+        //second = hardwareMap.get(NormalizedColorSensor.class, "first");
+        //third = hardwareMap.get(NormalizedColorSensor.class, "third");
+        //fourth = hardwareMap.get(NormalizedColorSensor.class, "fourth");
+        //fifth = hardwareMap.get(NormalizedColorSensor.class, "fifth");
+        //sixth = hardwareMap.get(NormalizedColorSensor.class, "sixth");
         flipper1 = hardwareMap.get(Servo.class, "flipper1");
         flipper2 = hardwareMap.get(Servo.class, "flipper2");
         flipper3 = hardwareMap.get(Servo.class, "flipper3");
@@ -140,12 +142,13 @@ public class decodeskeletonthing extends LinearOpMode {
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftHoodServo.setDirection(Servo.Direction.REVERSE);
 
-        first.setGain(gain);
+       /* first.setGain(gain);
         second.setGain(gain);
         third.setGain(gain);
         fourth.setGain(gain);
         fifth.setGain(gain);
         sixth.setGain(gain);
+        */
         /*
          * This sample rate limits the reads solely to allow a user time to observe
          * what is happening on the Driver Station telemetry.  Typical applications
@@ -328,9 +331,6 @@ public class decodeskeletonthing extends LinearOpMode {
                 shooter.setPower(PIDControl(targetVelocity, currentVelocity));
         } else if (gamepad2.left_bumper) {
             shooter.setPower(-0.25);
-            flipper1.setPosition(0.6);
-            flipper2.setPosition(0.6);
-            flipper3.setPosition(0.52);
         } else {
             shooter.setPower(0);
         }
