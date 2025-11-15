@@ -75,6 +75,12 @@ public class RedDawnwithActions extends LinearOpMode {
     private ElapsedTime servoTimer = new ElapsedTime();
     private ElapsedTime shooterTimer = new ElapsedTime();
 
+    enum State{
+        Get_To_Power,
+        Fling,
+        Finished
+    }
+    State state = State.Get_To_Power;
     // Calculate the COUNTS_PER_INCH for your specific drive train.
     // Go to your motor vendor website to determine your motor's COUNTS_PER_MOTOR_REV
     // For external drive gearing, set DRIVE_GEAR_REDUCTION as needed.
@@ -380,7 +386,7 @@ public class RedDawnwithActions extends LinearOpMode {
     @Override
     public void runOpMode() {
         initAprilTag();
-
+        state = State.Get_To_Power;
         int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
         relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
         Shooter shoot = new Shooter(hardwareMap);
@@ -482,7 +488,64 @@ public class RedDawnwithActions extends LinearOpMode {
 
         Actions.runBlocking(new SequentialAction(shoot.Scan()));
         Actions.runBlocking(new SequentialAction(shoot.getInPosition()));
-        Actions.runBlocking(new SequentialAction(shoot.shooterPower()));
+        while(state != State.Finished){
+            switch (state){
+                case Get_To_Power:
+                    shooter.setPower(PIDControl(targetVelocity, currentVelocity));
+                    shooter.getVelocity();
+                    if (currentVelocity >= targetVelocity){
+                        state = State.Fling;
+                    }
+                    break;
+                case Fling:
+                    if (artifactPattern == 21) {
+                        servoTimer.reset();
+                        servoII.setPosition(0.9);
+                        while (servoTimer.milliseconds() < 500){
+                            servoI.setPosition(0.47);
+                        }
+                        servoI.setPosition(0.9);
+                        while (servoTimer.milliseconds() < 1000){
+                            servoIII.setPosition(0.53);
+                        }
+                        servoIII.setPosition(0.1);
+                    } else if (artifactPattern == 22){
+                        servoTimer.reset();
+                        servoI.setPosition(0.9);
+                        while (servoTimer.milliseconds() < 500){
+                            servoII.setPosition(0.47);
+                        }
+                        servoII.setPosition(0.9);
+                        while (servoTimer.milliseconds() < 1000){
+                            servoIII.setPosition(0.51);
+                        }
+                        servoIII.setPosition(0.1);
+                    } else if (artifactPattern == 23) {
+                        servoTimer.reset();
+                        servoII.setPosition(0.9);
+                        while (servoTimer.milliseconds() < 500){
+                            servoI.setPosition(0.47);
+                        }
+                        servoIII.setPosition(0.9);
+                        while (servoTimer.milliseconds() < 1000){
+                            servoIII.setPosition(0.51);
+                        }
+                        servoI.setPosition(0.1);
+                    } else {
+                        servoTimer.reset();
+                        servoII.setPosition(0.9);
+                        while (servoTimer.milliseconds() < 500) {
+                            servoI.setPosition(0.47);
+                        }
+                        servoI.setPosition(0.9);
+                        while (servoTimer.milliseconds() < 1000) {
+                            servoIII.setPosition(0.53);
+                        }
+                        servoIII.setPosition(0.1);
+                    }
+                    state = State.Finished;
+
+        }}
         Actions.runBlocking(new SequentialAction(shoot.outOfShootingArea()));
         telemetry.addData("Path", "Complete");
         telemetry.update();
