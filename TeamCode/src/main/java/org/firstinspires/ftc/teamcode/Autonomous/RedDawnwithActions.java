@@ -49,7 +49,7 @@ public class RedDawnwithActions extends LinearOpMode {
     private double Sum;
     ElapsedTime timer = new ElapsedTime();
     double currentVelocity;
-    public double targetRPM = 3200;
+    public double targetRPM = 3000;
     public double ticksPerRevolution = 28;
     public double targetVelocity = (targetRPM / 60) * ticksPerRevolution;
 
@@ -125,70 +125,97 @@ public class RedDawnwithActions extends LinearOpMode {
                             shooter.getVelocity();
                             if (currentVelocity >= targetVelocity){
                                 if (artifactPattern == 21) {
-                                    servoTimer.reset();
+                                    shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                    shooter.getVelocity();
                                     servoII.setPosition(0.9);
+                                    servoTimer.reset();
                                     shooter.getVelocity();
                                     while (servoTimer.milliseconds() < 500){
+                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter.getVelocity();
                                         servoI.setPosition(0.47);
                                         shooter.getVelocity();
                                     }
                                     servoI.setPosition(0.9);
                                     shooter.getVelocity();
-                                    while (servoTimer.milliseconds() < 1000){
+                                    while (servoTimer.milliseconds() < 1500){
+                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter.getVelocity();
                                         servoIII.setPosition(0.53);
                                         shooter.getVelocity();
                                     }
                                     servoIII.setPosition(0.1);
                                     shooter.getVelocity();
+                                    shooter.setPower(0);
                                     done = 1;
                                 } else if (artifactPattern == 22){
+                                    shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                    shooter.getVelocity();
                                     servoTimer.reset();
                                     servoI.setPosition(0.9);
                                     shooter.getVelocity();
                                     while (servoTimer.milliseconds() < 500){
+                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter.getVelocity();
                                         servoII.setPosition(0.47);
                                         shooter.getVelocity();
                                     }
                                     servoII.setPosition(0.9);
-                                    while (servoTimer.milliseconds() < 1000){
+                                    while (servoTimer.milliseconds() < 1500){
+                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter.getVelocity();
                                         servoIII.setPosition(0.51);
                                         shooter.getVelocity();
                                     }
                                     servoIII.setPosition(0.1);
                                     shooter.getVelocity();
                                     done = 1;
+                                    shooter.setPower(0);
                                 } else if (artifactPattern == 23) {
-                                    servoTimer.reset();
+                                    shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                    shooter.getVelocity();
                                     servoII.setPosition(0.9);
+                                    servoTimer.reset();
                                     shooter.getVelocity();
                                     while (servoTimer.milliseconds() < 500){
+                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter.getVelocity();
                                         servoI.setPosition(0.47);
                                         shooter.getVelocity();
                                     }
                                     servoI.setPosition(0.9);
-                                    while (servoTimer.milliseconds() < 1000){
+                                    while (servoTimer.milliseconds() < 1500){
+                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter.getVelocity();
                                         shooter.getVelocity();
                                         servoIII.setPosition(0.51);
                                     }
                                     servoIII.setPosition(0.1);
                                     shooter.getVelocity();
+                                    shooter.setPower(0);
                                     done = 1;
                                 } else{
                                     servoTimer.reset();
-
+                                    shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                    shooter.getVelocity();
                                     servoII.setPosition(0.9);
+                                    servoTimer.reset();
                                     shooter.getVelocity();
                                     while (servoTimer.milliseconds() < 500){
+                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter.getVelocity();
+
                                         servoI.setPosition(0.47);
                                         shooter.getVelocity();
                                     }
                                     servoI.setPosition(0.9);
-                                    while (servoTimer.milliseconds() < 1000){
+                                    while (servoTimer.milliseconds() < 1500){
                                         servoIII.setPosition(0.53);
                                         shooter.getVelocity();
                                     }
                                     servoIII.setPosition(0.1);
                                     shooter.getVelocity();
+                                    shooter.setPower(0);
                                     done = 1;
                                 }
 
@@ -326,7 +353,7 @@ public class RedDawnwithActions extends LinearOpMode {
                 @Override
                 public boolean run(@NonNull TelemetryPacket packet) {
                     if (!initialized){
-                        encoderDrive(0.2,2.,-2,2,-2,false,0,0.4,2);
+                        encoderDrive(0.2,2.25,-2.25,2.25,-2.25,false,0,0.4,2);
                         initialized = true;
                         timer = new ElapsedTime();
                     }
@@ -389,7 +416,7 @@ public class RedDawnwithActions extends LinearOpMode {
         leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        //shooter.setDirection(DcMotorEx.Direction.FORWARD);
+        shooter.setDirection(DcMotorEx.Direction.FORWARD);
         leftHoodServo.setDirection(Servo.Direction.REVERSE);
 
         leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
