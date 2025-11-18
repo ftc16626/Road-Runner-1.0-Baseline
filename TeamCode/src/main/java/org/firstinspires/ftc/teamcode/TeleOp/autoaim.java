@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -13,6 +14,7 @@ import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 import java.util.concurrent.TimeUnit;
 
 @TeleOp (name="autoaim", group="robot")
+@Disabled
 public class autoaim extends LinearOpMode{
     private final int READ_PERIOD = 1;
     private DcMotor leftFrontMotor;
