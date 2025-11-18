@@ -30,6 +30,7 @@
 package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.LED;
@@ -68,6 +69,7 @@ import org.firstinspires.ftc.ftccommon.internal.manualcontrol.responses.LedColor
  */
 
 @Autonomous(name="DecodeColorAuto", group="Robot")
+@Disabled
 
 public class DecodeColorAuto extends LinearOpMode {
 
