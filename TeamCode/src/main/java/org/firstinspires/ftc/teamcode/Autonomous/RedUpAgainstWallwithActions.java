@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -48,7 +49,7 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
     private double Sum;
     ElapsedTime timer = new ElapsedTime();
     double currentVelocity;
-    public double targetRPM = 2200;
+    public double targetRPM = 2150;
     public double ticksPerRevolution = 28;
     public double targetVelocity = (targetRPM / 60) * ticksPerRevolution;
 
@@ -218,6 +219,9 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
                                     shooter.getVelocity();
                                     shooter.setPower(0);
                                     done = 1;
+                                    servoI.setPosition(0.47);
+                                    servoII.setPosition(0.47);
+                                    servoIII.setPosition(0.51);
                                 }
 
                             }
@@ -390,8 +394,25 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
                 @Override
                 public boolean run(@NonNull TelemetryPacket packet) {
                     if (!initialized){
-                        encoderDrive(0.2,9.75,-9.75,9.75,-9.75,false,0,0,2);
-                        encoderDrive(0.2,2,2,2,2,false,0,0,2);
+                        encoderDrive(0.25,9.5,-9.5,9.5,-9.5,false,0,0,2);
+                        encoderDrive(0.25,2,2,2,2,false,0,0,2);
+                        initialized = true;
+                        timer = new ElapsedTime();
+                    }
+
+                    return timer.seconds() < 2;
+                }
+            };
+        }
+        public Action turn2(){
+            return new Action() {
+                private boolean initialized = false;
+
+                @Override
+                public boolean run(@NonNull TelemetryPacket packet) {
+                    if (!initialized){
+                        encoderDrive(0.25,7,7,7,77,true,0,0,2);
+                        encoderDrive(0.25,-3.25,3.25,-3.25,3.25,false,0,0,2);
                         initialized = true;
                         timer = new ElapsedTime();
                     }
@@ -543,9 +564,17 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
 
 
         Actions.runBlocking(new SequentialAction(shoot.Scan()));
-        Actions.runBlocking(new SequentialAction(shoot.strafeLeft()));
-        Actions.runBlocking(new SequentialAction(shoot.turn()));
-        Actions.runBlocking(new SequentialAction(shoot.shooterPower()));
+        Actions.runBlocking(new SequentialAction(shoot.strafeLeft(), shoot.turn(), shoot.shooterPower()));
+        encoderDrive(0.25,-8,-8,-8,-8,false,0,0,3);
+        encoderDrive(0.25,6,-6,6,-6,false,0,0,3);
+        encoderDrive(0.25,-5,-5,-5,-5,true,0,0,3);
+        encoderDrive(0.25,2,2,2,2,false,0,0,2);
+        encoderDrive(0.25,11,11,11,11,false,-1,0,3);
+        encoderDrive(0.05,10,10,10,10,true,-1,0,3);
+        Actions.runBlocking(new SequentialAction(shoot.turn2(), shoot.shooterPower()));
+
+
+
         //Actions.runBlocking(new SequentialAction(shoot.outOfShootingArea()));
         telemetry.addData("Path", "Complete");
         telemetry.update();
@@ -641,6 +670,7 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
                     (leftFrontDrive.isBusy() && rightFrontDrive.isBusy() && leftBackDrive.isBusy() && rightBackDrive.isBusy())) {
                 leftHoodServo.setPosition(Angulinator);
                 rightHoodServo.setPosition(Angulinator);
+                intakeServo.setPower(IntakePower);
 
                 if (colorsI.green > colorsI.blue || colorsII.green > colorsII.blue) {
                     ColorI = "Green";
