@@ -22,7 +22,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 @Config
 @Autonomous(name = "PIDtest", group = "robot")
-@Disabled
+
 public class PIDtest extends LinearOpMode {
     private DcMotorEx shooter;
     public double Kp = 0.4;

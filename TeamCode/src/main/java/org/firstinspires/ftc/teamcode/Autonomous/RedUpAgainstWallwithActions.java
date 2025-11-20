@@ -394,13 +394,13 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
                 @Override
                 public boolean run(@NonNull TelemetryPacket packet) {
                     if (!initialized){
-                        encoderDrive(0.25,9.5,-9.5,9.5,-9.5,false,0,0,2);
-                        encoderDrive(0.25,2,2,2,2,false,0,0,2);
+                        encoderDrive(0.25,9.5,-9.5,9.5,-9.5,false,0,0,1);
+                        encoderDrive(0.25,2,2,2,2,false,0,0,1);
                         initialized = true;
                         timer = new ElapsedTime();
                     }
 
-                    return timer.seconds() < 2;
+                    return timer.seconds() < 1;
                 }
             };
         }
@@ -566,9 +566,9 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
         Actions.runBlocking(new SequentialAction(shoot.Scan()));
         Actions.runBlocking(new SequentialAction(shoot.strafeLeft(), shoot.turn(), shoot.shooterPower()));
         encoderDrive(0.25,-8,-8,-8,-8,false,0,0,3);
-        encoderDrive(0.25,6,-6,6,-6,false,0,0,3);
+        encoderDrive(0.25,5,-5,5,-5,false,0,0,3);
         encoderDrive(0.25,-5,-5,-5,-5,true,0,0,3);
-        encoderDrive(0.25,2,2,2,2,false,0,0,2);
+        encoderDrive(0.25,1.5,1.5,1.5,1.5,false,0,0,2);
         encoderDrive(0.25,11,11,11,11,false,-1,0,3);
         encoderDrive(0.05,10,10,10,10,true,-1,0,3);
         Actions.runBlocking(new SequentialAction(shoot.turn2(), shoot.shooterPower()));
