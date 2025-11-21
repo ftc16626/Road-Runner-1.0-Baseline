@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 @TeleOp(name = "HoodActuatorTest", group = "robot")
+@Disabled
 public class HoodActuator extends LinearOpMode {
     //This is coded by a Rookie. It may be terrible
     public void runOpMode() {

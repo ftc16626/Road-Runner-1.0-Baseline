@@ -49,7 +49,7 @@ public class RedDawnwithActions extends LinearOpMode {
     private double Sum;
     ElapsedTime timer = new ElapsedTime();
     double currentVelocity;
-    public double targetRPM = 3200;
+    public double targetRPM = 3000;
     public double ticksPerRevolution = 28;
     public double targetVelocity = (targetRPM / 60) * ticksPerRevolution;
 
@@ -75,6 +75,12 @@ public class RedDawnwithActions extends LinearOpMode {
     private ElapsedTime servoTimer = new ElapsedTime();
     private ElapsedTime shooterTimer = new ElapsedTime();
 
+    enum State{
+        Get_To_Power,
+        Fling,
+        Finished
+    }
+    State state = State.Get_To_Power;
     // Calculate the COUNTS_PER_INCH for your specific drive train.
     // Go to your motor vendor website to determine your motor's COUNTS_PER_MOTOR_REV
     // For external drive gearing, set DRIVE_GEAR_REDUCTION as needed.
@@ -119,70 +125,97 @@ public class RedDawnwithActions extends LinearOpMode {
                             shooter.getVelocity();
                             if (currentVelocity >= targetVelocity){
                                 if (artifactPattern == 21) {
-                                    servoTimer.reset();
+                                    shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                    shooter.getVelocity();
                                     servoII.setPosition(0.9);
+                                    servoTimer.reset();
                                     shooter.getVelocity();
                                     while (servoTimer.milliseconds() < 500){
+                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter.getVelocity();
                                         servoI.setPosition(0.47);
                                         shooter.getVelocity();
                                     }
                                     servoI.setPosition(0.9);
                                     shooter.getVelocity();
-                                    while (servoTimer.milliseconds() < 1000){
+                                    while (servoTimer.milliseconds() < 1500){
+                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter.getVelocity();
                                         servoIII.setPosition(0.53);
                                         shooter.getVelocity();
                                     }
                                     servoIII.setPosition(0.1);
                                     shooter.getVelocity();
+                                    shooter.setPower(0);
                                     done = 1;
                                 } else if (artifactPattern == 22){
+                                    shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                    shooter.getVelocity();
                                     servoTimer.reset();
                                     servoI.setPosition(0.9);
                                     shooter.getVelocity();
                                     while (servoTimer.milliseconds() < 500){
+                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter.getVelocity();
                                         servoII.setPosition(0.47);
                                         shooter.getVelocity();
                                     }
                                     servoII.setPosition(0.9);
-                                    while (servoTimer.milliseconds() < 1000){
+                                    while (servoTimer.milliseconds() < 1500){
+                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter.getVelocity();
                                         servoIII.setPosition(0.51);
                                         shooter.getVelocity();
                                     }
                                     servoIII.setPosition(0.1);
                                     shooter.getVelocity();
                                     done = 1;
+                                    shooter.setPower(0);
                                 } else if (artifactPattern == 23) {
-                                    servoTimer.reset();
+                                    shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                    shooter.getVelocity();
                                     servoII.setPosition(0.9);
+                                    servoTimer.reset();
                                     shooter.getVelocity();
                                     while (servoTimer.milliseconds() < 500){
+                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter.getVelocity();
                                         servoI.setPosition(0.47);
                                         shooter.getVelocity();
                                     }
                                     servoI.setPosition(0.9);
-                                    while (servoTimer.milliseconds() < 1000){
+                                    while (servoTimer.milliseconds() < 1500){
+                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter.getVelocity();
                                         shooter.getVelocity();
                                         servoIII.setPosition(0.51);
                                     }
                                     servoIII.setPosition(0.1);
                                     shooter.getVelocity();
+                                    shooter.setPower(0);
                                     done = 1;
                                 } else{
                                     servoTimer.reset();
-
+                                    shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                    shooter.getVelocity();
                                     servoII.setPosition(0.9);
+                                    servoTimer.reset();
                                     shooter.getVelocity();
                                     while (servoTimer.milliseconds() < 500){
+                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter.getVelocity();
+
                                         servoI.setPosition(0.47);
                                         shooter.getVelocity();
                                     }
                                     servoI.setPosition(0.9);
-                                    while (servoTimer.milliseconds() < 1000){
+                                    while (servoTimer.milliseconds() < 1500){
                                         servoIII.setPosition(0.53);
                                         shooter.getVelocity();
                                     }
                                     servoIII.setPosition(0.1);
                                     shooter.getVelocity();
+                                    shooter.setPower(0);
                                     done = 1;
                                 }
 
@@ -320,7 +353,7 @@ public class RedDawnwithActions extends LinearOpMode {
                 @Override
                 public boolean run(@NonNull TelemetryPacket packet) {
                     if (!initialized){
-                        encoderDrive(0.2,2.,-2,2,-2,false,0,0.4,2);
+                        encoderDrive(0.2,2.25,-2.25,2.25,-2.25,false,0,0.4,2);
                         initialized = true;
                         timer = new ElapsedTime();
                     }
@@ -353,7 +386,7 @@ public class RedDawnwithActions extends LinearOpMode {
     @Override
     public void runOpMode() {
         initAprilTag();
-
+        state = State.Get_To_Power;
         int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
         relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
         Shooter shoot = new Shooter(hardwareMap);
@@ -383,7 +416,7 @@ public class RedDawnwithActions extends LinearOpMode {
         leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        //shooter.setDirection(DcMotorEx.Direction.FORWARD);
+        shooter.setDirection(DcMotorEx.Direction.FORWARD);
         leftHoodServo.setDirection(Servo.Direction.REVERSE);
 
         leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -396,7 +429,7 @@ public class RedDawnwithActions extends LinearOpMode {
         rightFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         leftBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        //shooter.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        shooter.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
         leftFrontDrive.setZeroPowerBehavior(BRAKE);
         rightFrontDrive.setZeroPowerBehavior(BRAKE);
@@ -455,7 +488,64 @@ public class RedDawnwithActions extends LinearOpMode {
 
         Actions.runBlocking(new SequentialAction(shoot.Scan()));
         Actions.runBlocking(new SequentialAction(shoot.getInPosition()));
-        Actions.runBlocking(new SequentialAction(shoot.shooterPower()));
+        while(state != State.Finished){
+            switch (state){
+                case Get_To_Power:
+                    shooter.setPower(PIDControl(targetVelocity, currentVelocity));
+                    shooter.getVelocity();
+                    if (currentVelocity >= targetVelocity){
+                        state = State.Fling;
+                    }
+                    break;
+                case Fling:
+                    if (artifactPattern == 21) {
+                        servoTimer.reset();
+                        servoII.setPosition(0.9);
+                        while (servoTimer.milliseconds() < 500){
+                            servoI.setPosition(0.47);
+                        }
+                        servoI.setPosition(0.9);
+                        while (servoTimer.milliseconds() < 1000){
+                            servoIII.setPosition(0.53);
+                        }
+                        servoIII.setPosition(0.1);
+                    } else if (artifactPattern == 22){
+                        servoTimer.reset();
+                        servoI.setPosition(0.9);
+                        while (servoTimer.milliseconds() < 500){
+                            servoII.setPosition(0.47);
+                        }
+                        servoII.setPosition(0.9);
+                        while (servoTimer.milliseconds() < 1000){
+                            servoIII.setPosition(0.51);
+                        }
+                        servoIII.setPosition(0.1);
+                    } else if (artifactPattern == 23) {
+                        servoTimer.reset();
+                        servoII.setPosition(0.9);
+                        while (servoTimer.milliseconds() < 500){
+                            servoI.setPosition(0.47);
+                        }
+                        servoIII.setPosition(0.9);
+                        while (servoTimer.milliseconds() < 1000){
+                            servoIII.setPosition(0.51);
+                        }
+                        servoI.setPosition(0.1);
+                    } else {
+                        servoTimer.reset();
+                        servoII.setPosition(0.9);
+                        while (servoTimer.milliseconds() < 500) {
+                            servoI.setPosition(0.47);
+                        }
+                        servoI.setPosition(0.9);
+                        while (servoTimer.milliseconds() < 1000) {
+                            servoIII.setPosition(0.53);
+                        }
+                        servoIII.setPosition(0.1);
+                    }
+                    state = State.Finished;
+
+        }}
         Actions.runBlocking(new SequentialAction(shoot.outOfShootingArea()));
         telemetry.addData("Path", "Complete");
         telemetry.update();

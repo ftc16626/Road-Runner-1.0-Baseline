@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.view.View;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -23,6 +24,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import java.util.concurrent.TimeUnit;
 
 @TeleOp  (name = "Shooter Tester", group = "robot")
+@Disabled
 public class Shooter_tester extends LinearOpMode{
     private Servo flipper1;
      private DcMotor shooter;

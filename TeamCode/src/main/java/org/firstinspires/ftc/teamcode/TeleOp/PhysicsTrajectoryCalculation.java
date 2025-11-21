@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @TeleOp(name = "Physics Trajectory Calculation", group = "robot")
+@Disabled
 public class PhysicsTrajectoryCalculation extends LinearOpMode {
 
     // Define gravity constant (in meters per second squared)

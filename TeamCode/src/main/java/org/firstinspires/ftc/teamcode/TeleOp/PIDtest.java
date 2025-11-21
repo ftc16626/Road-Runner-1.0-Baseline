@@ -5,6 +5,7 @@ import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.opM
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -21,10 +22,11 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 @Config
 @Autonomous(name = "PIDtest", group = "robot")
+
 public class PIDtest extends LinearOpMode {
     private DcMotorEx shooter;
     public double Kp = 0.4;
-    public double Ki = 0.0008;
+    public double Ki = 0;
     public double Kd = 0.1;
     public static double targetRPM = 3000;
     public static double ticksPerRevolution = 28;
