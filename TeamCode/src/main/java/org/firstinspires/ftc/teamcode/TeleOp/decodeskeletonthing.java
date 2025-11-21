@@ -41,7 +41,9 @@ public class decodeskeletonthing extends LinearOpMode {
     private DcMotor leftBackMotor;
     private DcMotor  rightFrontMotor;
     private DcMotor  rightBackMotor;
-    private DcMotorEx shooter;
+    private DcMotorEx shooter1;
+    private DcMotorEx shooter2;
+    private DcMotorEx shooter3;
     //private CRServo conveyorServo;
     private Servo rightHoodServo;
     private Servo leftHoodServo;
@@ -54,10 +56,19 @@ public class decodeskeletonthing extends LinearOpMode {
     private double Kp = 0.4;
     private double Ki = 0; // og Ki is 0.0008
     private double Kd = 0.1;
-    private  double latestError;
-    private double Sum;
-    ElapsedTime timer = new ElapsedTime();
-    double currentVelocity;
+    private  double latestError1;
+    private  double latestError2;
+    private  double latestError3;
+    private double Sum1;
+    private double Sum2;
+    private double Sum3;
+    ElapsedTime timer1 = new ElapsedTime();
+    ElapsedTime timer2 = new ElapsedTime();
+    ElapsedTime timer3 = new ElapsedTime();
+    ElapsedTime flingtimer = new ElapsedTime();
+    double currentVelocity1;
+    double currentVelocity2;
+    double currentVelocity3;
     public double targetRPM = 2300;
     public double servoPosition = 0.225;
     public double ticksPerRevolution = 28;
@@ -120,7 +131,9 @@ public class decodeskeletonthing extends LinearOpMode {
         rightFrontMotor = hardwareMap.get(DcMotor.class, "RFMotor");
         leftBackMotor = hardwareMap.get(DcMotor.class, "LBMotor");
         rightBackMotor = hardwareMap.get(DcMotor.class, "RBMotor");
-        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
+        shooter1 = hardwareMap.get(DcMotorEx.class, "shooter1");
+        shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
+        shooter3 = hardwareMap.get(DcMotorEx.class, "shooter3");
         // conveyorServo =  hardwareMap.get(CRServo.class, "conveyor");
         rollerServo = hardwareMap.get(CRServo.class, "roller");
         //armThing = hardwareMap.get(Servo.class, "armThing");
@@ -139,7 +152,9 @@ public class decodeskeletonthing extends LinearOpMode {
         leftFrontMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightBackMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightFrontMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        shooter1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        shooter2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        shooter3.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftHoodServo.setDirection(Servo.Direction.REVERSE);
 
        /* first.setGain(gain);
@@ -195,13 +210,17 @@ public class decodeskeletonthing extends LinearOpMode {
         leftBackMotor.setDirection(DcMotor.Direction.REVERSE);
         rightFrontMotor.setDirection(DcMotor.Direction.FORWARD);
         rightFrontMotor.setDirection(DcMotor.Direction.FORWARD);
-        shooter.setDirection(DcMotorSimple.Direction.FORWARD);
+        shooter1.setDirection(DcMotorSimple.Direction.FORWARD);
+        shooter2.setDirection(DcMotorSimple.Direction.FORWARD);
+        shooter3.setDirection(DcMotorSimple.Direction.FORWARD);
 
         leftFrontMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightFrontMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftBackMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightBackMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooter1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter3.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // IMU imu = hardwareMap.get(IMU.class, "imu");
         // Adjust the orientation parameters to match your robot
@@ -328,44 +347,52 @@ public class decodeskeletonthing extends LinearOpMode {
         if (gamepad2.right_bumper) {
                 rightHoodServo.setPosition(servoPosition);
                 leftHoodServo.setPosition(servoPosition);
-                shooter.setPower(PIDControl(targetVelocity, currentVelocity));
+                shooter1.setPower(PIDControl1(targetVelocity, currentVelocity1));
+                shooter2.setPower(PIDControl2(targetVelocity, currentVelocity2));
+                shooter3.setPower(PIDControl3(targetVelocity, currentVelocity3));
         } else if (gamepad2.left_bumper) {
-            shooter.setPower(-0.25);
+            shooter1.setPower(-0.5);
+            shooter2.setPower(-0.5);
+            shooter3.setPower(-0.5);
+
         } else {
-            shooter.setPower(0);
+            shooter1.setPower(0);
+            shooter2.setPower(0);
+            shooter3.setPower(0);
+
         }
 
             if (gamepad2.dpad_up) {
                 if (colorFind == 22) {
-                    timer.reset();
+                    flingtimer.reset();
                     flipper1.setPosition(0.9);
-                    while (timer.milliseconds() < 500) {
+                    while (flingtimer.milliseconds() < 500) {
                         flipper2.setPosition(0.47);
                     }
                     flipper2.setPosition(0.9);
-                    while (timer.milliseconds() < 1000) {
+                    while (flingtimer.milliseconds() < 1000) {
                         flipper3.setPosition(0.53);
                     }
                     flipper3.setPosition(0.1);
                 } else if (colorFind == 23) {
-                    timer.reset();
+                    flingtimer.reset();
                     flipper1.setPosition(0.9);
-                    while (timer.milliseconds() < 500) {
+                    while (flingtimer.milliseconds() < 500) {
                         flipper3.setPosition(0.53);
                     }
                     flipper3.setPosition(0.1);
-                    while (timer.milliseconds() < 1000) {
+                    while (flingtimer.milliseconds() < 1000) {
                         flipper2.setPosition(0.49);
                     }
                     flipper3.setPosition(0.9);
                 } else if (colorFind == 21) {
-                    timer.reset();
+                    flingtimer.reset();
                     flipper2.setPosition(0.9);
-                    while (timer.milliseconds() < 500) {
+                    while (flingtimer.milliseconds() < 500) {
                         flipper1.setPosition(0.47);
                     }
                     flipper1.setPosition(0.9);
-                    while (timer.milliseconds() < 1000) {
+                    while (flingtimer.milliseconds() < 1000) {
                         flipper3.setPosition(0.53);
                     }
                     flipper3.setPosition(0.1);
@@ -513,22 +540,56 @@ public class decodeskeletonthing extends LinearOpMode {
                 .build();
     }
 
-    public double PIDControl (double reference, double state){
-        currentVelocity = shooter.getVelocity();
-        double deltaTime = timer.seconds();
-        timer.reset();
+    public double PIDControl1 (double reference1, double state1){
+        currentVelocity1 = shooter1.getVelocity();
+        double deltaTime1 = timer1.seconds();
+        timer1.reset();
 
-        double error = targetVelocity - currentVelocity;
-        Sum += error * deltaTime;
-        latestError = error;
-        double derivative = (error - latestError) / timer.seconds();
-        if (currentVelocity >= ((targetRPM / 60) * ticksPerRevolution)){
+        double error1 = targetVelocity - currentVelocity1;
+        Sum1 += error1 * deltaTime1;
+        latestError1 = error1;
+        double derivative1 = (error1 - latestError1) / timer1.seconds();
+        if (currentVelocity1 >= ((targetRPM / 60) * ticksPerRevolution)){
             gamepad2.rumble(500);
         }
-        timer.reset();
+        timer1.reset();
 
-        double output = (error * Kp) + (derivative + Kd) + (Sum * Ki);
-        return output;
+        double output1 = (error1 * Kp) + (derivative1 + Kd) + (Sum1 * Ki);
+        return output1;
+    }
+    public double PIDControl2 (double reference2, double state2){
+        currentVelocity2 = shooter2.getVelocity();
+        double deltaTime2 = timer2.seconds();
+        timer2.reset();
+
+        double error2 = targetVelocity - currentVelocity2;
+        Sum1 += error2 * deltaTime2;
+        latestError2 = error2;
+        double derivative2 = (error2 - latestError2) / timer2.seconds();
+        if (currentVelocity2 >= ((targetRPM / 60) * ticksPerRevolution)){
+            gamepad2.rumble(500);
+        }
+        timer2.reset();
+
+        double output2 = (error2 * Kp) + (derivative2 + Kd) + (Sum2 * Ki);
+        return output2;
+    }
+    public double PIDControl3 (double reference3, double state3){
+        currentVelocity3 = shooter3.getVelocity();
+        double deltaTime3 = timer3.seconds();
+        timer3.reset();
+
+        double error3 = targetVelocity - currentVelocity3;
+        Sum1 += error3 * deltaTime3;
+        latestError2 = error3;
+        double derivative3 = (error3 - latestError3) / timer3.seconds();
+        if (currentVelocity3 >= ((targetRPM / 60) * ticksPerRevolution)){
+            gamepad2.rumble(500);
+        }
+        timer3.reset();
+
+        double output3 = (error3 * Kp) + (derivative3 + Kd) + (Sum3 * Ki);
+        return output3;
     }
 }
 
