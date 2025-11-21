@@ -18,6 +18,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
@@ -338,29 +340,29 @@ public class decodeskeletonthing extends LinearOpMode {
                 targetRPM = 2300;
                 targetVelocity = (targetRPM / 60) * ticksPerRevolution;
                 servoPosition = 0.225;
+                rightHoodServo.setPosition(servoPosition);
+                leftHoodServo.setPosition(servoPosition);
             } else if (gamepad2.dpad_right){
                 targetRPM = 3000;
                 targetVelocity = (targetRPM / 60) * ticksPerRevolution;
                 servoPosition = 0.4;
+                rightHoodServo.setPosition(servoPosition);
+                leftHoodServo.setPosition(servoPosition);
             }
 //DO NOT GO HIGHER THAN 0.425 FOR HOOD SERVOS!!!!!!! YOU WILL HAVE TO PAY FOR DAMAGES ):<
         if (gamepad2.right_bumper) {
-                rightHoodServo.setPosition(servoPosition);
-                leftHoodServo.setPosition(servoPosition);
                 shooter1.setPower(PIDControl1(targetVelocity, currentVelocity1));
-                shooter2.setPower(PIDControl2(targetVelocity, currentVelocity2));
-                shooter3.setPower(PIDControl3(targetVelocity, currentVelocity3));
-        } else if (gamepad2.left_bumper) {
+               // shooter2.setPower(PIDControl2(targetVelocity, currentVelocity2));
+               // shooter3.setPower(PIDControl3(targetVelocity, currentVelocity3));
+        }
+        while (gamepad2.left_bumper) {
             shooter1.setPower(-0.5);
             shooter2.setPower(-0.5);
             shooter3.setPower(-0.5);
 
-        } else {
-            shooter1.setPower(0);
-            shooter2.setPower(0);
-            shooter3.setPower(0);
-
         }
+
+
 
             if (gamepad2.dpad_up) {
                 if (colorFind == 22) {
@@ -422,6 +424,9 @@ public class decodeskeletonthing extends LinearOpMode {
         rightFrontMotor.setPower(rightFront / driveTrainDenominator);
         leftBackMotor.setPower(leftBack / driveTrainDenominator);
         rightBackMotor.setPower(rightBack / driveTrainDenominator);
+        shooter1.setPower(0);
+        shooter2.setPower(0);
+        shooter3.setPower(0);
 
 
         if (gamepad1.right_bumper) {
@@ -549,7 +554,7 @@ public class decodeskeletonthing extends LinearOpMode {
         Sum1 += error1 * deltaTime1;
         latestError1 = error1;
         double derivative1 = (error1 - latestError1) / timer1.seconds();
-        if (currentVelocity1 >= ((targetRPM / 60) * ticksPerRevolution)){
+        if (currentVelocity1 >= targetVelocity){
             gamepad2.rumble(500);
         }
         timer1.reset();
@@ -563,10 +568,10 @@ public class decodeskeletonthing extends LinearOpMode {
         timer2.reset();
 
         double error2 = targetVelocity - currentVelocity2;
-        Sum1 += error2 * deltaTime2;
+        Sum2 += error2 * deltaTime2;
         latestError2 = error2;
         double derivative2 = (error2 - latestError2) / timer2.seconds();
-        if (currentVelocity2 >= ((targetRPM / 60) * ticksPerRevolution)){
+        if (currentVelocity2 >= targetVelocity){
             gamepad2.rumble(500);
         }
         timer2.reset();
@@ -580,10 +585,10 @@ public class decodeskeletonthing extends LinearOpMode {
         timer3.reset();
 
         double error3 = targetVelocity - currentVelocity3;
-        Sum1 += error3 * deltaTime3;
-        latestError2 = error3;
+        Sum3 += error3 * deltaTime3;
+        latestError3 = error3;
         double derivative3 = (error3 - latestError3) / timer3.seconds();
-        if (currentVelocity3 >= ((targetRPM / 60) * ticksPerRevolution)){
+        if (currentVelocity3 >= targetVelocity){
             gamepad2.rumble(500);
         }
         timer3.reset();
