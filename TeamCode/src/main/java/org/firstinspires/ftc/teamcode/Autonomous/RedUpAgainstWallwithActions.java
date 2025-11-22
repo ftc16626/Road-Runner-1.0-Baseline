@@ -40,15 +40,25 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
     private DcMotor         rightFrontDrive  = null;
     private DcMotor         leftBackDrive   = null;
     private DcMotor         rightBackDrive  = null;
-    private DcMotorEx shooter;
+    private DcMotorEx shooter1;
+    private DcMotorEx shooter2;
+    private DcMotorEx shooter3;
 
     private double Kp = 0.4;
     private double Ki = 0; // og Ki is 0.0008
     private double Kd = 0.1;
-    private  double latestError;
-    private double Sum;
-    ElapsedTime timer = new ElapsedTime();
-    double currentVelocity;
+    private  double latestError1;
+    private  double latestError2;
+    private  double latestError3;
+    private double Sum1;
+    private double Sum2;
+    private double Sum3;
+    ElapsedTime timer1 = new ElapsedTime();
+    ElapsedTime timer2 = new ElapsedTime();
+    ElapsedTime timer3 = new ElapsedTime();
+    double currentVelocity1;
+    double currentVelocity2;
+    double currentVelocity3;
     public double targetRPM = 2150;
     public double ticksPerRevolution = 28;
     public double targetVelocity = (targetRPM / 60) * ticksPerRevolution;
@@ -102,13 +112,14 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
         private Servo servoIII;
 
         ElapsedTime timer;
-        public Shooter (HardwareMap hardwareMapmap){
-            shooter  = hardwareMap.get(DcMotorEx.class, "shooter");
+        public Shooter (HardwareMap hardwareMap){
+            shooter1  = hardwareMap.get(DcMotorEx.class, "shooter1");
             //leftFrontDrive = hardwareMap.get(DcMotor.class, "LFMotor");
             rightFrontDrive = hardwareMap.get(DcMotor.class, "RFMotor");
             leftBackDrive  = hardwareMap.get(DcMotor.class, "LBMotor");
             rightBackDrive = hardwareMap.get(DcMotor.class, "RBMotor");
-            shooter = hardwareMap.get(DcMotorEx.class, "shooter");
+            shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
+            shooter3 = hardwareMap.get(DcMotorEx.class, "shooter3");
             servoI = hardwareMap.get(Servo.class, "flipper1");
             servoII = hardwareMap.get(Servo.class, "flipper2");
             servoIII = hardwareMap.get(Servo.class, "flipper3");
@@ -121,103 +132,195 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
                 @Override
                 public boolean run(@NonNull TelemetryPacket packet) {
                     if (!initialized){
-                        while (currentVelocity < (targetVelocity + 500) && done!= 1) {
-                            shooter.setPower(PIDControl(targetVelocity,currentVelocity));
-                            shooter.getVelocity();
-                            if (currentVelocity >= targetVelocity){
+                        while (currentVelocity1 < (targetVelocity + 500) && currentVelocity2 < (targetVelocity + 500) && currentVelocity3 < (targetVelocity + 500) && done!= 1) {
+                            shooter1.setPower(PIDControl1(targetVelocity,currentVelocity1));
+                            shooter1.getVelocity();
+                            shooter2.setPower(PIDControl1(targetVelocity,currentVelocity2));
+                            shooter2.getVelocity();
+                            shooter3.setPower(PIDControl1(targetVelocity,currentVelocity3));
+                            shooter3.getVelocity();
+                            if (currentVelocity1 >= targetVelocity){
                                 if (artifactPattern == 21) {
-                                    shooter.setPower(PIDControl(targetVelocity,currentVelocity));
-                                    shooter.getVelocity();
+                                    shooter1.setPower(PIDControl1(targetVelocity,currentVelocity1));
+                                    shooter1.getVelocity();
+                                    shooter2.setPower(PIDControl1(targetVelocity,currentVelocity2));
+                                    shooter2.getVelocity();
+                                    shooter3.setPower(PIDControl1(targetVelocity,currentVelocity3));
+                                    shooter3.getVelocity();
                                     servoII.setPosition(0.9);
                                     servoTimer.reset();
-                                    shooter.getVelocity();
+                                    shooter1.getVelocity();
+                                    shooter2.getVelocity();
+                                    shooter3.getVelocity();
                                     while (servoTimer.milliseconds() < 1000){
-                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter.getVelocity();
+                                        shooter1.setPower(PIDControl1(targetVelocity,currentVelocity1));
+                                        shooter1.getVelocity();
+                                        shooter2.setPower(PIDControl1(targetVelocity,currentVelocity2));
+                                        shooter2.getVelocity();
+                                        shooter3.setPower(PIDControl1(targetVelocity,currentVelocity3));
+                                        shooter3.getVelocity();
                                         servoI.setPosition(0.47);
-                                        shooter.getVelocity();
+                                        shooter1.getVelocity();
+                                        shooter2.getVelocity();
+                                        shooter3.getVelocity();
                                     }
                                     servoI.setPosition(0.9);
-                                    shooter.getVelocity();
+                                    shooter1.getVelocity();
+                                    shooter2.getVelocity();
+                                    shooter3.getVelocity();
                                     while (servoTimer.milliseconds() < 1750){
-                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter.getVelocity();
+                                        shooter1.setPower(PIDControl1(targetVelocity,currentVelocity1));
+                                        shooter1.getVelocity();
+                                        shooter2.setPower(PIDControl1(targetVelocity,currentVelocity2));
+                                        shooter2.getVelocity();
+                                        shooter3.setPower(PIDControl1(targetVelocity,currentVelocity3));
+                                        shooter3.getVelocity();
                                         servoIII.setPosition(0.53);
-                                        shooter.getVelocity();
+                                        shooter1.getVelocity();
+                                        shooter2.getVelocity();
+                                        shooter3.getVelocity();
                                     }
                                     servoIII.setPosition(0.1);
-                                    shooter.getVelocity();
-                                    shooter.setPower(0);
+                                    shooter1.getVelocity();
+                                    shooter2.getVelocity();
+                                    shooter3.getVelocity();
+                                    shooter1.setPower(0);
+                                    shooter2.setPower(0);
+                                    shooter3.setPower(0);
                                     done = 1;
                                 } else if (artifactPattern == 22){
-                                    shooter.setPower(PIDControl(targetVelocity,currentVelocity));
-                                    shooter.getVelocity();
+                                    shooter1.setPower(PIDControl1(targetVelocity,currentVelocity1));
+                                    shooter1.getVelocity();
+                                    shooter2.setPower(PIDControl1(targetVelocity,currentVelocity2));
+                                    shooter2.getVelocity();
+                                    shooter3.setPower(PIDControl1(targetVelocity,currentVelocity3));
+                                    shooter3.getVelocity();
                                     servoTimer.reset();
                                     servoI.setPosition(0.9);
-                                    shooter.getVelocity();
+                                    shooter1.getVelocity();
+                                    shooter2.getVelocity();
+                                    shooter3.getVelocity();
                                     while (servoTimer.milliseconds() < 1000){
-                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter.getVelocity();
+                                        shooter1.setPower(PIDControl1(targetVelocity,currentVelocity1));
+                                        shooter1.getVelocity();
+                                        shooter2.setPower(PIDControl1(targetVelocity,currentVelocity2));
+                                        shooter2.getVelocity();
+                                        shooter3.setPower(PIDControl1(targetVelocity,currentVelocity3));
+                                        shooter3.getVelocity();
                                         servoII.setPosition(0.47);
-                                        shooter.getVelocity();
+                                        shooter1.getVelocity();
+                                        shooter2.getVelocity();
+                                        shooter3.getVelocity();
                                     }
                                     servoII.setPosition(0.9);
                                     while (servoTimer.milliseconds() < 1750){
-                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter.getVelocity();
+                                        shooter1.setPower(PIDControl1(targetVelocity,currentVelocity1));
+                                        shooter1.getVelocity();
+                                        shooter2.setPower(PIDControl1(targetVelocity,currentVelocity2));
+                                        shooter2.getVelocity();
+                                        shooter3.setPower(PIDControl1(targetVelocity,currentVelocity3));
+                                        shooter3.getVelocity();
                                         servoIII.setPosition(0.51);
-                                        shooter.getVelocity();
+                                        shooter1.getVelocity();
+                                        shooter2.getVelocity();
+                                        shooter3.getVelocity();
                                     }
                                     servoIII.setPosition(0.1);
-                                    shooter.getVelocity();
+                                    shooter1.getVelocity();
+                                    shooter2.getVelocity();
+                                    shooter3.getVelocity();
                                     done = 1;
-                                    shooter.setPower(0);
+                                    shooter1.setPower(0);
+                                    shooter2.setPower(0);
+                                    shooter3.setPower(0);
                                 } else if (artifactPattern == 23) {
-                                    shooter.setPower(PIDControl(targetVelocity,currentVelocity));
-                                    shooter.getVelocity();
+                                    shooter1.setPower(PIDControl1(targetVelocity,currentVelocity1));
+                                    shooter1.getVelocity();
+                                    shooter2.setPower(PIDControl1(targetVelocity,currentVelocity2));
+                                    shooter2.getVelocity();
+                                    shooter3.setPower(PIDControl1(targetVelocity,currentVelocity3));
+                                    shooter3.getVelocity();
                                     servoI.setPosition(0.9);
                                     servoTimer.reset();
-                                    shooter.getVelocity();
+                                    shooter1.getVelocity();
+                                    shooter2.getVelocity();
+                                    shooter3.getVelocity();
                                     while (servoTimer.milliseconds() < 1000){
-                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter.getVelocity();
+                                        shooter1.setPower(PIDControl1(targetVelocity,currentVelocity1));
+                                        shooter1.getVelocity();
+                                        shooter2.setPower(PIDControl1(targetVelocity,currentVelocity2));
+                                        shooter2.getVelocity();
+                                        shooter3.setPower(PIDControl1(targetVelocity,currentVelocity3));
+                                        shooter3.getVelocity();
                                         servoIII.setPosition(0.51);
-                                        shooter.getVelocity();
+                                        shooter1.getVelocity();
+                                        shooter2.getVelocity();
+                                        shooter3.getVelocity();
                                     }
                                     servoIII.setPosition(0.1);
                                     while (servoTimer.milliseconds() < 1750){
-                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter.getVelocity();
-                                        shooter.getVelocity();
+                                        shooter1.setPower(PIDControl1(targetVelocity,currentVelocity1));
+                                        shooter1.getVelocity();
+                                        shooter2.setPower(PIDControl1(targetVelocity,currentVelocity2));
+                                        shooter2.getVelocity();
+                                        shooter3.setPower(PIDControl1(targetVelocity,currentVelocity3));
+                                        shooter3.getVelocity();
                                         servoII.setPosition(0.47);
                                     }
                                     servoII.setPosition(0.9);
-                                    shooter.getVelocity();
-                                    shooter.setPower(0);
+                                    shooter1.getVelocity();
+                                    shooter2.getVelocity();
+                                    shooter3.getVelocity();
+                                    shooter1.setPower(0);
+                                    shooter2.setPower(0);
+                                    shooter3.setPower(0);
                                     done = 1;
                                 } else{
                                     servoTimer.reset();
-                                    shooter.setPower(PIDControl(targetVelocity,currentVelocity));
-                                    shooter.getVelocity();
+                                    shooter1.setPower(PIDControl1(targetVelocity,currentVelocity1));
+                                    shooter1.getVelocity();
+                                    shooter2.setPower(PIDControl1(targetVelocity,currentVelocity2));
+                                    shooter2.getVelocity();
+                                    shooter3.setPower(PIDControl1(targetVelocity,currentVelocity3));
+                                    shooter3.getVelocity();
                                     servoII.setPosition(0.9);
                                     servoTimer.reset();
-                                    shooter.getVelocity();
+                                    shooter1.getVelocity();
+                                    shooter2.getVelocity();
+                                    shooter3.getVelocity();
                                     while (servoTimer.milliseconds() < 1000){
-                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter.getVelocity();
+                                        shooter1.setPower(PIDControl1(targetVelocity,currentVelocity1));
+                                        shooter1.getVelocity();
+                                        shooter2.setPower(PIDControl1(targetVelocity,currentVelocity2));
+                                        shooter2.getVelocity();
+                                        shooter3.setPower(PIDControl1(targetVelocity,currentVelocity3));
+                                        shooter3.getVelocity();
 
                                         servoI.setPosition(0.47);
-                                        shooter.getVelocity();
+                                        shooter1.getVelocity();
+                                        shooter2.getVelocity();
+                                        shooter3.getVelocity();
                                     }
                                     servoI.setPosition(0.9);
                                     while (servoTimer.milliseconds() < 1750){
-                                        shooter.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter1.setPower(PIDControl1(targetVelocity,currentVelocity1));
+                                        shooter1.getVelocity();
+                                        shooter2.setPower(PIDControl1(targetVelocity,currentVelocity2));
+                                        shooter2.getVelocity();
+                                        shooter3.setPower(PIDControl1(targetVelocity,currentVelocity3));
+                                        shooter3.getVelocity();
                                         servoIII.setPosition(0.53);
-                                        shooter.getVelocity();
+                                        shooter1.getVelocity();
+                                        shooter2.getVelocity();
+                                        shooter3.getVelocity();
                                 }
                                     servoIII.setPosition(0.1);
-                                    shooter.getVelocity();
-                                    shooter.setPower(0);
+                                    shooter1.getVelocity();
+                                    shooter2.getVelocity();
+                                    shooter3.getVelocity();
+                                    shooter1.setPower(0);
+                                    shooter2.setPower(0);
+                                    shooter3.setPower(0);
                                     done = 1;
                                     servoI.setPosition(0.47);
                                     servoII.setPosition(0.47);
@@ -492,7 +595,9 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
         leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        shooter.setDirection(DcMotorEx.Direction.FORWARD);
+        shooter1.setDirection(DcMotorEx.Direction.FORWARD);
+        shooter2.setDirection(DcMotorEx.Direction.FORWARD);
+        shooter3.setDirection(DcMotorEx.Direction.FORWARD);
         leftHoodServo.setDirection(Servo.Direction.REVERSE);
 
         leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -505,7 +610,9 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
         rightFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         leftBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        shooter.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        shooter1.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        shooter2.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        shooter3.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
         leftFrontDrive.setZeroPowerBehavior(BRAKE);
         rightFrontDrive.setZeroPowerBehavior(BRAKE);
@@ -740,20 +847,55 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
                 .addProcessor(aprilTag)
                 .build();
     }
-    public double PIDControl (double reference, double state){
-        currentVelocity = shooter.getVelocity();
+    public double PIDControl1 (double reference1, double state1){
+        currentVelocity1 = shooter1.getVelocity();
+        double deltaTime1 = timer1.seconds();
+        timer1.reset();
 
-        double deltaTime = timer.seconds();
-        timer.reset();
+        double error1 = targetVelocity - currentVelocity1;
+        Sum1 += error1 * deltaTime1;
+        latestError1 = error1;
+        double derivative1 = (error1 - latestError1) / timer1.seconds();
+        if (currentVelocity1 >= targetVelocity){
+            gamepad2.rumble(500);
+        }
+        timer1.reset();
 
-        double error = targetVelocity - currentVelocity;
-        Sum += error * deltaTime;
-        latestError = error;
-        double derivative = (error - latestError) / timer.seconds();
+        double output1 = (error1 * Kp) + (derivative1 + Kd) + (Sum1 * Ki);
+        return output1;
+    }
+    public double PIDControl2 (double reference2, double state2){
+        currentVelocity2 = shooter2.getVelocity();
+        double deltaTime2 = timer2.seconds();
+        timer2.reset();
 
-        timer.reset();
+        double error2 = targetVelocity - currentVelocity2;
+        Sum2 += error2 * deltaTime2;
+        latestError2 = error2;
+        double derivative2 = (error2 - latestError2) / timer2.seconds();
+        if (currentVelocity2 >= targetVelocity){
+            gamepad2.rumble(500);
+        }
+        timer2.reset();
 
-        double output = (error * Kp) + (derivative + Kd) + (Sum * Ki);
-        return output;
+        double output2 = (error2 * Kp) + (derivative2 + Kd) + (Sum2 * Ki);
+        return output2;
+    }
+    public double PIDControl3 (double reference3, double state3){
+        currentVelocity3 = shooter3.getVelocity();
+        double deltaTime3 = timer3.seconds();
+        timer3.reset();
+
+        double error3 = targetVelocity - currentVelocity3;
+        Sum3 += error3 * deltaTime3;
+        latestError3 = error3;
+        double derivative3 = (error3 - latestError3) / timer3.seconds();
+        if (currentVelocity3 >= targetVelocity){
+            gamepad2.rumble(500);
+        }
+        timer3.reset();
+
+        double output3 = (error3 * Kp) + (derivative3 + Kd) + (Sum3 * Ki);
+        return output3;
     }
 }

@@ -24,39 +24,56 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @Autonomous(name = "PIDtest", group = "robot")
 
 public class PIDtest extends LinearOpMode {
-    private DcMotorEx shooter;
-    public double Kp = 0.4;
-    public double Ki = 0;
-    public double Kd = 0.1;
+ //   private DcMotorEx shooter1;
+    private DcMotorEx shooter2;
+  //  private DcMotorEx shooter3;
+    public static double Kp = 0.4;
+    public static double Ki = 0;
+    public static double Kd = 0.1;
+
     public static double targetRPM = 3000;
     public static double ticksPerRevolution = 28;
-    public double targetVelocity = (targetRPM / 60) * ticksPerRevolution;
+    public double targetVelocity = 2300;
     private final double TARGET_VELOCITY_TICKS_PER_SECOND = 1000;
     public double latestError = 0;
-    public double Sum = 0;
-    public double currentVelocity;
+    public double Sum2 = 0;
+   // public double currentVelocity1;
+    public double currentVelocity2;
+   // public double currentVelocity3;
     ElapsedTime timer = new ElapsedTime();
     private final FtcDashboard dashboard = FtcDashboard.getInstance();
 
 
     public void runOpMode() {
-        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
-        shooter.setDirection(DcMotorSimple.Direction.FORWARD);
-        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+      //  shooter1 = hardwareMap.get(DcMotorEx.class, "shooter");
+     //   shooter1.setDirection(DcMotorSimple.Direction.FORWARD);
+      //  shooter1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
+        shooter2.setDirection(DcMotorSimple.Direction.FORWARD);
+        shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+      //  shooter3 = hardwareMap.get(DcMotorEx.class, "shooter");
+      //  shooter3.setDirection(DcMotorSimple.Direction.FORWARD);
+      //  shooter3.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         TelemetryPacket packet = new TelemetryPacket();
         dashboard.setTelemetryTransmissionInterval(25);
-        shooter.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+  //      shooter1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+   //     shooter1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    //    shooter1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        shooter2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+      //  shooter3.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+      //  shooter3.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+      //  shooter3.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         waitForStart();
 
         while (opModeIsActive()){
-            double currentVelocity = shooter.getVelocity();
-            double power = PIDControl(targetVelocity, currentVelocity);
+        //    double currentVelocity = shooter1.getVelocity();
+            double power = PIDControl(targetVelocity, currentVelocity2);
             packet.put("Target Velocity", targetVelocity);
-            packet.put("Current Velocity", currentVelocity );
+            packet.put("Current Velocity", currentVelocity2 );
             packet.put("error", latestError);
-            shooter.setPower(power);
+            shooter2.setPower(power);
             dashboard.sendTelemetryPacket(packet);
 
         }
@@ -64,17 +81,23 @@ public class PIDtest extends LinearOpMode {
 
 
     public double PIDControl (double reference, double state){
-        currentVelocity = shooter.getVelocity();
+     //   currentVelocity1 = shooter1.getVelocity();
+        currentVelocity2 = shooter2.getVelocity();
+     //   currentVelocity3 = shooter3.getVelocity();
         double deltaTime = timer.seconds();
         timer.reset();
 
-        double error = targetVelocity - currentVelocity;
-        Sum += error * deltaTime;
-        latestError = error;
-        double derivative = (error - latestError) / timer.seconds();
+     //   double error1 = targetVelocity - currentVelocity1;
+        double error2 = targetVelocity - currentVelocity2;
+    //    double error3 = targetVelocity - currentVelocity3;
+       // Sum1 += error1 * deltaTime;
+        Sum2 += error2 * deltaTime;
+    //    Sum3 += error3 * deltaTime;
+        latestError = error2;
+        double derivative = (error2 - latestError) / timer.seconds();
         timer.reset();
 
-        double output = (error * Kp) + (derivative + Kd) + (Sum * Ki);
+        double output = (error2 * Kp) + (derivative + Kd) + (Sum2 * Ki);
         return output;
     }
 

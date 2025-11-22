@@ -43,6 +43,9 @@ public class decodeskeletonthing extends LinearOpMode {
     private DcMotor leftBackMotor;
     private DcMotor  rightFrontMotor;
     private DcMotor  rightBackMotor;
+    private ShooterPID pid1;
+    private ShooterPID pid2;
+    private ShooterPID pid3;
     private DcMotorEx shooter1;
     private DcMotorEx shooter2;
     private DcMotorEx shooter3;
@@ -55,18 +58,7 @@ public class decodeskeletonthing extends LinearOpMode {
     private Servo flipper2;
     private Servo flipper3;
     private final int READ_PERIOD = 1;
-    private double Kp = 0.4;
-    private double Ki = 0; // og Ki is 0.0008
-    private double Kd = 0.1;
-    private  double latestError1;
-    private  double latestError2;
-    private  double latestError3;
-    private double Sum1;
-    private double Sum2;
-    private double Sum3;
-    ElapsedTime timer1 = new ElapsedTime();
-    ElapsedTime timer2 = new ElapsedTime();
-    ElapsedTime timer3 = new ElapsedTime();
+    ElapsedTime timer = new ElapsedTime();
     ElapsedTime flingtimer = new ElapsedTime();
     double currentVelocity1;
     double currentVelocity2;
@@ -127,7 +119,6 @@ public class decodeskeletonthing extends LinearOpMode {
 
       */
 
-
         // Define and Initialize Motors
         leftFrontMotor = hardwareMap.get(DcMotor.class, "LFMotor");
         rightFrontMotor = hardwareMap.get(DcMotor.class, "RFMotor");
@@ -145,6 +136,9 @@ public class decodeskeletonthing extends LinearOpMode {
         //fourth = hardwareMap.get(NormalizedColorSensor.class, "fourth");
         //fifth = hardwareMap.get(NormalizedColorSensor.class, "fifth");
         //sixth = hardwareMap.get(NormalizedColorSensor.class, "sixth");
+        pid1 = new ShooterPID(shooter1);
+        pid2 = new ShooterPID(shooter2);
+        pid3 = new ShooterPID(shooter3);
         flipper1 = hardwareMap.get(Servo.class, "flipper1");
         flipper2 = hardwareMap.get(Servo.class, "flipper2");
         flipper3 = hardwareMap.get(Servo.class, "flipper3");
@@ -241,6 +235,9 @@ public class decodeskeletonthing extends LinearOpMode {
 
         // Wait for the game to start (driver presses START)
         waitForStart();
+        pid1.resetSampler();
+        pid2.resetSampler();
+        pid3.resetSampler();
         leftHoodServo.setPosition(0);
         rightHoodServo.setPosition(0);
         double colorFind = 0;
@@ -281,8 +278,6 @@ public class decodeskeletonthing extends LinearOpMode {
             telemetry.addData("DS preview on", "EasyOpenCV");
             telemetry.addData("Camera preview on", "Webcam");
             telemetry.update();
-
-            waitForStart();
 
 
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
@@ -350,17 +345,29 @@ public class decodeskeletonthing extends LinearOpMode {
                 leftHoodServo.setPosition(servoPosition);
             }
 //DO NOT GO HIGHER THAN 0.425 FOR HOOD SERVOS!!!!!!! YOU WILL HAVE TO PAY FOR DAMAGES ):<
-        if (gamepad2.right_bumper) {
-                shooter1.setPower(PIDControl1(targetVelocity, currentVelocity1));
-               // shooter2.setPower(PIDControl2(targetVelocity, currentVelocity2));
-               // shooter3.setPower(PIDControl3(targetVelocity, currentVelocity3));
-        }
-        while (gamepad2.left_bumper) {
-            shooter1.setPower(-0.5);
-            shooter2.setPower(-0.5);
-            shooter3.setPower(-0.5);
-
-        }
+            if (gamepad2.right_bumper) {
+                pid1.update(targetRPM, gamepad2);
+                pid2.update(targetRPM, gamepad2);
+                pid3.update(targetRPM, gamepad2);
+            } else if (gamepad2.left_bumper) {
+                shooter1.setPower(-0.5);
+                shooter2.setPower(-0.5);
+                shooter3.setPower(-0.5);
+                pid1.resetIntegral();
+                pid2.resetIntegral();
+                pid3.resetIntegral();
+            } else {
+            // idle shooters
+                shooter1.setPower(0);
+                shooter1.setPower(0);
+                shooter3.setPower(0);
+                pid1.resetIntegral();
+                pid2.resetIntegral();
+                pid3.resetIntegral();
+                pid1.resetRumble();
+                pid2.resetRumble();
+                pid3.resetRumble();
+             }
 
 
 
@@ -545,56 +552,110 @@ public class decodeskeletonthing extends LinearOpMode {
                 .build();
     }
 
-    public double PIDControl1 (double reference1, double state1){
-        currentVelocity1 = shooter1.getVelocity();
-        double deltaTime1 = timer1.seconds();
-        timer1.reset();
+    private static class ShooterPID {
+        private final DcMotorEx motor;
+        private final ElapsedTime timer = new ElapsedTime();
 
-        double error1 = targetVelocity - currentVelocity1;
-        Sum1 += error1 * deltaTime1;
-        latestError1 = error1;
-        double derivative1 = (error1 - latestError1) / timer1.seconds();
-        if (currentVelocity1 >= targetVelocity){
-            gamepad2.rumble(500);
+        // PID gains (conservative defaults; tune on robot)
+        private double Kp = 8;
+        private double Ki = 0.5;
+        private double Kd = 1.3;
+
+        private double integral = 0.0;
+        private double lastError = 0.0;
+        private double integralLimit = 2000.0;
+
+        // encoder sampling
+        private int lastPos;
+        private long lastTimeNano;
+
+        // rumble/stability
+        private boolean hasRumbled = false;
+        private double stableTimer = 0.0;
+        private final double RPM_TOL = 60.0;
+        private final double STABLE_REQUIRED = 0.25;
+        public double ticksPerRevolution = 28;
+
+        public ShooterPID(DcMotorEx motor) {
+            this.motor = motor;
+            this.lastPos = motor.getCurrentPosition();
+            this.lastTimeNano = System.nanoTime();
+            timer.reset();
         }
-        timer1.reset();
 
-        double output1 = (error1 * Kp) + (derivative1 + Kd) + (Sum1 * Ki);
-        return output1;
-    }
-    public double PIDControl2 (double reference2, double state2){
-        currentVelocity2 = shooter2.getVelocity();
-        double deltaTime2 = timer2.seconds();
-        timer2.reset();
-
-        double error2 = targetVelocity - currentVelocity2;
-        Sum2 += error2 * deltaTime2;
-        latestError2 = error2;
-        double derivative2 = (error2 - latestError2) / timer2.seconds();
-        if (currentVelocity2 >= targetVelocity){
-            gamepad2.rumble(500);
+        public void resetSampler() {
+            lastPos = motor.getCurrentPosition();
+            lastTimeNano = System.nanoTime();
+            timer.reset();
         }
-        timer2.reset();
 
-        double output2 = (error2 * Kp) + (derivative2 + Kd) + (Sum2 * Ki);
-        return output2;
-    }
-    public double PIDControl3 (double reference3, double state3){
-        currentVelocity3 = shooter3.getVelocity();
-        double deltaTime3 = timer3.seconds();
-        timer3.reset();
-
-        double error3 = targetVelocity - currentVelocity3;
-        Sum3 += error3 * deltaTime3;
-        latestError3 = error3;
-        double derivative3 = (error3 - latestError3) / timer3.seconds();
-        if (currentVelocity3 >= targetVelocity){
-            gamepad2.rumble(500);
+        public void resetIntegral() {
+            integral = 0.0;
+            lastError = 0.0;
         }
-        timer3.reset();
 
-        double output3 = (error3 * Kp) + (derivative3 + Kd) + (Sum3 * Ki);
-        return output3;
+        public void resetRumble() {
+            hasRumbled = false;
+            stableTimer = 0.0;
+        }
+
+        public double getRPM() {
+            int curPos = motor.getCurrentPosition();
+            long curTime = System.nanoTime();
+
+            int deltaPos = curPos - lastPos;
+            long deltaNano = curTime - lastTimeNano;
+            if (deltaNano <= 0) deltaNano = 1;
+
+            double seconds = deltaNano / 1e9;
+            double ticksPerSec = deltaPos / seconds;
+            double rpm = (ticksPerSec / ticksPerRevolution) * 60.0;
+
+            lastPos = curPos;
+            lastTimeNano = curTime;
+
+            return Math.abs(rpm);
+        }
+
+        public void update(double targetRPM, com.qualcomm.robotcore.hardware.Gamepad gp) {
+            double currentRPM = getRPM();
+
+            double dt = timer.seconds();
+            timer.reset();
+            if (dt <= 0) dt = 0.001;
+
+            double error = targetRPM - currentRPM;
+
+            // integral with anti-windup
+            integral += error * dt;
+            if (integral > integralLimit) integral = integralLimit;
+            if (integral < -integralLimit) integral = -integralLimit;
+
+            double derivative = (error - lastError) / dt;
+            lastError = error;
+
+            double out = Kp * error + Ki * integral + Kd * derivative;
+            // clamp to [0,1] for forward; negative handled elsewhere (left bumper)
+            if (out < 0.0) out = 0.0;
+            if (out > 1.0) out = 1.0;
+
+            motor.setPower(out);
+
+            // rumble when stable
+            if (Math.abs(currentRPM - targetRPM) <= RPM_TOL) {
+                stableTimer += dt;
+                hasRumbled = true;
+            } else {
+                stableTimer = 0.0;
+                hasRumbled = false;
+            }
+
+            if (!hasRumbled && stableTimer >= STABLE_REQUIRED) {
+                // rumble the operator gamepad (the caller should pass the operator gamepad)
+                gp.rumble(0.7, 0.7, 300);
+                hasRumbled = true;
+            }
+        }
     }
 }
 
