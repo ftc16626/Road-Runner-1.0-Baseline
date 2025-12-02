@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
  * All current PID, servo, and button mappings preserved.
  * (Is this language simple enough?)
  */
-@TeleOp(name = "mightwork", group = "robot")
+@TeleOp(name = "mightworkOdometryReady", group = "robot")
 public class MightWorkOdometryReady extends LinearOpMode {
 
     // -------------------- Subsystems --------------------
