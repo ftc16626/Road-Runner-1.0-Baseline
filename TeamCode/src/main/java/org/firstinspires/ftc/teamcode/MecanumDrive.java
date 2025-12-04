@@ -52,7 +52,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Config
-public final class MecanumDrive {
+public final class  MecanumDrive {
     public static class Params {
         // IMU orientation
         // TODO: fill in these values based on
@@ -63,13 +63,13 @@ public final class MecanumDrive {
                 RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
 
         // drive model parameters
-        public double inPerTick = 141/118039;
-        public double lateralInPerTick = 84.73285485919872;
-        public double trackWidthTicks = 12626.09403604826;
+        public double inPerTick = 0.00105047534009139135458795104785;
+        public double lateralInPerTick =  0.005549038376860228;
+        public double trackWidthTicks = 13575.646882904477;
 
         // feedforward parameters (in tick units)
-        public double kS = 1.705095871482731;
-        public double kV = 0.00013999472859093284;
+        public double kS = 1.8420728255513819;
+        public double kV = 0.00012597793701673768;
         public double kA = 0;
 
         // path profile parameters (in inches)
@@ -238,7 +238,6 @@ public final class MecanumDrive {
         // TODO: reverse motor directions if needed
         rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
         rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
-
         // TODO: make sure your config has an IMU with this name (can be BNO or BHI)
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
         lazyImu = new LazyHardwareMapImu(hardwareMap, "imu", new RevHubOrientationOnRobot(
@@ -246,7 +245,7 @@ public final class MecanumDrive {
 
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
 
-        localizer = new DriveLocalizer(pose);
+        localizer = new ThreeDeadWheelLocalizer(hardwareMap, PARAMS.inPerTick, pose);
 
         FlightRecorder.write("MECANUM_PARAMS", PARAMS);
     }
