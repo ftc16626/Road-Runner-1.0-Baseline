@@ -277,6 +277,7 @@ public class MightWork extends LinearOpMode {
         shooter1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shooter3.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter1.setDirection(DcMotorEx.Direction.REVERSE);
 
         shooter1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shooter2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -365,9 +366,9 @@ public class MightWork extends LinearOpMode {
         private final ElapsedTime timer = new ElapsedTime();
 
         // PID gains (conservative defaults; tune on robot)
-        private double Kp = 8;
-        private double Ki = 0.5;
-        private double Kd = 1.3;
+        private double Kp = 0.87;
+        private double Ki = 0;
+        private double Kd = 1;
 
         private double integral = 0.0;
         private double lastError = 0.0;

@@ -37,7 +37,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 import java.util.List;
 
-@Autonomous(name="TheRedUpAgainstWallAutoYouShouldUse", group="Robot")
+@Autonomous(name="Thecodedadmade", group="Robot")
 public class AutoTest extends LinearOpMode {
 
     /* Hardware */
@@ -136,35 +136,35 @@ public class AutoTest extends LinearOpMode {
                             }
                             servoIII.setPosition(0.1);
                             done = 1;
-                        } else if (artifactPattern == 22) {
+                        } else if (artifactPattern == 23) {
                             servoTimer.reset();
                             while (servoTimer.milliseconds() < 4000) {
                                 servoI.setPosition(0.47);
                             }
                             servoI.setPosition(0.9);
                             while (servoTimer.milliseconds() < 4500) {
-                                servoII.setPosition(0.47);
-                            }
-                            servoII.setPosition(0.9);
-                            while (servoTimer.milliseconds() < 5000) {
                                 servoIII.setPosition(0.51);
                             }
                             servoIII.setPosition(0.1);
-                            done = 1;
-                        } else if (artifactPattern == 23) {
-                            servoTimer.reset();
-                            while (servoTimer.milliseconds() < 4000) {
+                            while (servoTimer.milliseconds() < 5000) {
                                 servoII.setPosition(0.47);
                             }
                             servoII.setPosition(0.9);
-                            while (servoTimer.milliseconds() < 4500) {
-                                servoI.setPosition(0.47);
-                            }
-                            servoIII.setPosition(0.9);
-                            while (servoTimer.milliseconds() < 5000) {
+                            done = 1;
+                        } else if (artifactPattern == 22) {
+                            servoTimer.reset();
+                            while (servoTimer.milliseconds() < 4000) {
                                 servoIII.setPosition(0.51);
                             }
-                            servoI.setPosition(0.1);
+                            servoIII.setPosition(0.1);
+                            while (servoTimer.milliseconds() < 4500) {
+                                servoII.setPosition(0.47);
+                            }
+                            servoII.setPosition(0.9);
+                            while (servoTimer.milliseconds() < 5000) {
+                                servoI.setPosition(0.47);
+                            }
+                            servoI.setPosition(0.9);
                             done = 1;
                         } else {
                             // fallback identical to original default
@@ -308,9 +308,9 @@ public class AutoTest extends LinearOpMode {
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
 
-        shooter1.setDirection(DcMotorEx.Direction.FORWARD);
-        shooter2.setDirection(DcMotorEx.Direction.FORWARD);
         shooter3.setDirection(DcMotorEx.Direction.FORWARD);
+        shooter2.setDirection(DcMotorEx.Direction.FORWARD);
+        shooter1.setDirection(DcMotorEx.Direction.REVERSE);
 
         leftHoodServo.setDirection(Servo.Direction.REVERSE);
 
@@ -473,7 +473,7 @@ public class AutoTest extends LinearOpMode {
         Shooter shoot = new Shooter(hardwareMap);
 
         // We already scanned in INIT, so remove runtime scan. Continue the route:
-        Actions.runBlocking(new SequentialAction(trajectoryActionChosen));
+        Actions.runBlocking(new SequentialAction(shoot.Fire(), trajectoryActionChosen));
 
         position = 2;
         if (position == 1) trajectoryActionChosen = tab1.build();
@@ -487,16 +487,16 @@ public class AutoTest extends LinearOpMode {
         else trajectoryActionChosen = tab3.build();
         Actions.runBlocking(new SequentialAction(trajectoryActionChosen));
 
-        Actions.runBlocking(new SequentialAction(trajectoryActionCloseOut));
+        Actions.runBlocking(new SequentialAction(shoot.Fire(), trajectoryActionCloseOut));
 
         // BEFORE firing, wait a short timeout for shooter RPMs to come up and only fire if within tolerance
         double waitStart = getRuntime();
         double waitTimeout = 5.0; // seconds to wait for reaching speed
         boolean allAtTarget = false;
         while (opModeIsActive() && (getRuntime() - waitStart) < waitTimeout) {
-            double r1 = pid1.getRPM();
+            double r1 = pid1.getRPM1();
             double r2 = pid2.getRPM();
-            double r3 = pid3.getRPM();
+            double r3 = pid3.getRPM3();
             telemetry.addData("RPMs", "%4.0f, %4.0f, %4.0f", r1, r2, r3);
             telemetry.update();
             if (r1 >= targetRPM - 60 && r2 >= targetRPM - 60 && r3 >= targetRPM - 60) {
@@ -634,10 +634,10 @@ public class AutoTest extends LinearOpMode {
     }
 
     // PID class: Kp/Ki/Kd preserved (A)
-    private static class PIDControl {
-        private double Kp = 8;
-        private double Ki = 0.5;
-        private double Kd = 1.3;
+    private static class PIDControl1 {
+        private double Kp1 = 1;
+        private double Ki1 = 0.5;
+        private double Kd1 = .13;
         private final ElapsedTime timer1 = new ElapsedTime();
         private final DcMotorEx shooter1;
 
@@ -648,7 +648,7 @@ public class AutoTest extends LinearOpMode {
         private int lastPos1;
         private long lastTimeNano1;
 
-        public PIDControl(DcMotorEx motor) {
+        public PIDControl1(DcMotorEx motor) {
             this.shooter1 = motor;
             this.lastPos1 = motor.getCurrentPosition();
             this.lastTimeNano1 = System.nanoTime();
@@ -666,45 +666,191 @@ public class AutoTest extends LinearOpMode {
             lastError1 = 0.0;
         }
 
-        public double getRPM() {
-            int curPos = shooter1.getCurrentPosition();
+        public double getRPM1() {
+            int curPos1 = shooter1.getCurrentPosition();
             long curTime = System.nanoTime();
 
-            int deltaPos = curPos - lastPos1;
+            int deltaPos1 = curPos1 - lastPos1;
             long deltaNano = curTime - lastTimeNano1;
             if (deltaNano <= 0) deltaNano = 1;
 
             double seconds = deltaNano / 1e9;
-            double ticksPerSec = deltaPos / seconds;
-            double rpm = (ticksPerSec / TICKS_PER_REV) * 60.0;
+            double ticksPerSec1 = deltaPos1 / seconds;
+            double rpm1 = (ticksPerSec1 / TICKS_PER_REV) * 60.0;
 
-            lastPos1 = curPos;
+            lastPos1 = curPos1;
             lastTimeNano1 = curTime;
 
-            return Math.abs(rpm);
+            return Math.abs(rpm1);
         }
 
         public double update(double targetRPM, com.qualcomm.robotcore.hardware.Gamepad gp) {
-            double currentRPM = getRPM();
+            double currentRPM1 = getRPM1();
 
             double dt = timer1.seconds();
             timer1.reset();
             if (dt <= 0) dt = 0.001;
 
-            double error = targetRPM - currentRPM;
+            double error1 = targetRPM - currentRPM1;
 
-            integral1 += error * dt;
+            integral1 += error1 * dt;
             if (integral1 > integralLimit1) integral1 = integralLimit1;
             if (integral1 < -integralLimit1) integral1 = -integralLimit1;
 
-            double derivative = (error - lastError1) / dt;
-            lastError1 = error;
+            double derivative1 = (error1 - lastError1) / dt;
+            lastError1 = error1;
 
-            double out = Kp * error + Ki * integral1 + Kd * derivative;
-            if (out < 0.0) out = 0.0;
-            if (out > 1.0) out = 1.0;
+            double out1 = Kp1 * error1 + Ki1 * integral1 + Kd1 * derivative1;
+            if (out1 < 0.0) out1 = 0.0;
+            if (out1 > 1.0) out1 = 1.0;
 
-            return out;
+            return out1;
+        }
+    }
+    private static class PIDControl2 {
+        private double Kp2 = 8;
+        private double Ki2 = 0.5;
+        private double Kd2 = 1.3;
+        private final ElapsedTime timer2 = new ElapsedTime();
+        private final DcMotorEx shooter2;
+
+        private double integral2 = 0.0;
+        private double lastError2 = 0.0;
+        private double integralLimit2 = 2000.0;
+
+        private int lastPos2;
+        private long lastTimeNano2;
+
+        public PIDControl2(DcMotorEx motor) {
+            this.shooter2 = motor;
+            this.lastPos2 = motor.getCurrentPosition();
+            this.lastTimeNano2 = System.nanoTime();
+            timer2.reset();
+        }
+
+        public void resetSampler() {
+            lastPos2 = shooter2.getCurrentPosition();
+            lastTimeNano2 = System.nanoTime();
+            timer2.reset();
+        }
+
+        public void resetIntegral() {
+            integral2 = 0.0;
+            lastError2 = 0.0;
+        }
+
+        public double getRPM2() {
+            int curPos2 = shooter2.getCurrentPosition();
+            long curTime = System.nanoTime();
+
+            int deltaPos2 = curPos2 - lastPos2;
+            long deltaNano2 = curTime - lastTimeNano2;
+            if (deltaNano2 <= 0) deltaNano2 = 1;
+
+            double seconds = deltaNano2 / 1e9;
+            double ticksPerSec2 = deltaPos2 / seconds;
+            double rpm2 = (ticksPerSec2 / TICKS_PER_REV) * 60.0;
+
+            lastPos2 = curPos2;
+            lastTimeNano2 = curTime;
+
+            return Math.abs(rpm2);
+        }
+
+        public double update(double targetRPM, com.qualcomm.robotcore.hardware.Gamepad gp) {
+            double currentRPM2 = getRPM2();
+
+            double dt = timer2.seconds();
+            timer2.reset();
+            if (dt <= 0) dt = 0.001;
+
+            double error2 = targetRPM - currentRPM2;
+
+            integral2 += error2 * dt;
+            if (integral2 > integralLimit2) integral2 = integralLimit2;
+            if (integral2 < -integralLimit2) integral2 = -integralLimit2;
+
+            double derivative2 = (error2 - lastError2) / dt;
+            lastError2 = error2;
+
+            double out2 = Kp2 * error2 + Ki2 * integral2 + Kd2 * derivative2;
+            if (out2 < 0.0) out2 = 0.0;
+            if (out2 > 1.0) out2 = 1.0;
+
+            return out2;
+        }
+    }
+    private static class PIDControl {
+        private double Kp3 = .6;
+        private double Ki3 = 0.5;
+        private double Kd3 = 1.3;
+        private final ElapsedTime timer3 = new ElapsedTime();
+        private final DcMotorEx shooter3;
+
+        private double integral3 = 0.0;
+        private double lastError3 = 0.0;
+        private double integralLimit3 = 2000.0;
+
+        private int lastPos3;
+        private long lastTimeNano3;
+
+        public PIDControl(DcMotorEx motor) {
+            this.shooter3 = motor;
+            this.lastPos3 = motor.getCurrentPosition();
+            this.lastTimeNano3 = System.nanoTime();
+            timer3.reset();
+        }
+
+        public void resetSampler3() {
+            lastPos3 = shooter3.getCurrentPosition();
+            lastTimeNano3 = System.nanoTime();
+            timer3.reset();
+        }
+
+        public void resetIntegral3() {
+            integral3 = 0.0;
+            lastError3 = 0.0;
+        }
+
+        public double getRPM3() {
+            int curPos3 = shooter3.getCurrentPosition();
+            long curTime = System.nanoTime();
+
+            int deltaPos3 = curPos3 - lastPos3;
+            long deltaNano3 = curTime - lastTimeNano3;
+            if (deltaNano3 <= 0) deltaNano3 = 1;
+
+            double seconds3 = deltaNano3 / 1e9;
+            double ticksPerSec3 = deltaPos3 / seconds3;
+            double rpm3 = (ticksPerSec3 / TICKS_PER_REV) * 60.0;
+
+            lastPos3 = curPos3;
+            lastTimeNano3 = curTime;
+
+            return Math.abs(rpm3);
+        }
+
+        public double update(double targetRPM, com.qualcomm.robotcore.hardware.Gamepad gp) {
+            double currentRPM3 = getRPM3();
+
+            double dt = timer3.seconds();
+            timer3.reset();
+            if (dt <= 0) dt = 0.001;
+
+            double error3 = targetRPM - currentRPM3;
+
+            integral3 += error3 * dt;
+            if (integral3 > integralLimit3) integral3 = integralLimit3;
+            if (integral3 < -integralLimit3) integral3 = -integralLimit3;
+
+            double derivative = (error3 - lastError3) / dt;
+            lastError3 = error3;
+
+            double out3 = Kp3 * error3 + Ki3 * integral3 + Kd3 * derivative;
+            if (out3 < 0.0) out3 = 0.0;
+            if (out3 > 1.0) out3 = 1.0;
+
+            return out3;
         }
     }
 }
