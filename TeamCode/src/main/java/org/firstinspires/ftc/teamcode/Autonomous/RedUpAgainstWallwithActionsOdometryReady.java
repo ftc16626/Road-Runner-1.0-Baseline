@@ -9,6 +9,7 @@ import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -32,6 +33,7 @@ import org.firstinspires.ftc.teamcode.ComponentSubClasses.VisionSubsystemOdometr
 import org.firstinspires.ftc.teamcode.ComponentSubClasses.ColorSensorSubsystem;
 
 @Autonomous(name="RedUpAgainstWallwithActionsOdometryReady", group="Robot")
+@Disabled
 public class RedUpAgainstWallwithActionsOdometryReady extends LinearOpMode {
 
     // Subsystems
