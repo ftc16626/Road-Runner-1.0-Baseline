@@ -1,48 +1,45 @@
         package org.firstinspires.ftc.teamcode.Autonomous;
+        import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
-import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
+        import android.app.Activity;
+        import android.view.View;
 
-import static org.firstinspires.ftc.teamcode.ComponentSubClasses.DriveSubsystemOdometryReady.TICKS_PER_REV;
+        import androidx.annotation.NonNull;
+        import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+        import com.acmerobotics.roadrunner.Action;
+        import com.acmerobotics.roadrunner.ParallelAction;
+        import com.acmerobotics.roadrunner.SequentialAction;
+        import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
+        import com.acmerobotics.roadrunner.ftc.Actions;
+        import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+        import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+        import com.qualcomm.robotcore.hardware.CRServo;
+        import com.qualcomm.robotcore.hardware.DcMotor;
+        import com.qualcomm.robotcore.hardware.DcMotorEx;
+        import com.qualcomm.robotcore.hardware.DcMotorSimple;
+        import com.qualcomm.robotcore.hardware.Gamepad;
+        import com.qualcomm.robotcore.hardware.HardwareMap;
+        import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+        import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
-import android.app.Activity;
-import android.view.View;
-
-import androidx.annotation.NonNull;
-
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
-import com.acmerobotics.roadrunner.ftc.Actions;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.SwitchableLight;
-import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+        import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+        import org.firstinspires.ftc.vision.VisionPortal;
+        import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+        import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 // RR-specific imports
-import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.Vector2d;
+        import com.acmerobotics.roadrunner.Pose2d;
+        import com.acmerobotics.roadrunner.Vector2d;
+        import com.qualcomm.robotcore.hardware.Servo;
+        import com.qualcomm.robotcore.hardware.SwitchableLight;
+        import com.qualcomm.robotcore.util.ElapsedTime;
 
 // Non-RR imports
-import org.firstinspires.ftc.teamcode.MecanumDrive;
+        import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-import java.util.List;
+        import java.util.List;
 
-@Autonomous(name="TheRedUpAgainstWallAutoYouShouldUse", group="Robot")
+        @Autonomous(name="TheRedUpAgainstWallAutoYouShouldUse", group="Robot")
 public class RedUpAgainstWallwithActions extends LinearOpMode {
 
     /* Declare OpMode members. */

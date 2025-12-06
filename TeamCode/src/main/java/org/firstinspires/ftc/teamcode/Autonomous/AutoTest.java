@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.Autonomous;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
+import static org.firstinspires.ftc.teamcode.ComponentSubClasses.DriveSubsystemOdometryReady.TICKS_PER_REV;
 
+import android.app.Activity;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -16,6 +18,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -29,265 +32,252 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
+
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 import java.util.List;
 
-@Autonomous(name="TheRedUpAgainstWallAutoYouShouldUse", group="Robot")
+@Autonomous(name="Thecodedadmade", group="Robot")
 public class AutoTest extends LinearOpMode {
 
-    /* ---------- Hardware ---------- */
-    private DcMotor leftFrontDrive, rightFrontDrive, leftBackDrive, rightBackDrive;
-    private DcMotorEx shooter1, shooter2, shooter3;
+    /* Hardware */
+    private DcMotor leftFrontDrive = null;
+    private DcMotor rightFrontDrive = null;
+    private DcMotor leftBackDrive = null;
+    private DcMotor rightBackDrive = null;
+    private DcMotorEx shooter1;
+    private DcMotorEx shooter2;
+    private DcMotorEx shooter3;
+
     private CRServo intakeServo;
-    private Servo rightHoodServo, leftHoodServo;
-    private NormalizedColorSensor colorSensorI, colorSensorII, colorSensorIII,
-            colorSensorIV, colorSensorV, colorSensorVI;
+    private Servo rightHoodServo;
+    private Servo leftHoodServo;
+    private NormalizedColorSensor colorSensorI;
+    private NormalizedColorSensor colorSensorII;
+    private NormalizedColorSensor colorSensorIII;
+    private NormalizedColorSensor colorSensorIV;
+    private NormalizedColorSensor colorSensorV;
+    private NormalizedColorSensor colorSensorVI;
     private VisionPortal allSeeingEye;
     private AprilTagProcessor aprilTag;
-    private Servo servoI, servoII, servoIII;
 
-    /* ---------- Constants & State ---------- */
-    // SHOOTER target RPM (set to requested 2300)
-    private final double TARGET_RPM = 2300.0;
-    private final double SHOOTER_TICKS_PER_REV = 28.0; // REV encoder CPR
+    private Servo servoI;
+    private Servo servoII;
+    private Servo servoIII;
 
+    /* State & constants */
+    private double currentVelocity;
+    public double targetRPM = 2150;
+    public double ticksPerRevolution = 28;
+    public double targetVelocity = (targetRPM / 60.0) * ticksPerRevolution;
+
+    double artifactPattern = 0;
     private ElapsedTime runtime = new ElapsedTime();
     private ElapsedTime servoTimer = new ElapsedTime();
     private ElapsedTime shooterTimer = new ElapsedTime();
 
-    // PID controllers (one per shooter)
-    private PIDControl pid1, pid2, pid3;
+    // PID controllers (one per shooter) - keep PID constants as requested (A)
+    private PIDControl pid1;
+    private PIDControl pid2;
+    private PIDControl pid3;
 
-    // Drive constants (unchanged)
+    // Encoder / drive constants (unchanged)
     static final double COUNTS_PER_MOTOR_REV = 384.5;
     static final double DRIVE_GEAR_REDUCTION = 1.0;
     static final double WHEEL_DIAMETER_INCHES = 4.0;
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
             (WHEEL_DIAMETER_INCHES * Math.PI);
+    static final double DRIVE_SPEED = 0.6;
+    static final double TURN_SPEED = 0.5;
 
-    // artifact pattern from AprilTag during INIT
-    private double artifactPattern = 0;
+    View relativeLayout;
 
-    // simple done flag for firing action
-    private double done = 0;
+    enum State {
+        Get_To_Power,
+        Fling,
+        Finished
+    }
+    State state = State.Get_To_Power;
 
-    /* ---------- Shooter Helper Class (firing sequence) ---------- */
-    public class ShooterActions {
+    /* --- Shooter actions & behavior kept largely as before, but cleaned --- */
+    public class Shooter {
+        private Servo sI;
+        private Servo sII;
+        private Servo sIII;
+        ElapsedTime timer;
+
+        public Shooter(HardwareMap hw) {
+            // motors/servos already acquired in outer scope; keep this constructor lightweight
+            sI = servoI;
+            sII = servoII;
+            sIII = servoIII;
+        }
+
+        // Fire action
         public Action Fire() {
             return new Action() {
                 private boolean initialized = false;
-                private ElapsedTime localTimer;
 
                 @Override
                 public boolean run(@NonNull TelemetryPacket packet) {
                     if (!initialized) {
-                        localTimer = new ElapsedTime();
-                        localTimer.reset();
-                        initialized = true;
-
-                        // sequence simplified to respect artifactPattern mapping from init
-                        // using servo positions from your original code
-                        new Thread(() -> {
-                            try {
-                                // small delays between flips (timings preserved roughly)
-                                Thread.sleep(4000);
-                                if (artifactPattern == 22) servoI.setPosition(0.47);
-                                else servoII.setPosition(0.47);
-                                Thread.sleep(500);
-                                if (artifactPattern == 22) servoI.setPosition(0.9);
-                                else servoII.setPosition(0.9);
-                                Thread.sleep(500);
-                                servoIII.setPosition(0.53);
-                                Thread.sleep(500);
-                                servoIII.setPosition(0.1);
-                                done = 1;
-                            } catch (InterruptedException e) {
-                                Thread.currentThread().interrupt();
+                        if (artifactPattern == 21) {
+                            servoTimer.reset();
+                            while (servoTimer.milliseconds() < 4000) {
+                                servoII.setPosition(0.47);
                             }
-                        }).start();
+                            servoII.setPosition(0.9);
+                            while (servoTimer.milliseconds() < 4500) {
+                                servoI.setPosition(0.47);
+                            }
+                            servoI.setPosition(0.9);
+                            while (servoTimer.milliseconds() < 5000) {
+                                servoIII.setPosition(0.53);
+                            }
+                            servoIII.setPosition(0.1);
+                            done = 1;
+                        } else if (artifactPattern == 23) {
+                            servoTimer.reset();
+                            while (servoTimer.milliseconds() < 4000) {
+                                servoI.setPosition(0.47);
+                            }
+                            servoI.setPosition(0.9);
+                            while (servoTimer.milliseconds() < 4500) {
+                                servoIII.setPosition(0.51);
+                            }
+                            servoIII.setPosition(0.1);
+                            while (servoTimer.milliseconds() < 5000) {
+                                servoII.setPosition(0.47);
+                            }
+                            servoII.setPosition(0.9);
+                            done = 1;
+                        } else if (artifactPattern == 22) {
+                            servoTimer.reset();
+                            while (servoTimer.milliseconds() < 4000) {
+                                servoIII.setPosition(0.51);
+                            }
+                            servoIII.setPosition(0.1);
+                            while (servoTimer.milliseconds() < 4500) {
+                                servoII.setPosition(0.47);
+                            }
+                            servoII.setPosition(0.9);
+                            while (servoTimer.milliseconds() < 5000) {
+                                servoI.setPosition(0.47);
+                            }
+                            servoI.setPosition(0.9);
+                            done = 1;
+                        } else {
+                            // fallback identical to original default
+                            servoTimer.reset();
+                            while (servoTimer.milliseconds() < 4000) {
+                                servoII.setPosition(0.47);
+                            }
+                            servoII.setPosition(0.9);
+                            while (servoTimer.milliseconds() < 4500) {
+                                servoI.setPosition(0.47);
+                            }
+                            servoI.setPosition(0.9);
+                            while (servoTimer.milliseconds() < 5000) {
+                                servoIII.setPosition(0.53);
+                            }
+                            servoIII.setPosition(0.1);
+                            done = 1;
+                        }
+                        initialized = true;
+                        timer = new ElapsedTime();
                     }
-
-                    // keep action alive briefly to ensure sequence completion by timeline
-                    return localTimer.seconds() < 2.5;
+                    return timer.seconds() < 1;
                 }
             };
         }
 
+        // intake movement action (kept behavior)
         public Action intake() {
             return new Action() {
                 private boolean initialized = false;
-                private ElapsedTime t;
                 @Override
                 public boolean run(@NonNull TelemetryPacket packet) {
                     if (!initialized) {
                         encoderDrive(0, 0, 0, 0, 15, false, -1, 0.15, 5);
-                        t = new ElapsedTime();
                         initialized = true;
+                        timer = new ElapsedTime();
                     }
-                    return t.seconds() < 2;
+                    return timer.seconds() < 2;
+                }
+            };
+        }
+        public Action goBack() {
+            return new Action() {
+                private boolean initialized = false;
+                @Override
+                public boolean run(@NonNull TelemetryPacket packet) {
+                    if (!initialized) {
+                        encoderDrive(0.2, -3.25, -3.25, -3.25, -3.25, false, 0, 0.225, 2);
+                        initialized = true;
+                        timer = new ElapsedTime();
+                    }
+                    return timer.seconds() < 2;
+                }
+            };
+        }
+        public Action turn() {
+            return new Action() {
+                private boolean initialized = false;
+                @Override
+                public boolean run(@NonNull TelemetryPacket packet) {
+                    if (!initialized) {
+                        encoderDrive(0.25, 9.5, -9.5, 9.5, -9.5, false, 0, 0, 1);
+                        encoderDrive(0.25, 2, 2, 2, 2, false, 0, 0, 1);
+                        initialized = true;
+                        timer = new ElapsedTime();
+                    }
+                    return timer.seconds() < 1;
+                }
+            };
+        }
+        public Action outOfShootingArea() {
+            return new Action() {
+                private boolean initialized = false;
+                @Override
+                public boolean run(@NonNull TelemetryPacket packet) {
+                    if (!initialized) {
+                        encoderDrive(0.2, 3, 3, 3, 3, false, 0, 0, 2);
+                        initialized = true;
+                        timer = new ElapsedTime();
+                    }
+                    return timer.seconds() < 2;
+                }
+            };
+        }
+        public Action strafeLeft() {
+            return new Action() {
+                private boolean initialized = false;
+                @Override
+                public boolean run(@NonNull TelemetryPacket packet) {
+                    if (!initialized) {
+                        encoderDrive(0.2, 2, 2, 2, 2, true, 0, 0, 2);
+                        initialized = true;
+                        timer = new ElapsedTime();
+                    }
+                    return timer.seconds() < 2;
                 }
             };
         }
     }
 
+    private double done = 0;
+    private double position = 0;
+
     @Override
-    public void runOpMode() throws InterruptedException {
-        // RoadRunner start pose preserved
+    public void runOpMode() {
+        // initial pose and RR drive creation (preserve original)
         Pose2d initialPose = new Pose2d(0, 0, Math.toRadians(3.5592));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
 
-        // init hardware
-        initHardware();
-
-        // init apriltag/vision
+        // initialize vision processor (will be used during INIT loop)
         initAprilTag();
 
-        telemetry.addLine("Scanning for AprilTag during INIT...");
-        telemetry.update();
-
-        // APRILTAG INIT LOOP (runs until start pressed)
-        while (!isStarted() && !isStopRequested()) {
-            List<AprilTagDetection> detections = aprilTag.getDetections();
-            if (!detections.isEmpty()) {
-                AprilTagDetection d = detections.get(0);
-                artifactPattern = d.id;
-                // keep your remapping logic exactly
-                if (artifactPattern == 23) artifactPattern = 21;
-                else if (artifactPattern == 21) artifactPattern = 22;
-                else if (artifactPattern == 22) artifactPattern = 23;
-
-                telemetry.addData("AprilTag detected (raw id)", d.id);
-                telemetry.addData("artifactPattern (mapped)", artifactPattern);
-            } else {
-                telemetry.addData("AprilTag", "none");
-            }
-            telemetry.update();
-            sleep(50);
-        }
-
-        // WAIT FOR MATCH START
-        waitForStart();
-
-        // Close camera to free resources
-        if (allSeeingEye != null) {
-            try { allSeeingEye.close(); } catch (Exception ignored) {}
-            allSeeingEye = null;
-        }
-
-        // initialize PID controllers AFTER start (each with own motor)
-        pid1 = new PIDControl(shooter1, SHOOTER_TICKS_PER_REV);
-        pid2 = new PIDControl(shooter2, SHOOTER_TICKS_PER_REV);
-        pid3 = new PIDControl(shooter3, SHOOTER_TICKS_PER_REV);
-
-        // start shooter PID thread (runs for 30 seconds or until opMode stops)
-        shooterTimer.reset();
-        Thread shooterThread = new Thread(() -> {
-            final long SAMPLE_MS = 20;
-            while (opModeIsActive() && shooterTimer.seconds() < 30.0) {
-                try {
-                    double power1 = pid1.update(TARGET_RPM);
-                    double power2 = pid2.update(TARGET_RPM);
-                    double power3 = pid3.update(TARGET_RPM);
-
-                    shooter1.setPower(power1);
-                    shooter2.setPower(power2);
-                    shooter3.setPower(power3);
-
-                    Thread.sleep(SAMPLE_MS);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                } catch (Exception ex) {
-                    // safe shutdown if unexpected error occurs
-                    shooter1.setPower(0);
-                    shooter2.setPower(0);
-                    shooter3.setPower(0);
-                    break;
-                }
-            }
-            shooter1.setPower(0);
-            shooter2.setPower(0);
-            shooter3.setPower(0);
-        }, "ShooterThread");
-        shooterThread.setDaemon(true);
-        shooterThread.start();
-
-        // pre-trajectory hood positions
-        leftHoodServo.setPosition(0);
-        rightHoodServo.setPosition(0);
-
-        // Build your RoadRunner trajectories (preserved from original)
-        TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
-                .strafeTo(new Vector2d(-46.5281, -19.4465))
-                .turn(Math.toRadians(-41.69))
-                .waitSeconds(3);
-
-        Pose2d newPose = new Pose2d(9.9556, -30.3882, Math.toRadians(-95.2059));
-        TrajectoryActionBuilder tab2 = drive.actionBuilder(newPose)
-                .lineToY(-32.1531)
-                .waitSeconds(3);
-
-        Pose2d new2Pose = new Pose2d(9.9556, -44.4149, Math.toRadians(-95.2059));
-        TrajectoryActionBuilder tab3 = drive.actionBuilder(new2Pose)
-                .strafeTo(new Vector2d(0, 0))
-                .turn(-53.9244)
-                .waitSeconds(3);
-
-        Action trajectoryActionCloseOut = tab1.endTrajectory().fresh()
-                .strafeTo(new Vector2d(9.9556, -30.3882))
-                .build();
-
-        // choose a trajectory (kept original flow)
-        int position = 1;
-        Action chosen;
-        if (position == 1) chosen = tab1.build();
-        else if (position == 2) chosen = tab2.build();
-        else chosen = tab3.build();
-
-        ShooterActions shoot = new ShooterActions();
-
-        // Run route and intake as before
-        Actions.runBlocking(new SequentialAction(chosen));
-        chosen = (position == 1) ? tab1.build() : (position == 2) ? tab2.build() : tab3.build();
-        Actions.runBlocking(new SequentialAction(shoot.intake(), chosen));
-        chosen = (position == 1) ? tab1.build() : (position == 2) ? tab2.build() : tab3.build();
-        Actions.runBlocking(new SequentialAction(chosen));
-        Actions.runBlocking(new SequentialAction(trajectoryActionCloseOut));
-
-        // BEFORE firing, wait a short timeout for shooter RPMs to come up and only fire if within tolerance
-        double waitStart = getRuntime();
-        double waitTimeout = 5.0; // seconds to wait for reaching speed
-        boolean allAtTarget = false;
-        double tolerance = 50.0; // rpm tolerance
-
-        while (opModeIsActive() && (getRuntime() - waitStart) < waitTimeout) {
-            double r1 = pid1.peekRPM();
-            double r2 = pid2.peekRPM();
-            double r3 = pid3.peekRPM();
-            telemetry.addData("RPMs", "%4.0f, %4.0f, %4.0f", r1, r2, r3);
-            telemetry.update();
-            if (r1 >= TARGET_RPM - tolerance && r2 >= TARGET_RPM - tolerance && r3 >= TARGET_RPM - tolerance) {
-                allAtTarget = true;
-                break;
-            }
-            sleep(50);
-        }
-
-        if (opModeIsActive() && shooterTimer.seconds() < 30.0 && allAtTarget) {
-            Actions.runBlocking(new SequentialAction(shoot.Fire()));
-        } else {
-            telemetry.addData("Fire", "Skipped: shooters not at speed or timer expired");
-            telemetry.update();
-        }
-
-        telemetry.addData("Path", "Complete");
-        telemetry.update();
-        sleep(1000);
-    }
-
-    /* ---------- Hardware init ---------- */
-    private void initHardware() {
+        // hardware init (clean and avoid duplication)
         leftFrontDrive = hardwareMap.get(DcMotor.class, "LFMotor");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "RFMotor");
         leftBackDrive = hardwareMap.get(DcMotor.class, "LBMotor");
@@ -312,15 +302,15 @@ public class AutoTest extends LinearOpMode {
         shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
         shooter3 = hardwareMap.get(DcMotorEx.class, "shooter3");
 
-        // motor directions (kept as original)
+        // motor directions (fixed earlier typo and kept consistent)
         leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
 
-        shooter1.setDirection(DcMotorEx.Direction.FORWARD);
-        shooter2.setDirection(DcMotorEx.Direction.FORWARD);
         shooter3.setDirection(DcMotorEx.Direction.FORWARD);
+        shooter2.setDirection(DcMotorEx.Direction.FORWARD);
+        shooter1.setDirection(DcMotorEx.Direction.REVERSE);
 
         leftHoodServo.setDirection(Servo.Direction.REVERSE);
 
@@ -344,7 +334,6 @@ public class AutoTest extends LinearOpMode {
         leftBackDrive.setZeroPowerBehavior(BRAKE);
         rightBackDrive.setZeroPowerBehavior(BRAKE);
 
-        // enable color sensor lights if available
         if (colorSensorI instanceof SwitchableLight) ((SwitchableLight)colorSensorI).enableLight(true);
         if (colorSensorII instanceof SwitchableLight) ((SwitchableLight)colorSensorII).enableLight(true);
         if (colorSensorIII instanceof SwitchableLight) ((SwitchableLight)colorSensorIII).enableLight(true);
@@ -359,28 +348,182 @@ public class AutoTest extends LinearOpMode {
         colorSensorV.setGain(1);
         colorSensorVI.setGain(1);
 
-        // starting servo positions
+        // display starting encoders
+        telemetry.addData("Starting at", "%7d : %7d : %7d : %7d",
+                leftFrontDrive.getCurrentPosition(),
+                rightFrontDrive.getCurrentPosition(),
+                leftBackDrive.getCurrentPosition(),
+                rightBackDrive.getCurrentPosition());
+        telemetry.update();
+
+        // set initial servo positions
         servoI.setPosition(0.5);
         servoII.setPosition(0.5);
         servoIII.setPosition(0.51);
-    }
 
-    /* ---------- Vision / AprilTag ---------- */
-    private void initAprilTag() {
-        aprilTag = new AprilTagProcessor.Builder()
-                .setDrawTagID(true)
-                .setDrawTagOutline(true)
-                .setDrawAxes(true)
-                .setDrawCubeProjection(true)
+        // -------------------------
+        // APRILTAG INIT LOOP (runs during INIT until play pressed)
+        // -------------------------
+        telemetry.addLine("Scanning for AprilTag during INIT...");
+        telemetry.update();
+
+        ElapsedTime initScanTimer = new ElapsedTime();
+        initScanTimer.reset();
+
+        while (!isStarted() && !isStopRequested()) {
+            List<AprilTagDetection> detections = aprilTag.getDetections();
+
+            if (!detections.isEmpty()) {
+                AprilTagDetection d = detections.get(0);
+                artifactPattern = d.id;
+                // keep your remapping logic exactly
+                if (artifactPattern == 23) artifactPattern = 21;
+                else if (artifactPattern == 21) artifactPattern = 22;
+                else if (artifactPattern == 22) artifactPattern = 23;
+
+                telemetry.addData("AprilTag detected (raw id)", d.id);
+                telemetry.addData("artifactPattern (mapped)", artifactPattern);
+            } else {
+                telemetry.addData("AprilTag", "none");
+            }
+            telemetry.update();
+
+            // small sleep to reduce CPU usage
+            sleep(50);
+        }
+
+        // WAIT FOR MATCH START
+        waitForStart();
+
+        // Immediately disable/close the webcam to free resources
+        if (allSeeingEye != null) {
+            try {
+                allSeeingEye.close();
+            } catch (Exception e) {
+                // ignore close errors; continue
+            }
+            allSeeingEye = null;
+        }
+
+        // initialize PID controllers AFTER start
+        pid1 = new PIDControl(shooter1);
+        pid2 = new PIDControl(shooter2);
+        pid3 = new PIDControl(shooter3);
+
+        // start shooter background thread (runs for 30 seconds)
+        shooterTimer.reset();
+        Thread shooterThread = new Thread(() -> {
+            while (opModeIsActive() && shooterTimer.seconds() < 30.0) {
+                try {
+                    double out1 = pid1.update(targetRPM, null);
+                    double out2 = pid2.update(targetRPM, null);
+                    double out3 = pid3.update(targetRPM, null);
+
+                    shooter1.setPower(out1);
+                    shooter2.setPower(out2);
+                    shooter3.setPower(out3);
+
+                    Thread.sleep(20); // PID sampling interval
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                } catch (Exception e) {
+                    // If something goes wrong, stop motors and break
+                    shooter1.setPower(0);
+                    shooter2.setPower(0);
+                    shooter3.setPower(0);
+                    break;
+                }
+            }
+            shooter1.setPower(0);
+            shooter2.setPower(0);
+            shooter3.setPower(0);
+        });
+        shooterThread.setDaemon(true);
+        shooterThread.start();
+
+        leftHoodServo.setPosition(0);
+        rightHoodServo.setPosition(0);
+
+        // RoadRunner trajectories preserved
+        TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
+                .strafeTo(new Vector2d(-46.5281, -19.4465))
+                .turn(Math.toRadians(-41.69))
+                .waitSeconds(3);
+        Pose2d newPose = new Pose2d(9.9556, -30.3882, Math.toRadians(-95.2059));
+        TrajectoryActionBuilder tab2 = drive.actionBuilder(newPose)
+                .lineToY(-32.1531)
+                .waitSeconds(3);
+        Pose2d new2Pose = new Pose2d(9.9556, -44.4149, Math.toRadians(-95.2059));
+        TrajectoryActionBuilder tab3 = drive.actionBuilder(new2Pose)
+                .strafeTo(new Vector2d(0, 0))
+                .turn(-53.9244)
+                .waitSeconds(3);
+        Action trajectoryActionCloseOut = tab1.endTrajectory().fresh()
+                .strafeTo(new Vector2d(9.9556, -30.3882))
                 .build();
 
-        allSeeingEye = new VisionPortal.Builder()
-                .setCamera(hardwareMap.get(WebcamName.class, "allSeeingEye"))
-                .addProcessor(aprilTag)
-                .build();
+        // choose trajectories (kept identical flow)
+        position = 1;
+        Action trajectoryActionChosen;
+        if (position == 1) trajectoryActionChosen = tab1.build();
+        else if (position == 2) trajectoryActionChosen = tab2.build();
+        else trajectoryActionChosen = tab3.build();
+
+        Shooter shoot = new Shooter(hardwareMap);
+
+        // We already scanned in INIT, so remove runtime scan. Continue the route:
+        Actions.runBlocking(new SequentialAction(shoot.Fire(), trajectoryActionChosen));
+
+        position = 2;
+        if (position == 1) trajectoryActionChosen = tab1.build();
+        else if (position == 2) trajectoryActionChosen = tab2.build();
+        else trajectoryActionChosen = tab3.build();
+        Actions.runBlocking(new SequentialAction(shoot.intake(), trajectoryActionChosen));
+
+        position = 3;
+        if (position == 1) trajectoryActionChosen = tab1.build();
+        else if (position == 2) trajectoryActionChosen = tab2.build();
+        else trajectoryActionChosen = tab3.build();
+        Actions.runBlocking(new SequentialAction(trajectoryActionChosen));
+
+        Actions.runBlocking(new SequentialAction(shoot.Fire(), trajectoryActionCloseOut));
+
+        // BEFORE firing, wait a short timeout for shooter RPMs to come up and only fire if within tolerance
+        double waitStart = getRuntime();
+        double waitTimeout = 5.0; // seconds to wait for reaching speed
+        boolean allAtTarget = false;
+        while (opModeIsActive() && (getRuntime() - waitStart) < waitTimeout) {
+            double r1 = pid1.getRPM1();
+            double r2 = pid2.getRPM();
+            double r3 = pid3.getRPM3();
+            telemetry.addData("RPMs", "%4.0f, %4.0f, %4.0f", r1, r2, r3);
+            telemetry.update();
+            if (r1 >= targetRPM - 60 && r2 >= targetRPM - 60 && r3 >= targetRPM - 60) {
+                allAtTarget = true;
+                break;
+            }
+            sleep(50);
+        }
+
+        if (opModeIsActive() && shooterTimer.seconds() < 30.0 && allAtTarget) {
+            Actions.runBlocking(new SequentialAction(shoot.Fire()));
+        } else {
+            telemetry.addData("Fire", "Skipped: shooters not at speed or timer expired");
+            telemetry.update();
+        }
+
+        telemetry.addData("Path", "Complete");
+        telemetry.update();
+        sleep(1000);
     }
 
-    /* ---------- Encoder-drive helper (kept behavior, cleaned) ---------- */
+    /**
+     * Cleaned encoderDrive that preserves original behavior:
+     * - updates hood servos & intake while moving
+     * - reads color sensors each loop and reports them
+     * - uses RUN_TO_POSITION and waits while isBusy
+     */
     public void encoderDrive(double speed,
                              double leftFrontInches, double rightFrontInches,
                              double leftBackInches, double rightBackInches,
@@ -462,7 +605,7 @@ public class AutoTest extends LinearOpMode {
         leftBackDrive.setPower(0);
         rightBackDrive.setPower(0);
 
-        // reset servos to safe positions
+        // reset servos to safe positions (preserve original)
         servoI.setPosition(0.5);
         servoII.setPosition(0.5);
         servoIII.setPosition(0.51);
@@ -475,110 +618,240 @@ public class AutoTest extends LinearOpMode {
         sleep(250);
     }
 
-    /* ===========================
-       CLEAN PIDControl (drop-in)
-       =========================== */
+    // Initialize VisionPortal + AprilTagProcessor
+    private void initAprilTag() {
+        aprilTag = new AprilTagProcessor.Builder()
+                .setDrawTagID(true)
+                .setDrawTagOutline(true)
+                .setDrawAxes(true)
+                .setDrawCubeProjection(true)
+                .build();
+
+        allSeeingEye = new VisionPortal.Builder()
+                .setCamera(hardwareMap.get(WebcamName.class, "allSeeingEye"))
+                .addProcessor(aprilTag)
+                .build();
+    }
+
+    // PID class: Kp/Ki/Kd preserved (A)
+    private static class PIDControl1 {
+        private double Kp1 = 1;
+        private double Ki1 = 0.5;
+        private double Kd1 = .13;
+        private final ElapsedTime timer1 = new ElapsedTime();
+        private final DcMotorEx shooter1;
+
+        private double integral1 = 0.0;
+        private double lastError1 = 0.0;
+        private double integralLimit1 = 2000.0;
+
+        private int lastPos1;
+        private long lastTimeNano1;
+
+        public PIDControl1(DcMotorEx motor) {
+            this.shooter1 = motor;
+            this.lastPos1 = motor.getCurrentPosition();
+            this.lastTimeNano1 = System.nanoTime();
+            timer1.reset();
+        }
+
+        public void resetSampler() {
+            lastPos1 = shooter1.getCurrentPosition();
+            lastTimeNano1 = System.nanoTime();
+            timer1.reset();
+        }
+
+        public void resetIntegral() {
+            integral1 = 0.0;
+            lastError1 = 0.0;
+        }
+
+        public double getRPM1() {
+            int curPos1 = shooter1.getCurrentPosition();
+            long curTime = System.nanoTime();
+
+            int deltaPos1 = curPos1 - lastPos1;
+            long deltaNano = curTime - lastTimeNano1;
+            if (deltaNano <= 0) deltaNano = 1;
+
+            double seconds = deltaNano / 1e9;
+            double ticksPerSec1 = deltaPos1 / seconds;
+            double rpm1 = (ticksPerSec1 / TICKS_PER_REV) * 60.0;
+
+            lastPos1 = curPos1;
+            lastTimeNano1 = curTime;
+
+            return Math.abs(rpm1);
+        }
+
+        public double update(double targetRPM, com.qualcomm.robotcore.hardware.Gamepad gp) {
+            double currentRPM1 = getRPM1();
+
+            double dt = timer1.seconds();
+            timer1.reset();
+            if (dt <= 0) dt = 0.001;
+
+            double error1 = targetRPM - currentRPM1;
+
+            integral1 += error1 * dt;
+            if (integral1 > integralLimit1) integral1 = integralLimit1;
+            if (integral1 < -integralLimit1) integral1 = -integralLimit1;
+
+            double derivative1 = (error1 - lastError1) / dt;
+            lastError1 = error1;
+
+            double out1 = Kp1 * error1 + Ki1 * integral1 + Kd1 * derivative1;
+            if (out1 < 0.0) out1 = 0.0;
+            if (out1 > 1.0) out1 = 1.0;
+
+            return out1;
+        }
+    }
+    private static class PIDControl2 {
+        private double Kp2 = 8;
+        private double Ki2 = 0.5;
+        private double Kd2 = 1.3;
+        private final ElapsedTime timer2 = new ElapsedTime();
+        private final DcMotorEx shooter2;
+
+        private double integral2 = 0.0;
+        private double lastError2 = 0.0;
+        private double integralLimit2 = 2000.0;
+
+        private int lastPos2;
+        private long lastTimeNano2;
+
+        public PIDControl2(DcMotorEx motor) {
+            this.shooter2 = motor;
+            this.lastPos2 = motor.getCurrentPosition();
+            this.lastTimeNano2 = System.nanoTime();
+            timer2.reset();
+        }
+
+        public void resetSampler() {
+            lastPos2 = shooter2.getCurrentPosition();
+            lastTimeNano2 = System.nanoTime();
+            timer2.reset();
+        }
+
+        public void resetIntegral() {
+            integral2 = 0.0;
+            lastError2 = 0.0;
+        }
+
+        public double getRPM2() {
+            int curPos2 = shooter2.getCurrentPosition();
+            long curTime = System.nanoTime();
+
+            int deltaPos2 = curPos2 - lastPos2;
+            long deltaNano2 = curTime - lastTimeNano2;
+            if (deltaNano2 <= 0) deltaNano2 = 1;
+
+            double seconds = deltaNano2 / 1e9;
+            double ticksPerSec2 = deltaPos2 / seconds;
+            double rpm2 = (ticksPerSec2 / TICKS_PER_REV) * 60.0;
+
+            lastPos2 = curPos2;
+            lastTimeNano2 = curTime;
+
+            return Math.abs(rpm2);
+        }
+
+        public double update(double targetRPM, com.qualcomm.robotcore.hardware.Gamepad gp) {
+            double currentRPM2 = getRPM2();
+
+            double dt = timer2.seconds();
+            timer2.reset();
+            if (dt <= 0) dt = 0.001;
+
+            double error2 = targetRPM - currentRPM2;
+
+            integral2 += error2 * dt;
+            if (integral2 > integralLimit2) integral2 = integralLimit2;
+            if (integral2 < -integralLimit2) integral2 = -integralLimit2;
+
+            double derivative2 = (error2 - lastError2) / dt;
+            lastError2 = error2;
+
+            double out2 = Kp2 * error2 + Ki2 * integral2 + Kd2 * derivative2;
+            if (out2 < 0.0) out2 = 0.0;
+            if (out2 > 1.0) out2 = 1.0;
+
+            return out2;
+        }
+    }
     private static class PIDControl {
-        // PID gains (tweak these if needed)
-        private double Kp = 8.0;
-        private double Ki = 0.5;
-        private double Kd = 1.3;
+        private double Kp3 = .6;
+        private double Ki3 = 0.5;
+        private double Kd3 = 1.3;
+        private final ElapsedTime timer3 = new ElapsedTime();
+        private final DcMotorEx shooter3;
 
-        // motor reference
-        private final DcMotorEx motor;
+        private double integral3 = 0.0;
+        private double lastError3 = 0.0;
+        private double integralLimit3 = 2000.0;
 
-        // state
-        private double integral = 0.0;
-        private double lastError = 0.0;
+        private int lastPos3;
+        private long lastTimeNano3;
 
-        // integral clamp
-        private final double integralLimit = 2000.0;
-
-        // sampling state (per motor)
-        private int lastPos;
-        private long lastTimeNs;
-        private double lastRPM = 0.0;
-
-        // ticks per revolution for this motor (pass in via constructor)
-        private final double ticksPerRev;
-
-        public PIDControl(DcMotorEx motor, double ticksPerRev) {
-            this.motor = motor;
-            this.ticksPerRev = ticksPerRev;
-            this.lastPos = motor.getCurrentPosition();
-            this.lastTimeNs = System.nanoTime();
+        public PIDControl(DcMotorEx motor) {
+            this.shooter3 = motor;
+            this.lastPos3 = motor.getCurrentPosition();
+            this.lastTimeNano3 = System.nanoTime();
+            timer3.reset();
         }
 
-        // Returns most recent RPM sample; also updates internal sampler
-        public synchronized double peekRPM() {
-            // compute but do not reset PID internal timers
-            int curPos = motor.getCurrentPosition();
-            long now = System.nanoTime();
-
-            int dPos = curPos - lastPos;
-            long dNs = now - lastTimeNs;
-            if (dNs <= 0) dNs = 1;
-
-            double dt = dNs / 1e9;
-            double ticksPerSec = dPos / dt;
-            double rpm = (ticksPerSec / ticksPerRev) * 60.0;
-
-            // smooth small jitter by exponential smoothing
-            lastRPM = 0.7 * lastRPM + 0.3 * Math.abs(rpm);
-
-            // do not update lastPos/time here — leave that to getRPM()/update sampling
-            return Math.abs(lastRPM);
+        public void resetSampler3() {
+            lastPos3 = shooter3.getCurrentPosition();
+            lastTimeNano3 = System.nanoTime();
+            timer3.reset();
         }
 
-        // update RPM sample and compute PID output (power 0..1)
-        public synchronized double update(double targetRPM) {
-            // compute current RPM based on delta since last sample
-            int curPos = motor.getCurrentPosition();
-            long now = System.nanoTime();
-
-            int dPos = curPos - lastPos;
-            long dNs = now - lastTimeNs;
-            if (dNs <= 0) dNs = 1;
-
-            double dt = dNs / 1e9;
-            if (dt < 1e-4) dt = 1e-4; // protect dt
-
-            double ticksPerSec = dPos / dt;
-            double currentRPM = (ticksPerSec / ticksPerRev) * 60.0;
-            currentRPM = Math.abs(currentRPM);
-
-            // update sampler state
-            lastPos = curPos;
-            lastTimeNs = now;
-            lastRPM = 0.7 * lastRPM + 0.3 * currentRPM;
-
-            // PID calculations
-            double error = targetRPM - lastRPM;
-
-            // integral with clamp
-            integral += error * dt;
-            if (integral > integralLimit) integral = integralLimit;
-            if (integral < -integralLimit) integral = -integralLimit;
-
-            double derivative = (error - lastError) / dt;
-
-            // reduce derivative spikes
-            if (Math.abs(derivative) > 5000.0) derivative = 0.0;
-
-            lastError = error;
-
-            double output = Kp * error + Ki * integral + Kd * derivative;
-
-            // clamp to motor power range
-            if (output < 0.0) output = 0.0;
-            if (output > 1.0) output = 1.0;
-
-            return output;
+        public void resetIntegral3() {
+            integral3 = 0.0;
+            lastError3 = 0.0;
         }
 
-        // convenience for external telemetry
-        public synchronized double getLastRPM() {
-            return lastRPM;
+        public double getRPM3() {
+            int curPos3 = shooter3.getCurrentPosition();
+            long curTime = System.nanoTime();
+
+            int deltaPos3 = curPos3 - lastPos3;
+            long deltaNano3 = curTime - lastTimeNano3;
+            if (deltaNano3 <= 0) deltaNano3 = 1;
+
+            double seconds3 = deltaNano3 / 1e9;
+            double ticksPerSec3 = deltaPos3 / seconds3;
+            double rpm3 = (ticksPerSec3 / TICKS_PER_REV) * 60.0;
+
+            lastPos3 = curPos3;
+            lastTimeNano3 = curTime;
+
+            return Math.abs(rpm3);
+        }
+
+        public double update(double targetRPM, com.qualcomm.robotcore.hardware.Gamepad gp) {
+            double currentRPM3 = getRPM3();
+
+            double dt = timer3.seconds();
+            timer3.reset();
+            if (dt <= 0) dt = 0.001;
+
+            double error3 = targetRPM - currentRPM3;
+
+            integral3 += error3 * dt;
+            if (integral3 > integralLimit3) integral3 = integralLimit3;
+            if (integral3 < -integralLimit3) integral3 = -integralLimit3;
+
+            double derivative = (error3 - lastError3) / dt;
+            lastError3 = error3;
+
+            double out3 = Kp3 * error3 + Ki3 * integral3 + Kd3 * derivative;
+            if (out3 < 0.0) out3 = 0.0;
+            if (out3 > 1.0) out3 = 1.0;
+
+            return out3;
         }
     }
 }
+
