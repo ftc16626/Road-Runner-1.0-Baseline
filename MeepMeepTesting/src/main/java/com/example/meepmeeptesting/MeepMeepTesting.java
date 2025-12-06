@@ -28,6 +28,7 @@ public class MeepMeepTesting {
                 .lineToY(56)
                 .strafeTo(new Vector2d(-18,16))
                 .turn(Math.toRadians(44.1))
+                .strafeTo(new Vector2d(36,36))
                 .build());
 
         meepMeep.setBackground(MeepMeep.Background.FIELD_DECODE_JUICE_DARK)
