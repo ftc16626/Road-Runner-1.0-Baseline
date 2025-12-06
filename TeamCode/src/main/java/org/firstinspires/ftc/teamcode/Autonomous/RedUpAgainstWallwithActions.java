@@ -511,7 +511,7 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        Pose2d initialPose = new Pose2d(0, 0, Math.toRadians(3.5592));
+        Pose2d initialPose = new Pose2d(-52, 47, Math.toRadians(.26));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         initAprilTag();
         state = State.Get_To_Power;
