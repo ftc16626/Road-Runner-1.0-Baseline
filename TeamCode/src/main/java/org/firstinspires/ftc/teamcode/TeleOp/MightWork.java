@@ -57,13 +57,26 @@ public class MightWork extends LinearOpMode {
     private AprilTagProcessor aprilTag;
 
     // PID controllers (one per motor)
-    private ShooterPID2 pid1;
-    private ShooterPID pid2;
-    private ShooterPID pid3;
+    public static double Kp1 = 0.95;
+    public static double Ki1 = 0;
+    public static double Kd1 = 0.1;
+    public static double Kp2 = 0.87;
+    public static double Ki2 = 0;
+    public static double Kd2 = 0.1;
+    public static double Kp3 = 0.89;
+    public static double Ki3 = 0;
+    public static double Kd3 = 0.1;
+    // ----- PID states for each motor -----
+    PIDtest.PIDState1 pid1 = new PIDtest.PIDState1();
+    PIDtest.PIDState2 pid2 = new PIDtest.PIDState2();
+    PIDtest.PIDState3 pid3 = new PIDtest.PIDState3();
+
+    public static double targetVelocity = 1250;
+
 
     // Constants / tuning
     private static final double TICKS_PER_REV = 28.0;
-    private double targetRPM = 2300.0;             // default
+    private double targetRPM = 1350.0;             // default
     private double hoodPositionClose = 0.225;      // safe hood positions
     private double hoodPositionFar = 0.40;         // do not exceed hardware limits
     private final ElapsedTime loopTimer = new ElapsedTime();
@@ -90,9 +103,9 @@ public class MightWork extends LinearOpMode {
         waitForStart();
 
         // Reset timers for PID sampling
-        pid1.resetSampler();
-        pid2.resetSampler();
-        pid3.resetSampler();
+        pid1.timer.reset();
+        pid2.timer.reset();
+        pid3.timer.reset();
         rightHoodServo.setPosition(0);
         leftHoodServo.setPosition(0);
         loopTimer.reset();
@@ -122,24 +135,39 @@ public class MightWork extends LinearOpMode {
 
             // --- RPM mode selection ---
             if (gamepad2.dpad_left){
-                targetRPM = 2300;
+                targetVelocity = 1250;
                 hoodPos = 0.225;
                 rightHoodServo.setPosition(hoodPos);
                 leftHoodServo.setPosition(hoodPos);
             } else if (gamepad2.dpad_right){
-                targetRPM = 3000;
+                targetVelocity = 2500;
                 hoodPos = 0.4;
+                rightHoodServo.setPosition(hoodPos);
+                leftHoodServo.setPosition(hoodPos);
+            }else if (gamepad2.dpad_up) {
+                targetVelocity = 1050;
+                hoodPos = 0.025;
                 rightHoodServo.setPosition(hoodPos);
                 leftHoodServo.setPosition(hoodPos);
             }
 
-
             // --- Shooter control ---
             if (gamepad2.right_bumper) {
                 // update independent PIDs -- pass gamepad2 for rumble
-                pid1.update(targetRPM, gamepad2);
-                pid2.update(targetRPM, gamepad2);
-                pid3.update(targetRPM, gamepad2);
+                double v1 = shooter1.getVelocity();
+                double v2 = shooter2.getVelocity();
+                double v3 = shooter3.getVelocity();
+
+                // ---- Compute PID ----
+                double power1 = PID1(targetVelocity, v1, pid1);
+                double power2 = PID2(targetVelocity, v2, pid2);
+                double power3 = PID3(targetVelocity, v3, pid3);
+
+                // ---- Apply power ----
+                shooter1.setPower(power1);
+                shooter2.setPower(power2);
+                shooter3.setPower(power3);
+
 
             } else if (gamepad2.left_bumper) {
                 // reverse to un-jam
@@ -147,22 +175,15 @@ public class MightWork extends LinearOpMode {
                 // keep flippers in a position to clear jam
                 flipper1.setPosition(0.6);
                 flipper2.setPosition(0.6);
-                flipper3.setPosition(0.52);
+                flipper3.setPosition(0.41);
 
                 // reset PID internal integrators so we don't wind up
-                pid1.resetIntegral2();
-                pid2.resetIntegral();
-                pid3.resetIntegral();
+
 
             } else {
                 // idle shooters
                 setAllShooterPower(0.0);
-                pid1.resetIntegral2();
-                pid2.resetIntegral();
-                pid3.resetIntegral();
-                pid1.resetRumble();
-                pid2.resetRumble();
-                pid3.resetRumble();
+
             }
 
             // --- Intake / roller (gamepad1) ---
@@ -218,9 +239,9 @@ public class MightWork extends LinearOpMode {
             if (telemetryTimer.seconds() >= TELEMETRY_INTERVAL) {
                 telemetryTimer.reset();
                 telemetry.addData("TargetRPM", "%d", (int) targetRPM);
-                telemetry.addData("RPM1", "%d", (int) pid1.getRPM2());
-                telemetry.addData("RPM2", "%d", (int) pid2.getRPM());
-                telemetry.addData("RPM3", "%d", (int) pid3.getRPM());
+               // telemetry.addData("RPM1", "%d", (int) pid1.;
+               // telemetry.addData("RPM2", "%d", (int) pid2.getRPM());
+                //telemetry.addData("RPM3", "%d", (int) pid3.getRPM());
                 telemetry.addData("ShooterPower1", "%.3f", shooter1.getPower());
                 telemetry.addData("ShooterPower2", "%.3f", shooter2.getPower());
                 telemetry.addData("ShooterPower3", "%.3f", shooter3.getPower());
@@ -309,9 +330,10 @@ public class MightWork extends LinearOpMode {
         enableSensorLight(sixth);
 
         // Create PID objects for each shooter motor
-        pid1 = new ShooterPID2(shooter1);
-        pid2 = new ShooterPID(shooter2);
-        pid3 = new ShooterPID(shooter3);
+        //pid1 = new PIDState2(shooter1);
+      //  pid2 = new PIDState1(shooter2);
+       // pid3 = new PIDState1(shooter3);
+
     }
 
     private NormalizedColorSensor safeGetColor(String name) {
@@ -361,210 +383,84 @@ public class MightWork extends LinearOpMode {
     }
 
     // ------------------ Shooter PID inner class ------------------
-    private static class ShooterPID {
-        private final DcMotorEx motor;
-        private final ElapsedTime timer = new ElapsedTime();
+    public double PID1(double reference1, double state1, PIDtest.PIDState1 pid) {
 
-        // PID gains (conservative defaults; tune on robot)
-        private double Kp = 0.87;
-        private double Ki = 0;
-        private double Kd = 0.1;
+        double error1 = reference1 - state1;
 
-        private double integral = 0.0;
-        private double lastError = 0.0;
-        private double integralLimit = 2000.0;
+        double dt = pid.timer.seconds();
+        pid.timer.reset();
 
-        // encoder sampling
-        private int lastPos;
-        private long lastTimeNano;
+        if (dt == 0) dt = 0.001; // prevent div by zero
 
-        // rumble/stability
-        private boolean hasRumbled = false;
-        private double stableTimer = 0.0;
-        private final double RPM_TOL = 60.0;
-        private final double STABLE_REQUIRED = 0.25;
+        pid.integral1 += error1 * dt;
+        double derivative1 = (error1 - pid.lastError1) / dt;
 
-        public ShooterPID(DcMotorEx motor) {
-            this.motor = motor;
-            this.lastPos = motor.getCurrentPosition();
-            this.lastTimeNano = System.nanoTime();
-            timer.reset();
-        }
+        pid.lastError1 = error1;
+        double output1 = (Kp1 * error1) + (Ki1 * pid.integral1) + (Kd1 * derivative1);
 
-        public void resetSampler() {
-            lastPos = motor.getCurrentPosition();
-            lastTimeNano = System.nanoTime();
-            timer.reset();
-        }
+// Clamp to motor power limits
+        output1 = Math.max(-1, Math.min(1, output1));
+        return output1;
+    }
 
-        public void resetIntegral() {
-            integral = 0.0;
-            lastError = 0.0;
-        }
+    // ----- PID State Class -----
+    static class PIDState1 {
+        public double lastError1 = 0;
+        public double integral1 = 0;
+        public ElapsedTime timer = new ElapsedTime();
+    }
+    public double PID2(double reference2, double state2, PIDtest.PIDState2 pid) {
 
-        public void resetRumble() {
-            hasRumbled = false;
-            stableTimer = 0.0;
-        }
+        double error2 = reference2 - state2;
 
-        public double getRPM() {
-            int curPos = motor.getCurrentPosition();
-            long curTime = System.nanoTime();
+        double dt = pid.timer.seconds();
+        pid.timer.reset();
 
-            int deltaPos = curPos - lastPos;
-            long deltaNano = curTime - lastTimeNano;
-            if (deltaNano <= 0) deltaNano = 1;
+        if (dt == 0) dt = 0.001; // prevent div by zero
 
-            double seconds = deltaNano / 1e9;
-            double ticksPerSec = deltaPos / seconds;
-            double rpm = (ticksPerSec / TICKS_PER_REV) * 60.0;
+        pid.integral2 += error2 * dt;
+        double derivative2 = (error2 - pid.lastError2) / dt;
 
-            lastPos = curPos;
-            lastTimeNano = curTime;
+        pid.lastError2 = error2;
 
-            return Math.abs(rpm);
-        }
+        double output2 = (Kp2 * error2) + (Ki2 * pid.integral2) + (Kd2 * derivative2);
 
-        public void update(double targetRPM, com.qualcomm.robotcore.hardware.Gamepad gp) {
-            double currentRPM = getRPM();
+// Clamp to motor power limits
+        output2 = Math.max(-1, Math.min(1, output2));
+        return output2;
+    }
 
-            double dt = timer.seconds();
-            timer.reset();
-            if (dt <= 0) dt = 0.001;
+    // ----- PID State Class -----
+    static class PIDState2 {
+        public double lastError2 = 0;
+        public double integral2 = 0;
+        public ElapsedTime timer = new ElapsedTime();
+    }
+    public double PID3(double reference3, double state3, PIDtest.PIDState3 pid) {
 
-            double error = targetRPM - currentRPM;
+        double error3 = reference3 - state3;
 
-            // integral with anti-windup
-            integral += error * dt;
-            if (integral > integralLimit) integral = integralLimit;
-            if (integral < -integralLimit) integral = -integralLimit;
+        double dt = pid.timer.seconds();
+        pid.timer.reset();
 
-            double derivative = (error - lastError) / dt;
-            lastError = error;
+        if (dt == 0) dt = 0.001; // prevent div by zero
 
-            double out = Kp * error + Ki * integral + Kd * derivative;
-            // clamp to [0,1] for forward; negative handled elsewhere (left bumper)
-            if (out < 0.0) out = 0.0;
-            if (out > 1.0) out = 1.0;
+        pid.integral3 += error3 * dt;
+        double derivative3 = (error3 - pid.lastError3) / dt;
 
-            motor.setPower(out);
+        pid.lastError3 = error3;
 
-            // rumble when stable
-            if (Math.abs(currentRPM - targetRPM) <= RPM_TOL) {
-                stableTimer += dt;
-                hasRumbled = true;
-            } else {
-                stableTimer = 0.0;
-                hasRumbled = false;
-            }
+        double output3 = (Kp3 * error3) + (Ki3 * pid.integral3) + (Kd3 * derivative3);
 
-            if (currentRPM >= targetRPM) {
-                // rumble the operator gamepad (the caller should pass the operator gamepad)
-                gp.rumble(0.7, 0.7, 300);
-                hasRumbled = true;
-            }
+// Clamp to motor power limits
+        output3 = Math.max(-1, Math.min(1, output3));
+        return output3;
+    }
 
-        }
-    }    private static class ShooterPID2 {
-        private DcMotorEx shooter2;
-        private final ElapsedTime timer = new ElapsedTime();
-
-        // PID gains (conservative defaults; tune on robot)
-        private double Kp2 = 0.95;
-        private double Ki2 = 0;
-        private double Kd2 = 0.1;
-
-        private double integral2 = 0.0;
-        private double lastError2 = 0.0;
-        private double integralLimit = 2000.0;
-
-        // encoder sampling
-        private int lastPos2;
-        private long lastTimeNano2;
-
-        // rumble/stability
-        private boolean hasRumbled = false;
-        private double stableTimer = 0.0;
-        private final double RPM_TOL = 60.0;
-        private final double STABLE_REQUIRED = 0.25;
-
-        public ShooterPID2(DcMotorEx motor2) {
-            this.shooter2 = motor2;
-            this.lastPos2 = motor2.getCurrentPosition();
-            this.lastTimeNano2 = System.nanoTime();
-            timer.reset();
-        }
-
-        public void resetSampler() {
-            lastPos2 = shooter2.getCurrentPosition();
-            lastTimeNano2 = System.nanoTime();
-            timer.reset();
-        }
-
-        public void resetIntegral2() {
-            integral2 = 0.0;
-            lastError2 = 0.0;
-        }
-
-        public void resetRumble() {
-            hasRumbled = false;
-            stableTimer = 0.0;
-        }
-
-        public double getRPM2() {
-            int curPos2 = shooter2.getCurrentPosition();
-            long curTime2 = System.nanoTime();
-
-            int deltaPos2 = curPos2 - lastPos2;
-            long deltaNano2 = curTime2 - lastTimeNano2;
-            if (deltaNano2 <= 0) deltaNano2 = 1;
-
-            double seconds2 = deltaNano2 / 1e9;
-            double ticksPerSec2 = deltaPos2 / seconds2;
-            double rpm2 = (ticksPerSec2 / TICKS_PER_REV) * 60.0;
-
-            lastPos2 = curPos2;
-            lastTimeNano2 = curTime2;
-
-            return Math.abs(rpm2);
-        }
-
-        public void update(double targetRPM, com.qualcomm.robotcore.hardware.Gamepad gp) {
-            double currentRPM2 = getRPM2();
-
-            double dt = timer.seconds();
-            timer.reset();
-            if (dt <= 0) dt = 0.001;
-
-            double error2 = targetRPM - currentRPM2;
-
-            // integral with anti-windup
-            integral2 += error2 * dt;
-            if (integral2 > integralLimit) integral2 = integralLimit;
-            if (integral2 < -integralLimit) integral2 = -integralLimit;
-
-            double derivative2 = (error2 - lastError2) / dt;
-            lastError2 = error2;
-
-            double out2 = Kp2 * error2 + Ki2 * integral2 + Kd2 * derivative2;
-            // clamp to [0,1] for forward; negative handled elsewhere (left bumper)
-            if (out2 < 0.0) out2 = 0.0;
-            if (out2 > 1.0) out2 = 1.0;
-
-            shooter2.setPower(out2);
-
-            // rumble when stable
-            if (Math.abs(currentRPM2 - targetRPM) <= RPM_TOL) {
-                stableTimer += dt;
-                hasRumbled = true;
-            } else {
-                stableTimer = 0.0;
-                hasRumbled = false;
-            }
-
-            if (currentRPM2 >= targetRPM) {
-                // rumble the operator gamepad (the caller should pass the operator gamepad)
-                gp.rumble(0.7, 0.7, 300);
-                hasRumbled = true;
-            }
-}}}
+    // ----- PID State Class -----
+    static class PIDState3 {
+        public double lastError3 = 0;
+        public double integral3 = 0;
+        public ElapsedTime timer = new ElapsedTime();
+    }
+}

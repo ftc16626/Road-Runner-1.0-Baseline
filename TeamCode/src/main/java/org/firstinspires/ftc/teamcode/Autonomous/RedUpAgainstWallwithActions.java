@@ -57,7 +57,7 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
     private double Sum;
     ElapsedTime timer = new ElapsedTime();
     double currentVelocity;
-    public double targetRPM = 2150;
+    public double targetRPM = 2500;
     PIDControl pid1 = new PIDControl(shooter1);
     PIDControl pid2 = new PIDControl(shooter2);
     PIDControl pid3 = new PIDControl(shooter3);
@@ -540,10 +540,10 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         shooter1.setDirection(DcMotorEx.Direction.FORWARD);
         shooter2.setDirection(DcMotorEx.Direction.FORWARD);
         shooter3.setDirection(DcMotorEx.Direction.FORWARD);
@@ -646,7 +646,7 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
         
 
         Actions.runBlocking(new SequentialAction(shoot.Scan()));
-        Actions.runBlocking(new SequentialAction(shoot.shooterPower(), trajectoryActionChosen));
+        Actions.runBlocking(new SequentialAction(shoot.shooterPower()));
         position = 2;
         if (position == 1) {
             trajectoryActionChosen = tab1.build();
@@ -655,7 +655,7 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
         } else {
             trajectoryActionChosen = tab3.build();
         }
-        Actions.runBlocking(new SequentialAction(shoot.intake(), trajectoryActionChosen));
+       // Actions.runBlocking(new SequentialAction(shoot.intake(), trajectoryActionChosen));
         position = 3;
         if (position == 1) {
             trajectoryActionChosen = tab1.build();
@@ -664,8 +664,8 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
         } else {
             trajectoryActionChosen = tab3.build();
         }
-        Actions.runBlocking(new SequentialAction(trajectoryActionChosen));
-        Actions.runBlocking(new SequentialAction(trajectoryActionCloseOut));
+      //  Actions.runBlocking(new SequentialAction(trajectoryActionChosen));
+      //  Actions.runBlocking(new SequentialAction(trajectoryActionCloseOut));
 
 
 

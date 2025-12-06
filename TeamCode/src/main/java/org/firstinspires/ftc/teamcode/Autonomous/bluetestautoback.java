@@ -18,7 +18,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
@@ -34,8 +33,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
 
-@Autonomous(name="BlueUpAgainstTheGoalMeet3", group="Robot")
-public class bluetestauto extends LinearOpMode {
+@Autonomous(name="BlueInBackMeet3", group="Robot")
+public class bluetestautoback extends LinearOpMode {
 
     /* Hardware */
     private DcMotor leftFrontDrive = null;
@@ -64,7 +63,7 @@ public class bluetestauto extends LinearOpMode {
 
     /* State & constants */
     private double currentVelocity;
-    public double targetRPM = 2500;
+    public double targetRPM = 3900;
     public double ticksPerRevolution = 28;
     public double targetVelocity = (targetRPM / 60.0) * ticksPerRevolution;
 
@@ -269,7 +268,7 @@ public class bluetestauto extends LinearOpMode {
     @Override
     public void runOpMode() {
         // initial pose and RR drive creation (preserve original)
-        Pose2d initialPose = new Pose2d(2, -34, -14.9);
+        Pose2d initialPose = new Pose2d(60, -10, -15.7);
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
 
         // initialize vision processor (will be used during INIT loop)
@@ -375,9 +374,7 @@ public class bluetestauto extends LinearOpMode {
                 AprilTagDetection d = detections.get(0);
                 artifactPattern = d.id;
                 // keep your remapping logic exactly
-                if (artifactPattern == 23) artifactPattern = 22;
-                else if (artifactPattern == 22) artifactPattern = 21;
-                else if (artifactPattern == 21) artifactPattern = 23;
+
 
                 telemetry.addData("AprilTag detected (raw id)", d.id);
                 telemetry.addData("artifactPattern (mapped)", artifactPattern);
@@ -440,13 +437,13 @@ public class bluetestauto extends LinearOpMode {
         shooterThread.setDaemon(true);
         shooterThread.start();
 
-        leftHoodServo.setPosition(0.025);
-        rightHoodServo.setPosition(0.025);
+        leftHoodServo.setPosition(0.4);
+        rightHoodServo.setPosition(0.4);
 
         // RoadRunner trajectories preserved
         TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
-                .lineToX(-20)
-
+                .lineToX(30)
+                //.turn(Math.toRadians(-44.1))
                 .waitSeconds(3);
         Pose2d newPose = new Pose2d(-12, -20, Math.toRadians(-44.1));
         TrajectoryActionBuilder tab2 = drive.actionBuilder(newPose)
@@ -471,8 +468,12 @@ public class bluetestauto extends LinearOpMode {
         Shooter shoot = new Shooter(hardwareMap);
 
         // We already scanned in INIT, so remove runtime scan. Continue the route:
+
         Actions.runBlocking(new SequentialAction(shoot.Fire()));
         Actions.runBlocking(new SequentialAction(trajectoryActionChosen));
+        shooter1.setPower(0);
+        shooter2.setPower(0);
+        shooter3.setPower(0);
 
         position = 2;
         if (position == 1) trajectoryActionChosen = tab1.build();

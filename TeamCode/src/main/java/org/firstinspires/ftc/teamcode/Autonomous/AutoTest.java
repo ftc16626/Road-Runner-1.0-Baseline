@@ -18,6 +18,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
@@ -67,7 +68,7 @@ public class AutoTest extends LinearOpMode {
 
     /* State & constants */
     private double currentVelocity;
-    public double targetRPM = 2150;
+    public double targetRPM = 2050;
     public double ticksPerRevolution = 28;
     public double targetVelocity = (targetRPM / 60.0) * ticksPerRevolution;
 
@@ -133,7 +134,7 @@ public class AutoTest extends LinearOpMode {
                             }
                             servoI.setPosition(0.9);
                             while (servoTimer.milliseconds() < 5000) {
-                                servoIII.setPosition(0.53);
+                                servoIII.setPosition(0.51);
                             }
                             servoIII.setPosition(0.1);
                             done = 1;
@@ -179,7 +180,7 @@ public class AutoTest extends LinearOpMode {
                             }
                             servoI.setPosition(0.9);
                             while (servoTimer.milliseconds() < 5000) {
-                                servoIII.setPosition(0.53);
+                                servoIII.setPosition(0.51);
                             }
                             servoIII.setPosition(0.1);
                             done = 1;
@@ -272,7 +273,7 @@ public class AutoTest extends LinearOpMode {
     @Override
     public void runOpMode() {
         // initial pose and RR drive creation (preserve original)
-        Pose2d initialPose = new Pose2d(-50, 47, Math.toRadians(14.9));
+        Pose2d initialPose = (new Pose2d(-50, 47,Math.toRadians(135)));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
 
         // initialize vision processor (will be used during INIT loop)
@@ -288,9 +289,9 @@ public class AutoTest extends LinearOpMode {
         rightHoodServo = hardwareMap.get(Servo.class, "rightHoodServo");
         leftHoodServo = hardwareMap.get(Servo.class, "leftHoodServo");
 
-        servoI = hardwareMap.get(Servo.class, "flipper1");
+        servoIII = hardwareMap.get(Servo.class, "flipper1");
         servoII = hardwareMap.get(Servo.class, "flipper2");
-        servoIII = hardwareMap.get(Servo.class, "flipper3");
+        servoI = hardwareMap.get(Servo.class, "flipper3");
 
         colorSensorI = hardwareMap.get(NormalizedColorSensor.class, "first");
         colorSensorII = hardwareMap.get(NormalizedColorSensor.class, "second");
@@ -309,7 +310,7 @@ public class AutoTest extends LinearOpMode {
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
 
-        shooter1.setDirection(DcMotorEx.Direction.FORWARD);
+        shooter1.setDirection(DcMotorEx.Direction.REVERSE);
         shooter2.setDirection(DcMotorEx.Direction.FORWARD);
         shooter3.setDirection(DcMotorEx.Direction.FORWARD);
 
@@ -448,9 +449,7 @@ public class AutoTest extends LinearOpMode {
 
         // RoadRunner trajectories preserved
         TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
-                .strafeTo(new Vector2d(-12, 20))
-                .turn(Math.toRadians(-44.1))
-                .waitSeconds(3);
+                .strafeTo(new Vector2d(47,-16));
         Pose2d newPose = new Pose2d(-12, 20, Math.toRadians(-44.1));
         TrajectoryActionBuilder tab2 = drive.actionBuilder(newPose)
                 .lineToY(56)
@@ -474,21 +473,22 @@ public class AutoTest extends LinearOpMode {
         Shooter shoot = new Shooter(hardwareMap);
 
         // We already scanned in INIT, so remove runtime scan. Continue the route:
-        Actions.runBlocking(new SequentialAction(shoot.Fire(), trajectoryActionChosen));
+        Actions.runBlocking(new SequentialAction(shoot.Fire()));
+        Actions.runBlocking(new SequentialAction(trajectoryActionChosen));
 
         position = 2;
         if (position == 1) trajectoryActionChosen = tab1.build();
         else if (position == 2) trajectoryActionChosen = tab2.build();
         else trajectoryActionChosen = tab3.build();
-        Actions.runBlocking(new SequentialAction(shoot.intake(), trajectoryActionChosen));
+       // Actions.runBlocking(new SequentialAction(shoot.intake(), trajectoryActionChosen));
 
         position = 3;
         if (position == 1) trajectoryActionChosen = tab1.build();
         else if (position == 2) trajectoryActionChosen = tab2.build();
         else trajectoryActionChosen = tab3.build();
-        Actions.runBlocking(new SequentialAction(shoot.Fire(), trajectoryActionChosen));
+      //  Actions.runBlocking(new SequentialAction(shoot.Fire(), trajectoryActionChosen));
 
-        Actions.runBlocking(new SequentialAction(trajectoryActionCloseOut));
+       // Actions.runBlocking(new SequentialAction(trajectoryActionCloseOut));
 
         // BEFORE firing, wait a short timeout for shooter RPMs to come up and only fire if within tolerance
         double waitStart = getRuntime();
