@@ -37,7 +37,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 import java.util.List;
 
-@Autonomous(name="TheRedUpAgainstWallAutoYouShouldUse", group="Robot")
+@Autonomous(name="RedUpAgainstTheGoalMeet3", group="Robot")
 public class AutoTest extends LinearOpMode {
 
     /* Hardware */
@@ -272,7 +272,7 @@ public class AutoTest extends LinearOpMode {
     @Override
     public void runOpMode() {
         // initial pose and RR drive creation (preserve original)
-        Pose2d initialPose = new Pose2d(0, 0, Math.toRadians(3.5592));
+        Pose2d initialPose = new Pose2d(-50, 47, Math.toRadians(14.9));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
 
         // initialize vision processor (will be used during INIT loop)
@@ -448,20 +448,20 @@ public class AutoTest extends LinearOpMode {
 
         // RoadRunner trajectories preserved
         TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
-                .strafeTo(new Vector2d(-46.5281, -19.4465))
-                .turn(Math.toRadians(-41.69))
+                .strafeTo(new Vector2d(-12, 20))
+                .turn(Math.toRadians(-44.1))
                 .waitSeconds(3);
-        Pose2d newPose = new Pose2d(9.9556, -30.3882, Math.toRadians(-95.2059));
+        Pose2d newPose = new Pose2d(-12, 20, Math.toRadians(-44.1));
         TrajectoryActionBuilder tab2 = drive.actionBuilder(newPose)
-                .lineToY(-32.1531)
+                .lineToY(56)
                 .waitSeconds(3);
-        Pose2d new2Pose = new Pose2d(9.9556, -44.4149, Math.toRadians(-95.2059));
+        Pose2d new2Pose = new Pose2d(-40, 56, Math.toRadians(-95.2059));
         TrajectoryActionBuilder tab3 = drive.actionBuilder(new2Pose)
-                .strafeTo(new Vector2d(0, 0))
-                .turn(-53.9244)
+                .strafeTo(new Vector2d(-50, 47))
+                .turn(44.1)
                 .waitSeconds(3);
         Action trajectoryActionCloseOut = tab1.endTrajectory().fresh()
-                .strafeTo(new Vector2d(9.9556, -30.3882))
+                .strafeTo(new Vector2d(-16, 38))
                 .build();
 
         // choose trajectories (kept identical flow)
@@ -474,7 +474,7 @@ public class AutoTest extends LinearOpMode {
         Shooter shoot = new Shooter(hardwareMap);
 
         // We already scanned in INIT, so remove runtime scan. Continue the route:
-        Actions.runBlocking(new SequentialAction(trajectoryActionChosen));
+        Actions.runBlocking(new SequentialAction(shoot.Fire(), trajectoryActionChosen));
 
         position = 2;
         if (position == 1) trajectoryActionChosen = tab1.build();
@@ -486,7 +486,7 @@ public class AutoTest extends LinearOpMode {
         if (position == 1) trajectoryActionChosen = tab1.build();
         else if (position == 2) trajectoryActionChosen = tab2.build();
         else trajectoryActionChosen = tab3.build();
-        Actions.runBlocking(new SequentialAction(trajectoryActionChosen));
+        Actions.runBlocking(new SequentialAction(shoot.Fire(), trajectoryActionChosen));
 
         Actions.runBlocking(new SequentialAction(trajectoryActionCloseOut));
 

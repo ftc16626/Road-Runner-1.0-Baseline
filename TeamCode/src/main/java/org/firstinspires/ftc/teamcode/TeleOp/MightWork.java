@@ -22,7 +22,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-@TeleOp(name = "mightwork", group = "robot")
+@TeleOp(name = "willwork", group = "robot")
 public class MightWork extends LinearOpMode {
 
     // Drive
@@ -57,7 +57,7 @@ public class MightWork extends LinearOpMode {
     private AprilTagProcessor aprilTag;
 
     // PID controllers (one per motor)
-    private ShooterPID pid1;
+    private ShooterPID2 pid1;
     private ShooterPID pid2;
     private ShooterPID pid3;
 
@@ -150,14 +150,14 @@ public class MightWork extends LinearOpMode {
                 flipper3.setPosition(0.52);
 
                 // reset PID internal integrators so we don't wind up
-                pid1.resetIntegral();
+                pid1.resetIntegral2();
                 pid2.resetIntegral();
                 pid3.resetIntegral();
 
             } else {
                 // idle shooters
                 setAllShooterPower(0.0);
-                pid1.resetIntegral();
+                pid1.resetIntegral2();
                 pid2.resetIntegral();
                 pid3.resetIntegral();
                 pid1.resetRumble();
@@ -218,7 +218,7 @@ public class MightWork extends LinearOpMode {
             if (telemetryTimer.seconds() >= TELEMETRY_INTERVAL) {
                 telemetryTimer.reset();
                 telemetry.addData("TargetRPM", "%d", (int) targetRPM);
-                telemetry.addData("RPM1", "%d", (int) pid1.getRPM());
+                telemetry.addData("RPM1", "%d", (int) pid1.getRPM2());
                 telemetry.addData("RPM2", "%d", (int) pid2.getRPM());
                 telemetry.addData("RPM3", "%d", (int) pid3.getRPM());
                 telemetry.addData("ShooterPower1", "%.3f", shooter1.getPower());
@@ -253,10 +253,10 @@ public class MightWork extends LinearOpMode {
         leftBackMotor = hardwareMap.get(DcMotor.class, "LBMotor");
         rightBackMotor = hardwareMap.get(DcMotor.class, "RBMotor");
 
-        leftFrontMotor.setDirection(DcMotor.Direction.REVERSE);
-        leftBackMotor.setDirection(DcMotor.Direction.REVERSE);
-        rightFrontMotor.setDirection(DcMotor.Direction.FORWARD);
-        rightBackMotor.setDirection(DcMotor.Direction.FORWARD);
+        leftFrontMotor.setDirection(DcMotor.Direction.FORWARD);
+        leftBackMotor.setDirection(DcMotor.Direction.FORWARD);
+        rightFrontMotor.setDirection(DcMotor.Direction.REVERSE);
+        rightBackMotor.setDirection(DcMotor.Direction.REVERSE);
 
 
         leftFrontMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -309,7 +309,7 @@ public class MightWork extends LinearOpMode {
         enableSensorLight(sixth);
 
         // Create PID objects for each shooter motor
-        pid1 = new ShooterPID(shooter1);
+        pid1 = new ShooterPID2(shooter1);
         pid2 = new ShooterPID(shooter2);
         pid3 = new ShooterPID(shooter3);
     }
@@ -368,7 +368,7 @@ public class MightWork extends LinearOpMode {
         // PID gains (conservative defaults; tune on robot)
         private double Kp = 0.87;
         private double Ki = 0;
-        private double Kd = 1;
+        private double Kd = 0.1;
 
         private double integral = 0.0;
         private double lastError = 0.0;
@@ -458,11 +458,113 @@ public class MightWork extends LinearOpMode {
                 hasRumbled = false;
             }
 
-            if (!hasRumbled && stableTimer >= STABLE_REQUIRED) {
+            if (currentRPM >= targetRPM) {
                 // rumble the operator gamepad (the caller should pass the operator gamepad)
                 gp.rumble(0.7, 0.7, 300);
                 hasRumbled = true;
             }
+
         }
-    }
-}
+    }    private static class ShooterPID2 {
+        private DcMotorEx shooter2;
+        private final ElapsedTime timer = new ElapsedTime();
+
+        // PID gains (conservative defaults; tune on robot)
+        private double Kp2 = 0.95;
+        private double Ki2 = 0;
+        private double Kd2 = 0.1;
+
+        private double integral2 = 0.0;
+        private double lastError2 = 0.0;
+        private double integralLimit = 2000.0;
+
+        // encoder sampling
+        private int lastPos2;
+        private long lastTimeNano2;
+
+        // rumble/stability
+        private boolean hasRumbled = false;
+        private double stableTimer = 0.0;
+        private final double RPM_TOL = 60.0;
+        private final double STABLE_REQUIRED = 0.25;
+
+        public ShooterPID2(DcMotorEx motor2) {
+            this.shooter2 = motor2;
+            this.lastPos2 = motor2.getCurrentPosition();
+            this.lastTimeNano2 = System.nanoTime();
+            timer.reset();
+        }
+
+        public void resetSampler() {
+            lastPos2 = shooter2.getCurrentPosition();
+            lastTimeNano2 = System.nanoTime();
+            timer.reset();
+        }
+
+        public void resetIntegral2() {
+            integral2 = 0.0;
+            lastError2 = 0.0;
+        }
+
+        public void resetRumble() {
+            hasRumbled = false;
+            stableTimer = 0.0;
+        }
+
+        public double getRPM2() {
+            int curPos2 = shooter2.getCurrentPosition();
+            long curTime2 = System.nanoTime();
+
+            int deltaPos2 = curPos2 - lastPos2;
+            long deltaNano2 = curTime2 - lastTimeNano2;
+            if (deltaNano2 <= 0) deltaNano2 = 1;
+
+            double seconds2 = deltaNano2 / 1e9;
+            double ticksPerSec2 = deltaPos2 / seconds2;
+            double rpm2 = (ticksPerSec2 / TICKS_PER_REV) * 60.0;
+
+            lastPos2 = curPos2;
+            lastTimeNano2 = curTime2;
+
+            return Math.abs(rpm2);
+        }
+
+        public void update(double targetRPM, com.qualcomm.robotcore.hardware.Gamepad gp) {
+            double currentRPM2 = getRPM2();
+
+            double dt = timer.seconds();
+            timer.reset();
+            if (dt <= 0) dt = 0.001;
+
+            double error2 = targetRPM - currentRPM2;
+
+            // integral with anti-windup
+            integral2 += error2 * dt;
+            if (integral2 > integralLimit) integral2 = integralLimit;
+            if (integral2 < -integralLimit) integral2 = -integralLimit;
+
+            double derivative2 = (error2 - lastError2) / dt;
+            lastError2 = error2;
+
+            double out2 = Kp2 * error2 + Ki2 * integral2 + Kd2 * derivative2;
+            // clamp to [0,1] for forward; negative handled elsewhere (left bumper)
+            if (out2 < 0.0) out2 = 0.0;
+            if (out2 > 1.0) out2 = 1.0;
+
+            shooter2.setPower(out2);
+
+            // rumble when stable
+            if (Math.abs(currentRPM2 - targetRPM) <= RPM_TOL) {
+                stableTimer += dt;
+                hasRumbled = true;
+            } else {
+                stableTimer = 0.0;
+                hasRumbled = false;
+            }
+
+            if (currentRPM2 >= targetRPM) {
+                // rumble the operator gamepad (the caller should pass the operator gamepad)
+                gp.rumble(0.7, 0.7, 300);
+                hasRumbled = true;
+            }
+}}}

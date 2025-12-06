@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.view.View;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @TeleOp (name = "pickme", group = "robot")
+@Disabled
 public class decodeskeletonthing extends LinearOpMode {
     private DcMotor leftFrontMotor;
     private DcMotor leftBackMotor;
