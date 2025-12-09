@@ -1,47 +1,45 @@
         package org.firstinspires.ftc.teamcode.Autonomous;
+        import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
-import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
+        import android.app.Activity;
+        import android.view.View;
 
-import static org.firstinspires.ftc.teamcode.ComponentSubClasses.DriveSubsystemOdometryReady.TICKS_PER_REV;
+        import androidx.annotation.NonNull;
+        import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+        import com.acmerobotics.roadrunner.Action;
+        import com.acmerobotics.roadrunner.ParallelAction;
+        import com.acmerobotics.roadrunner.SequentialAction;
+        import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
+        import com.acmerobotics.roadrunner.ftc.Actions;
+        import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+        import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+        import com.qualcomm.robotcore.hardware.CRServo;
+        import com.qualcomm.robotcore.hardware.DcMotor;
+        import com.qualcomm.robotcore.hardware.DcMotorEx;
+        import com.qualcomm.robotcore.hardware.DcMotorSimple;
+        import com.qualcomm.robotcore.hardware.Gamepad;
+        import com.qualcomm.robotcore.hardware.HardwareMap;
+        import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+        import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
-import android.app.Activity;
-import android.view.View;
-
-import androidx.annotation.NonNull;
-
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
-import com.acmerobotics.roadrunner.ftc.Actions;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.SwitchableLight;
-import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+        import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+        import org.firstinspires.ftc.vision.VisionPortal;
+        import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+        import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 // RR-specific imports
-import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.Vector2d;
+        import com.acmerobotics.roadrunner.Pose2d;
+        import com.acmerobotics.roadrunner.Vector2d;
+        import com.qualcomm.robotcore.hardware.Servo;
+        import com.qualcomm.robotcore.hardware.SwitchableLight;
+        import com.qualcomm.robotcore.util.ElapsedTime;
 
 // Non-RR imports
-import org.firstinspires.ftc.teamcode.MecanumDrive;
+        import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-import java.util.List;
+        import java.util.List;
 
-@Autonomous(name="TheRedUpAgainstWallAutoYouShouldUse", group="Robot")
+        @Autonomous(name="TheRedUpAgainstWallAutoYouShouldUse", group="Robot")
 public class RedUpAgainstWallwithActions extends LinearOpMode {
 
     /* Declare OpMode members. */
@@ -59,7 +57,14 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
     private double Sum;
     ElapsedTime timer = new ElapsedTime();
     double currentVelocity;
-    public double targetRPM = 2150;
+    public double targetRPM = 2500;
+    PIDControl pid1 = new PIDControl(shooter1);
+    PIDControl pid2 = new PIDControl(shooter2);
+    PIDControl pid3 = new PIDControl(shooter3);
+    double power1 = pid1.update(targetRPM);
+    double power2 = pid2.update(targetRPM);
+    double power3 = pid3.update(targetRPM);
+
     public double ticksPerRevolution = 28;
     public double targetVelocity = (targetRPM / 60) * ticksPerRevolution;
 
@@ -126,7 +131,7 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
             servoIII = hardwareMap.get(Servo.class, "flipper3");
         }
 
-        /*public Action shooterPower(){
+        public Action shooterPower(){
             return new Action() {
                 private boolean initialized = false;
 
@@ -135,21 +140,21 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
                     if (!initialized){
                         encoderDrive(0,0,0,0,15,false,0,0.15,1.25);
                         while (currentVelocity < (targetVelocity + 500) && done!= 1) {
-                            shooter1.setPower(PIDControl(targetVelocity,currentVelocity));
+                            shooter1.setPower(power1);
                             shooter1.getVelocity();
                             if (currentVelocity >= targetVelocity){
                                 if (artifactPattern == 21) {
-                                    shooter1.setPower(PIDControl(targetVelocity,currentVelocity));
-                                    shooter2.setPower(PIDControl(targetVelocity,currentVelocity));
-                                    shooter3.setPower(PIDControl(targetVelocity,currentVelocity));
+                                    shooter1.setPower(power1);
+                                    shooter2.setPower(power2);
+                                    shooter3.setPower(power3);
                                     shooter1.getVelocity();
                                     servoII.setPosition(0.9);
                                     servoTimer.reset();
                                     shooter1.getVelocity();
                                     while (servoTimer.milliseconds() < 1000){
-                                        shooter1.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter2.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter3.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter1.setPower(power1);
+                                        shooter2.setPower(power2);
+                                        shooter3.setPower(power3);
                                         shooter1.getVelocity();
                                         servoI.setPosition(0.47);
                                         shooter1.getVelocity();
@@ -157,38 +162,40 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
                                     servoI.setPosition(0.9);
                                     shooter1.getVelocity();
                                     while (servoTimer.milliseconds() < 1750){
-                                        shooter1.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter2.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter3.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter1.setPower(power1);
+                                        shooter2.setPower(power2);
+                                        shooter3.setPower(power3);
                                         shooter1.getVelocity();
                                         servoIII.setPosition(0.53);
                                         shooter1.getVelocity();
                                     }
                                     servoIII.setPosition(0.1);
                                     shooter1.getVelocity();
+                                    shooter1.setPower(0);
                                     shooter2.setPower(0);
+                                    shooter3.setPower(0);
                                     done = 1;
                                 } else if (artifactPattern == 22){
-                                    shooter1.setPower(PIDControl(targetVelocity,curPos1));
-                                    shooter2.setPower(PIDControl(targetVelocity,currentVelocity));
-                                    shooter3.setPower(PIDControl(targetVelocity,currentVelocity));
+                                    shooter1.setPower(power1);
+                                    shooter2.setPower(power2);
+                                    shooter3.setPower(power3);
                                     shooter1.getVelocity();
                                     servoTimer.reset();
                                     servoI.setPosition(0.9);
                                     shooter1.getVelocity();
                                     while (servoTimer.milliseconds() < 1000){
-                                        shooter1.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter2.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter3.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter1.setPower(power1);
+                                        shooter2.setPower(power2);
+                                        shooter3.setPower(power3);
                                         shooter1.getVelocity();
                                         servoII.setPosition(0.47);
                                         shooter1.getVelocity();
                                     }
                                     servoII.setPosition(0.9);
                                     while (servoTimer.milliseconds() < 1750){
-                                        shooter1.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter2.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter3.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter1.setPower(power1);
+                                        shooter2.setPower(power2);
+                                        shooter3.setPower(power3);
                                         shooter1.getVelocity();
                                         servoIII.setPosition(0.51);
                                         shooter1.getVelocity();
@@ -200,26 +207,26 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
                                     shooter2.setPower(0);
                                     shooter3.setPower(0);
                                 } else if (artifactPattern == 23) {
-                                    shooter1.setPower(PIDControl(c,currentVelocity));
-                                    shooter2.setPower(PIDControl(targetVelocity,currentVelocity));
-                                    shooter3.setPower(PIDControl(targetVelocity,currentVelocity));
+                                    shooter1.setPower(power1);
+                                    shooter2.setPower(power2);
+                                    shooter3.setPower(power3);
                                     shooter1.getVelocity();
                                     servoI.setPosition(0.9);
                                     servoTimer.reset();
                                     shooter1.getVelocity();
                                     while (servoTimer.milliseconds() < 1000){
-                                        shooter1.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter2.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter3.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter1.setPower(power1);
+                                        shooter2.setPower(power2);
+                                        shooter3.setPower(power3);
                                         shooter1.getVelocity();
                                         servoIII.setPosition(0.51);
                                         shooter1.getVelocity();
                                     }
                                     servoIII.setPosition(0.1);
                                     while (servoTimer.milliseconds() < 1750){
-                                        shooter1.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter2.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter3.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter1.setPower(power1);
+                                        shooter2.setPower(power2);
+                                        shooter3.setPower(power3);
                                         shooter1.getVelocity();
                                         shooter1.getVelocity();
                                         servoII.setPosition(0.47);
@@ -232,17 +239,17 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
                                     done = 1;
                                 } else{
                                     servoTimer.reset();
-                                    shooter1.setPower(PIDControl(targetVelocity,currentVelocity));
-                                    shooter2.setPower(PIDControl(targetVelocity,currentVelocity));
-                                    shooter3.setPower(PIDControl(targetVelocity,currentVelocity));
+                                    shooter1.setPower(power1);
+                                    shooter2.setPower(power2);
+                                    shooter3.setPower(power3);
                                     shooter1.getVelocity();
                                     servoII.setPosition(0.9);
                                     servoTimer.reset();
                                     shooter1.getVelocity();
                                     while (servoTimer.milliseconds() < 1000){
-                                        shooter1.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter2.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter3.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter1.setPower(power1);
+                                        shooter2.setPower(power2);
+                                        shooter3.setPower(power3);
                                         shooter1.getVelocity();
 
                                         servoI.setPosition(0.47);
@@ -250,9 +257,9 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
                                     }
                                     servoI.setPosition(0.9);
                                     while (servoTimer.milliseconds() < 1750){
-                                        shooter1.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter2.setPower(PIDControl(targetVelocity,currentVelocity));
-                                        shooter3.setPower(PIDControl(targetVelocity,currentVelocity));
+                                        shooter1.setPower(power1);
+                                        shooter2.setPower(power2);
+                                        shooter3.setPower(power3);
                                         servoIII.setPosition(0.53);
                                         shooter1.getVelocity();
                                     }
@@ -281,7 +288,7 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
                     return timer.seconds() < 2;
                 }
             };
-        }*/
+        }
         public Action Fire() {
             return new Action() {
                 private boolean initialized = false;
@@ -504,7 +511,7 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        Pose2d initialPose = new Pose2d(0, 0, Math.toRadians(3.5592));
+        Pose2d initialPose = new Pose2d(-52, 47, Math.toRadians(.26));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         initAprilTag();
         state = State.Get_To_Power;
@@ -533,10 +540,10 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         shooter1.setDirection(DcMotorEx.Direction.FORWARD);
         shooter2.setDirection(DcMotorEx.Direction.FORWARD);
         shooter3.setDirection(DcMotorEx.Direction.FORWARD);
@@ -611,11 +618,62 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         allSeeingEye.close();
 
+<<<<<<< HEAD
         Actions.runBlocking(
                 drive.actionBuilder(initialPose)
                         //Start sample is sample 0
                         .lineToY(-43)
                         //.stopAndAdd(new ArmOutRU(extendArm1, extendArm2, rotateArm, Wheel1, Wheel2,0,122,1,0,0,2)) // SpecRotate
+=======
+        TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
+                .strafeTo(new Vector2d(-46.5281, -19.4465))
+                .turn(Math.toRadians(-41.69))
+                .waitSeconds(3);
+        Pose2d newPose = new Pose2d(9.9556, -30.3882, Math.toRadians(-95.2059));
+        TrajectoryActionBuilder tab2 = drive.actionBuilder(newPose)
+                .lineToY(-32.1531)
+                .waitSeconds(3);
+        Pose2d new2Pose =  new Pose2d(9.9556, -44.4149, Math.toRadians(-95.2059));
+        TrajectoryActionBuilder tab3 = drive.actionBuilder(new2Pose)
+                .strafeTo(new Vector2d(0, 0))
+                .turn(-53.9244)
+                .waitSeconds(3);
+        Action trajectoryActionCloseOut = tab1.endTrajectory().fresh()
+                .strafeTo(new Vector2d(9.9556, -30.3882))
+                .build();
+        position = 1;
+        Action trajectoryActionChosen;
+        if (position == 1) {
+            trajectoryActionChosen = tab1.build();
+        } else if (position == 2) {
+            trajectoryActionChosen = tab2.build();
+        } else {
+            trajectoryActionChosen = tab3.build();
+        }
+        
+
+        Actions.runBlocking(new SequentialAction(shoot.Scan()));
+        Actions.runBlocking(new SequentialAction(shoot.shooterPower()));
+        position = 2;
+        if (position == 1) {
+            trajectoryActionChosen = tab1.build();
+        } else if (position == 2) {
+            trajectoryActionChosen = tab2.build();
+        } else {
+            trajectoryActionChosen = tab3.build();
+        }
+       // Actions.runBlocking(new SequentialAction(shoot.intake(), trajectoryActionChosen));
+        position = 3;
+        if (position == 1) {
+            trajectoryActionChosen = tab1.build();
+        } else if (position == 2) {
+            trajectoryActionChosen = tab2.build();
+        } else {
+            trajectoryActionChosen = tab3.build();
+        }
+      //  Actions.runBlocking(new SequentialAction(trajectoryActionChosen));
+      //  Actions.runBlocking(new SequentialAction(trajectoryActionCloseOut));
+>>>>>>> 2f3a9582e48e57b303b2020327c6292cb92ed7c9
 
 
 
@@ -723,6 +781,7 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
             while (opModeIsActive() &&
                     (runtime.seconds() < timeoutS) &&
                     (leftFrontDrive.isBusy() && rightFrontDrive.isBusy() && leftBackDrive.isBusy() && rightBackDrive.isBusy())) {
+
                 leftHoodServo.setPosition(Angulinator);
                 rightHoodServo.setPosition(Angulinator);
                 intakeServo.setPower(IntakePower);
@@ -795,25 +854,22 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
                 .addProcessor(aprilTag)
                 .build();
     }
-    private static class PIDControl {
+    public static final double TICKS_PER_REV = 28.0;
+    private class PIDControl {
+        private DcMotorEx shooter1;
         private double Kp = 8;
-        private double Ki = 0.5; // og Ki is 0.0008
+        private double Ki = 0.5;
         private double Kd = 1.3;
+
         private final ElapsedTime timer1 = new ElapsedTime();
-        private final DcMotorEx shooter1;
+
 
         private double integral1 = 0.0;
         private double lastError1 = 0.0;
         private double integralLimit1 = 2000.0;
 
-        // encoder sampling
         private int lastPos1;
         private long lastTimeNano1;
-
-        // rumble/stability
-        private double stableTimer = 0.0;
-        private final double RPM_TOL = 60.0;
-        private final double STABLE_REQUIRED = 0.25;
 
         public PIDControl(DcMotorEx motor) {
             this.shooter1 = motor;
@@ -833,7 +889,6 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
             lastError1 = 0.0;
         }
 
-
         public double getRPM() {
             int curPos = shooter1.getCurrentPosition();
             long curTime = System.nanoTime();
@@ -852,7 +907,7 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
             return Math.abs(rpm);
         }
 
-        public double update(double targetRPM, Gamepad gp) {
+        public double update(double targetRPM) {
             double currentRPM = getRPM();
 
             double dt = timer1.seconds();
@@ -870,14 +925,18 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
             lastError1 = error;
 
             double out = Kp * error + Ki * integral1 + Kd * derivative;
-            // clamp to [0,1] for forward; negative handled elsewhere (left bumper)
-            if (out < 0.0) out = 0.0;
-            if (out > 1.0) out = 1.0;
 
-            return (out);
+            // clamp
+            if (out < 0) out = 0;
+            if (out > 1) out = 1;
 
-
-
+            return out;
         }
+        PIDControl pid1 = new PIDControl(shooter1);
+        PIDControl pid2 = new PIDControl(shooter2);
+        PIDControl pid3 = new PIDControl(shooter3);
+
+
     }
-}
+    }
+

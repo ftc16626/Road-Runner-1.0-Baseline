@@ -1,104 +1,194 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.opMode;
-
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.tuning.PIDFController;
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import org.firstinspires.ftc.teamcode.tuning.PIDFController;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
 @Config
 @Autonomous(name = "PIDtest", group = "robot")
-
+@Disabled
 public class PIDtest extends LinearOpMode {
- //   private DcMotorEx shooter1;
-    private DcMotorEx shooter2;
-  //  private DcMotorEx shooter3;
-    public static double Kp = 0.4;
-    public static double Ki = 0;
-    public static double Kd = 0.1;
-
-    public static double targetRPM = 3000;
-    public static double ticksPerRevolution = 28;
-    public double targetVelocity = 2300;
-    private final double TARGET_VELOCITY_TICKS_PER_SECOND = 1000;
-    public double latestError = 0;
-    public double Sum2 = 0;
-   // public double currentVelocity1;
-    public double currentVelocity2;
-   // public double currentVelocity3;
-    ElapsedTime timer = new ElapsedTime();
-    private final FtcDashboard dashboard = FtcDashboard.getInstance();
 
 
+    // ----- PID Constants -----
+    public static double Kp1 = 0;
+    public static double Ki1 = 0;
+    public static double Kd1 = 0;
+    public static double Kp2 = 0;
+    public static double Ki2 = 0;
+    public static double Kd2 = 0;
+    public static double Kp3 = 0;
+    public static double Ki3 = 0;
+    public static double Kd3 = 0;
+
+    public static double targetVelocity = 2300;
+
+    // ----- Shooter Motors -----
+    private DcMotorEx shooter1, shooter2, shooter3;
+
+
+
+    // ----- PID states for each motor -----
+    PIDState1 pid1 = new PIDState1();
+    PIDState2 pid2 = new PIDState2();
+    PIDState3 pid3 = new PIDState3();
+
+    FtcDashboard dashboard = FtcDashboard.getInstance();
+
+    @Override
     public void runOpMode() {
-      //  shooter1 = hardwareMap.get(DcMotorEx.class, "shooter");
-     //   shooter1.setDirection(DcMotorSimple.Direction.FORWARD);
-      //  shooter1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        // ---- Motor Init ----
+        shooter1 = hardwareMap.get(DcMotorEx.class, "shooter1");
         shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
-        shooter2.setDirection(DcMotorSimple.Direction.FORWARD);
-        shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-      //  shooter3 = hardwareMap.get(DcMotorEx.class, "shooter");
-      //  shooter3.setDirection(DcMotorSimple.Direction.FORWARD);
-      //  shooter3.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        TelemetryPacket packet = new TelemetryPacket();
+        shooter3 = hardwareMap.get(DcMotorEx.class, "shooter3");
+
+
+        shooter1.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        shooter2.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        shooter3.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        shooter1.setDirection(DcMotorEx.Direction.REVERSE);
+
+        shooter1.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        shooter2.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        shooter3.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+
+
+
+
+        // Ensure PID timers start at 0
+        pid1.timer.reset();
+        pid2.timer.reset();
+        pid3.timer.reset();
+
         dashboard.setTelemetryTransmissionInterval(25);
-  //      shooter1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-   //     shooter1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-    //    shooter1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        shooter2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        shooter2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-      //  shooter3.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-      //  shooter3.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-      //  shooter3.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         waitForStart();
 
-        while (opModeIsActive()){
-        //    double currentVelocity = shooter1.getVelocity();
-            double power = PIDControl(targetVelocity, currentVelocity2);
-            packet.put("Target Velocity", targetVelocity);
-            packet.put("Current Velocity", currentVelocity2 );
-            packet.put("error", latestError);
-            shooter2.setPower(power);
-            dashboard.sendTelemetryPacket(packet);
+        while (opModeIsActive()) {
 
+            TelemetryPacket packet = new TelemetryPacket();
+
+            // ---- Read velocities ----
+            double v1 = shooter1.getVelocity();
+            double v2 = shooter2.getVelocity();
+            double v3 = shooter3.getVelocity();
+
+            // ---- Compute PID ----
+            double power1 = PID1(targetVelocity, v1, pid1);
+            double power2 = PID2(targetVelocity, v2, pid2);
+            double power3 = PID3(targetVelocity, v3, pid3);
+
+            // ---- Apply power ----
+            shooter1.setPower(power1);
+            shooter2.setPower(power2);
+            shooter3.setPower(power3);
+
+            // ---- Telemetry to Dashboard ----
+            packet.put("Target Velocity", targetVelocity);
+
+            packet.put("Velocity1", v1);
+
+            packet.put("Error1", pid1.lastError1);
+
+            packet.put("Velocity2", v2);
+
+            packet.put("Error2", pid2.lastError2);
+
+            packet.put("Velocity3", v3);
+
+            packet.put("Error3", pid3.lastError3);
+
+            dashboard.sendTelemetryPacket(packet);
         }
     }
 
+    // ----- PID Function -----
+    public double PID1(double reference1, double state1, PIDState1 pid) {
 
-    public double PIDControl (double reference, double state){
-     //   currentVelocity1 = shooter1.getVelocity();
-        currentVelocity2 = shooter2.getVelocity();
-     //   currentVelocity3 = shooter3.getVelocity();
-        double deltaTime = timer.seconds();
-        timer.reset();
+        double error1 = reference1 - state1;
 
-     //   double error1 = targetVelocity - currentVelocity1;
-        double error2 = targetVelocity - currentVelocity2;
-    //    double error3 = targetVelocity - currentVelocity3;
-       // Sum1 += error1 * deltaTime;
-        Sum2 += error2 * deltaTime;
-    //    Sum3 += error3 * deltaTime;
-        latestError = error2;
-        double derivative = (error2 - latestError) / timer.seconds();
-        timer.reset();
+        double dt = pid.timer.seconds();
+        pid.timer.reset();
 
-        double output = (error2 * Kp) + (derivative + Kd) + (Sum2 * Ki);
-        return output;
+        if (dt == 0) dt = 0.001; // prevent div by zero
+
+        pid.integral1 += error1 * dt;
+        double derivative1 = (error1 - pid.lastError1) / dt;
+
+        pid.lastError1 = error1;
+        double output1 = (Kp1 * error1) + (Ki1 * pid.integral1) + (Kd1 * derivative1);
+
+// Clamp to motor power limits
+        output1 = Math.max(-1, Math.min(1, output1));
+        return output1;
     }
 
+    // ----- PID State Class -----
+    static class PIDState1 {
+        public double lastError1 = 0;
+        public double integral1 = 0;
+        public ElapsedTime timer = new ElapsedTime();
+    }
+    public double PID2(double reference2, double state2, PIDState2 pid) {
+
+        double error2 = reference2 - state2;
+
+        double dt = pid.timer.seconds();
+        pid.timer.reset();
+
+        if (dt == 0) dt = 0.001; // prevent div by zero
+
+        pid.integral2 += error2 * dt;
+        double derivative2 = (error2 - pid.lastError2) / dt;
+
+        pid.lastError2 = error2;
+
+        double output2 = (Kp2 * error2) + (Ki2 * pid.integral2) + (Kd2 * derivative2);
+
+// Clamp to motor power limits
+        output2 = Math.max(-1, Math.min(1, output2));
+        return output2;
+    }
+
+    // ----- PID State Class -----
+    static class PIDState2 {
+        public double lastError2 = 0;
+        public double integral2 = 0;
+        public ElapsedTime timer = new ElapsedTime();
+    }
+    public double PID3(double reference3, double state3, PIDState3 pid) {
+
+        double error3 = reference3 - state3;
+
+        double dt = pid.timer.seconds();
+        pid.timer.reset();
+
+        if (dt == 0) dt = 0.001; // prevent div by zero
+
+        pid.integral3 += error3 * dt;
+        double derivative3 = (error3 - pid.lastError3) / dt;
+
+        pid.lastError3 = error3;
+
+        double output3 = (Kp3 * error3) + (Ki3 * pid.integral3) + (Kd3 * derivative3);
+
+// Clamp to motor power limits
+        output3 = Math.max(-1, Math.min(1, output3));
+        return output3;
+    }
+
+    // ----- PID State Class -----
+    static class PIDState3 {
+        public double lastError3 = 0;
+        public double integral3 = 0;
+        public ElapsedTime timer = new ElapsedTime();
+    }
 }
