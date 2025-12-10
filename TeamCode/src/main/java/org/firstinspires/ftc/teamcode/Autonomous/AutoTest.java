@@ -278,7 +278,7 @@ public class AutoTest extends LinearOpMode {
 
         // initialize vision processor (will be used during INIT loop)
         initAprilTag();
-
+        Shooter shoot = new AutoTest.Shooter(hardwareMap);
         // hardware init (clean and avoid duplication)
         leftFrontDrive = hardwareMap.get(DcMotor.class, "LFMotor");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "RFMotor");
@@ -448,45 +448,17 @@ public class AutoTest extends LinearOpMode {
         rightHoodServo.setPosition(0);
 
         // RoadRunner trajectories preserved
-        TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
-                .strafeTo(new Vector2d(47,-16));
-        Pose2d newPose = new Pose2d(-12, 20, Math.toRadians(-44.1));
-        TrajectoryActionBuilder tab2 = drive.actionBuilder(newPose)
-                .lineToY(56)
-                .waitSeconds(3);
-        Pose2d new2Pose = new Pose2d(-40, 56, Math.toRadians(-95.2059));
-        TrajectoryActionBuilder tab3 = drive.actionBuilder(new2Pose)
-                .strafeTo(new Vector2d(-50, 47))
-                .turn(44.1)
-                .waitSeconds(3);
-        Action trajectoryActionCloseOut = tab1.endTrajectory().fresh()
-                .strafeTo(new Vector2d(-16, 38))
-                .build();
-
-        // choose trajectories (kept identical flow)
-        position = 1;
-        Action trajectoryActionChosen;
-        if (position == 1) trajectoryActionChosen = tab1.build();
-        else if (position == 2) trajectoryActionChosen = tab2.build();
-        else trajectoryActionChosen = tab3.build();
-
-        Shooter shoot = new Shooter(hardwareMap);
-
-        // We already scanned in INIT, so remove runtime scan. Continue the route:
         Actions.runBlocking(new SequentialAction(shoot.Fire()));
-        Actions.runBlocking(new SequentialAction(trajectoryActionChosen));
+        Actions.runBlocking(
+                drive.actionBuilder(initialPose)
+                        .splineTo(new Vector2d(-2,31), Math.toRadians(98))
+                        .waitSeconds(.3)
 
-        position = 2;
-        if (position == 1) trajectoryActionChosen = tab1.build();
-        else if (position == 2) trajectoryActionChosen = tab2.build();
-        else trajectoryActionChosen = tab3.build();
-       // Actions.runBlocking(new SequentialAction(shoot.intake(), trajectoryActionChosen));
+                        .build());
 
-        position = 3;
-        if (position == 1) trajectoryActionChosen = tab1.build();
-        else if (position == 2) trajectoryActionChosen = tab2.build();
-        else trajectoryActionChosen = tab3.build();
-      //  Actions.runBlocking(new SequentialAction(shoot.Fire(), trajectoryActionChosen));
+        Actions.runBlocking(new SequentialAction(shoot.Fire()));
+
+    //  Actions.runBlocking(new SequentialAction(shoot.Fire(), trajectoryActionChosen));
 
        // Actions.runBlocking(new SequentialAction(trajectoryActionCloseOut));
 
