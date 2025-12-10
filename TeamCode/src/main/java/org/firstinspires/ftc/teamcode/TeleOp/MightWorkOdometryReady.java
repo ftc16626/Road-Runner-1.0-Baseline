@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
  * (Is this language simple enough?)
  */
 @TeleOp(name = "mightworkOdometryReady", group = "robot")
-@Disabled
+
 public class MightWorkOdometryReady extends LinearOpMode {
 
     // -------------------- Subsystems --------------------
