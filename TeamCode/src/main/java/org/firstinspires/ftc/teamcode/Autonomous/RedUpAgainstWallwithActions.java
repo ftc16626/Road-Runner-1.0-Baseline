@@ -39,7 +39,7 @@
 
         import java.util.List;
 
-        @Autonomous(name="TheRedUpAgainstWallAutoYouShouldUse", group="Robot")
+        @Autonomous(name="TheRedUpAgainstWallAutoYouShouldUse1", group="Robot")
 public class RedUpAgainstWallwithActions extends LinearOpMode {
 
     /* Declare OpMode members. */
@@ -617,65 +617,34 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         allSeeingEye.close();
+        Actions.runBlocking(shoot.shooterPower());
+        Actions.runBlocking(
+                drive.actionBuilder(initialPose)
+                        .strafeTo(new Vector2d(-46.5281, -19.4465))
+                        .turn(Math.toRadians(-41.69))
+                        .waitSeconds(.3)
 
-        TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
-                .strafeTo(new Vector2d(-46.5281, -19.4465))
-                .turn(Math.toRadians(-41.69))
-                .waitSeconds(3);
-        Pose2d newPose = new Pose2d(9.9556, -30.3882, Math.toRadians(-95.2059));
-        TrajectoryActionBuilder tab2 = drive.actionBuilder(newPose)
-                .lineToY(-32.1531)
-                .waitSeconds(3);
-        Pose2d new2Pose =  new Pose2d(9.9556, -44.4149, Math.toRadians(-95.2059));
-        TrajectoryActionBuilder tab3 = drive.actionBuilder(new2Pose)
-                .strafeTo(new Vector2d(0, 0))
-                .turn(-53.9244)
-                .waitSeconds(3);
-        Action trajectoryActionCloseOut = tab1.endTrajectory().fresh()
-                .strafeTo(new Vector2d(9.9556, -30.3882))
-                .build();
-        position = 1;
-        Action trajectoryActionChosen;
-        if (position == 1) {
-            trajectoryActionChosen = tab1.build();
-        } else if (position == 2) {
-            trajectoryActionChosen = tab2.build();
-        } else {
-            trajectoryActionChosen = tab3.build();
-        }
-        
+                        .build());
 
-        Actions.runBlocking(new SequentialAction(shoot.Scan()));
-        Actions.runBlocking(new SequentialAction(shoot.shooterPower()));
-        position = 2;
-        if (position == 1) {
-            trajectoryActionChosen = tab1.build();
-        } else if (position == 2) {
-            trajectoryActionChosen = tab2.build();
-        } else {
-            trajectoryActionChosen = tab3.build();
-        }
-       // Actions.runBlocking(new SequentialAction(shoot.intake(), trajectoryActionChosen));
-        position = 3;
-        if (position == 1) {
-            trajectoryActionChosen = tab1.build();
-        } else if (position == 2) {
-            trajectoryActionChosen = tab2.build();
-        } else {
-            trajectoryActionChosen = tab3.build();
-        }
-      //  Actions.runBlocking(new SequentialAction(trajectoryActionChosen));
-      //  Actions.runBlocking(new SequentialAction(trajectoryActionCloseOut));
-
-
-
-
-
-        //Actions.runBlocking(new SequentialAction(shoot.outOfShootingArea()));
-        telemetry.addData("Path", "Complete");
-        telemetry.update();
-        sleep(1000);  // pause to display final telemetry message.
     }
+
+
+
+
+
+
+                        // .stopAndAdd(new ArmOutRU(extendArm1, extendArm2, rotateArm, Wheel1, Wheel2,11,22,1,0,0 ))
+                        //.stopAndAdd(new ArmInRD(extendArm1, extendArm2, rotateArm, Wheel1, Wheel2,-12,-92,-1,-1,1))
+                        //.strafeToLinearHeading(new Vector2d( -48, -48 ), Math.toRadians(88))
+                        //.stopAndAdd(new ArmOutRU(extendArm1, extendArm2, rotateArm, Wheel1, Wheel2,12,0,.6,-1,1))
+                        //.stopAndAdd(new ArmOutRU(extendArm1, extendArm2, rotateArm, Wheel1, Wheel2,0,122,1,0,0))//.lineToY(-61)
+                        //.stopAndAdd(new ArmOutRU(extendArm1, extendArm2, rotateArm, Wheel1, Wheel2,10,10,1,0,0))
+                        //.stopAndAdd(new ArmOutRU(extendArm1, extendArm2, rotateArm, Wheel1, Wheel2,0,0,1,1,-1))
+                        //.waitSeconds(.3)
+
+
+
+
 
     /*
      *  Method to perform a relative move, based on encoder counts.
@@ -699,12 +668,12 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
         String ColorI = "Empty";
         String ColorII = "Empty";
         String ColorIII = "Empty";
-        NormalizedRGBA colorsI = colorSensorI.getNormalizedColors();
-        NormalizedRGBA colorsII = colorSensorII.getNormalizedColors();
-        NormalizedRGBA colorsIII = colorSensorIII.getNormalizedColors();
-        NormalizedRGBA colorsIV = colorSensorIV.getNormalizedColors();
-        NormalizedRGBA colorsV = colorSensorV.getNormalizedColors();
-        NormalizedRGBA colorsVI = colorSensorVI.getNormalizedColors();
+        //NormalizedRGBA colorsI = colorSensorI.getNormalizedColors();
+        //NormalizedRGBA colorsII = colorSensorII.getNormalizedColors();
+       // NormalizedRGBA colorsIII = colorSensorIII.getNormalizedColors();
+       // NormalizedRGBA colorsIV = colorSensorIV.getNormalizedColors();
+       // NormalizedRGBA colorsV = colorSensorV.getNormalizedColors();
+        //NormalizedRGBA colorsVI = colorSensorVI.getNormalizedColors();
 
         // Ensure that the OpMode is still active
         if (opModeIsActive()) {
@@ -769,7 +738,7 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
                 rightHoodServo.setPosition(Angulinator);
                 intakeServo.setPower(IntakePower);
 
-                if (colorsI.green > colorsI.blue || colorsII.green > colorsII.blue) {
+               /*/ if (colorsI.green > colorsI.blue || colorsII.green > colorsII.blue) {
                     ColorI = "Green";
                 } else {
                     ColorI = "Purple";
@@ -783,7 +752,7 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
                     ColorIII = "Green";
                 } else {
                     ColorIII = "Purple";
-                }
+                }/*/
 
 
 
@@ -795,11 +764,11 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
                         .addData("Tag ID:", artifactPattern);
                 telemetry.addLine()
                         .addData("ColorI:", ColorI);
-                telemetry.addLine()
-                        .addData("Red", colorsI.red)
-                        .addData("Green", colorsI.green)
-                        .addData("Blue", colorsI.blue);
-                telemetry.update();
+                //telemetry.addLine()
+                // .addData("Red", colorsI.red)
+                       // .addData("Green", colorsI.green)
+                       // .addData("Blue", colorsI.blue);
+                //telemetry.update();
             }
 
             // Stop all motion;
@@ -920,6 +889,5 @@ public class RedUpAgainstWallwithActions extends LinearOpMode {
         PIDControl pid3 = new PIDControl(shooter3);
 
 
-    }
-    }
+    }}
 
