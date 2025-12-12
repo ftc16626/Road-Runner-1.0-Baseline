@@ -448,10 +448,10 @@ public class AutoTest extends LinearOpMode {
         rightHoodServo.setPosition(0);
 
         // RoadRunner trajectories preserved
-        Actions.runBlocking(new SequentialAction(shoot.Fire()));
+       // Actions.runBlocking(new SequentialAction(shoot.Fire()));
         Actions.runBlocking(
                 drive.actionBuilder(initialPose)
-                        .splineTo(new Vector2d(-2,31), Math.toRadians(98))
+                        .strafeTo(new Vector2d(16,47))
                         .waitSeconds(.3)
 
                         .build());

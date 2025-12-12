@@ -15,7 +15,7 @@ public class MeepMeepTesting {
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
                 .build();
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-50, 47,Math.toRadians(135)))
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-50, 47,0))
                 //----------Grab the first balls-----------
               //  .strafeTo(new Vector2d(-12,20))
                 .strafeTo(new Vector2d(-16,47))
