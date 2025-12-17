@@ -158,8 +158,9 @@ public class RenameTest extends LinearOpMode {
         // Pickup artifact 1
         Actions.runBlocking(
                 drive.actionBuilder(startPose)
-                        .lineToY(47)
-                        .waitSeconds(0.1)
+                       // .strafeTo(new Vector2d(-14,28))
+                        .turnTo(100)
+                        .waitSeconds(10)
                         .build()
         );
         intake.setPower(1.0);
@@ -167,20 +168,20 @@ public class RenameTest extends LinearOpMode {
         intake.setPower(0);
 
         // Move to firing position
-        Actions.runBlocking(
-                drive.actionBuilder(pickup2)
-                        .lineToX(16)
-                        .waitSeconds(0.1)
-                        .build()
-        );
+     //   Actions.runBlocking(
+     //           drive.actionBuilder(pickup2)
+      //                  .strafeTo(new Vector2d(-50,47))
+       //                 .waitSeconds(0.1)
+       //                 .build()
+        //);
 
         // Pickup artifact 2
-        Actions.runBlocking(
-                drive.actionBuilder(pickup1)
-                        .lineToX(-10)
-                        .waitSeconds(0.1)
-                        .build()
-        );
+       // Actions.runBlocking(
+      //          drive.actionBuilder(pickup1)
+      //                  .lineToX(-10)
+       //                 .waitSeconds(0.1)
+        //                .build()
+      //  );
         intake.setPower(1.0);
         sleep(1000); // intake time
         intake.setPower(0);

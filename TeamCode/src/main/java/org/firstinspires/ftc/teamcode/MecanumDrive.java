@@ -84,7 +84,7 @@ public final class  MecanumDrive {
         // path controller gains
         public double axialGain = 8.0;
         public double lateralGain = 14.0;
-        public double headingGain = 9.0; // shared with turn
+        public double headingGain = 20.0; // shared with turn
 
         public double axialVelGain = 0.0;
         public double lateralVelGain = 0.0;
@@ -238,6 +238,8 @@ public final class  MecanumDrive {
         // TODO: reverse motor directions if needed
         rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
         rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftFront.setDirection(DcMotorSimple.Direction.FORWARD);
+        leftBack.setDirection(DcMotorSimple.Direction.FORWARD);
         // TODO: make sure your config has an IMU with this name (can be BNO or BHI)
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
         lazyImu = new LazyHardwareMapImu(hardwareMap, "imu", new RevHubOrientationOnRobot(
@@ -256,7 +258,7 @@ public final class  MecanumDrive {
 
         double maxPowerMag = 1;
         for (DualNum<Time> power : wheelVels.all()) {
-            maxPowerMag = Math.max(maxPowerMag, power.value());
+            maxPowerMag = Math.max(maxPowerMag, Math.abs(power.value()));
         }
 
         leftFront.setPower(wheelVels.leftFront.get(0) / maxPowerMag);
@@ -284,6 +286,7 @@ public final class  MecanumDrive {
                 xPoints[i] = p.position.x;
                 yPoints[i] = p.position.y;
             }
+
         }
 
         @Override
@@ -426,6 +429,8 @@ public final class  MecanumDrive {
             rightBack.setPower(feedforward.compute(wheelVels.rightBack) / voltage);
             rightFront.setPower(feedforward.compute(wheelVels.rightFront) / voltage);
 
+
+
             Canvas c = p.fieldOverlay();
             drawPoseHistory(c);
 
@@ -440,6 +445,7 @@ public final class  MecanumDrive {
 
             return true;
         }
+
 
         @Override
         public void preview(Canvas c) {
