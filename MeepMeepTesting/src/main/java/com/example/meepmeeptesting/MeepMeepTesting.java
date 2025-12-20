@@ -17,9 +17,9 @@ public class MeepMeepTesting {
 
         myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-50, 47,Math.toRadians(135)))
                 //----------Grab the first balls-----------
-                .strafeTo(new Vector2d(-12,20))
-                .turnTo(Math.toRadians(-44.1))
-                .strafeTo(new Vector2d(-16,47))
+                .strafeTo(new Vector2d(-10,20))
+                .turn(Math.toRadians(-44.1))
+                .strafeTo(new Vector2d(-10,47))
                 .strafeTo(new Vector2d(-50,47))
                 .turn(Math.toRadians(44.1))
                 //----------Grab the second balls---------

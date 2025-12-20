@@ -14,7 +14,7 @@ public class PIDF extends OpMode {
     // wheel 2 P = 60 F = 12.4
     // wheel 3 P = 60 F = 15.45
     public DcMotorEx wheel2;
-    public double FarVelocity = 2500;
+    public double FarVelocity = 2300;
     public  double CloseVelocity = 1250;
     double curTargetVelocity = FarVelocity;
     double F = 0;
@@ -26,9 +26,9 @@ public class PIDF extends OpMode {
 
     @Override
     public void init(){
-        wheel2= hardwareMap.get(DcMotorEx.class, "shooter1");
+        wheel2= hardwareMap.get(DcMotorEx.class, "shooter2");
         wheel2.setMode((DcMotor.RunMode.RUN_USING_ENCODER));
-        wheel2.setDirection(DcMotorSimple.Direction.REVERSE);
+        wheel2.setDirection(DcMotorSimple.Direction.FORWARD);
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P,0,0,F);
         wheel2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
         telemetry.addLine("int complete");
