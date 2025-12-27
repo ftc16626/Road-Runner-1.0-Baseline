@@ -13,6 +13,7 @@ public class HoodSubsystemOdometryReady {
     public Servo leftHoodServo, rightHoodServo;
     public Servo flipper1, flipper2, flipper3;
 
+
     private double hoodPosClose = 0.225;
     private double hoodPosFar = 0.40;
 
