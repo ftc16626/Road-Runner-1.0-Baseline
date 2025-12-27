@@ -159,12 +159,12 @@ public class RenameTest extends LinearOpMode {
                             ArtifactColor target = pattern[patternIndex];
 
                             if (!fired[0] && s1 == target) {
-                                servoI.setPosition(0.1);
+                                servoI.setPosition(0.9);
                                 fired[0] = true;
                                 stateTimer.reset();
                                 state = FireState.SERVO_OUT;
                             } else if (!fired[1] && s2 == target) {
-                                servoII.setPosition(0.9);
+                                servoII.setPosition(0.1);
                                 fired[1] = true;
                                 stateTimer.reset();
                                 state = FireState.SERVO_OUT;
