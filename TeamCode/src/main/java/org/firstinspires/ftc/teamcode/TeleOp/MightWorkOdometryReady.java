@@ -52,11 +52,14 @@ public class MightWorkOdometryReady extends LinearOpMode {
     private static final double TELEMETRY_INTERVAL = 0.20;
 
     // Shooter constants
-    private double targetRPM = 2300.0;
-    private double hoodPos;
+    private double curTargetVelocity = 1213.333333;
+    private double hoodPosClose = 0.225;
+    private double hoodPosFar = 0.40;
+    private double hoodPosGoal = 0.025;
 
     // Layout reference for TeleOp (optional)
     private View relativeLayout;
+    public Servo leftHoodServo, rightHoodServo;
 
     // -------------------- Odometry placeholders --------------------
     // private int leftOdomPrev = 0;
@@ -65,7 +68,10 @@ public class MightWorkOdometryReady extends LinearOpMode {
     // public double currentX = 0.0;    // in inches or meters
     // public double currentY = 0.0;
     // public double heading = 0.0;     // in radians
-
+    private void setHood(double pos) {
+        leftHoodServo.setPosition(pos);
+        rightHoodServo.setPosition(pos);
+    }
     @Override
     public void runOpMode() throws InterruptedException {
         // -------------------- Initialize subsystems --------------------
@@ -74,7 +80,10 @@ public class MightWorkOdometryReady extends LinearOpMode {
         hood = new HoodSubsystemOdometryReady(hardwareMap);
         intake = new IntakeSubsystemOdometryReady(hardwareMap);
         vision = new VisionSubsystemOdometryReady(hardwareMap);
-
+        leftHoodServo = hardwareMap.get(Servo.class, "leftHoodServo");
+        rightHoodServo = hardwareMap.get(Servo.class, "rightHoodServo");
+        leftHoodServo.setDirection(Servo.Direction.REVERSE);
+        rightHoodServo.setDirection(Servo.Direction.FORWARD);
         // Optional layout
         int relativeLayoutId = hardwareMap.appContext.getResources()
                 .getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
@@ -82,11 +91,12 @@ public class MightWorkOdometryReady extends LinearOpMode {
             relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
         } catch (Exception ignored) {}
 
+
         telemetry.addData("Status", "Ready - press START");
         telemetry.update();
         waitForStart();
 
-        shooter.resetSamplers();
+
         loopTimer.reset();
         telemetryTimer.reset();
 
@@ -115,14 +125,21 @@ public class MightWorkOdometryReady extends LinearOpMode {
             // -------------------- Drive --------------------
             drive.driveMecanum(gamepad1);
 
-            // -------------------- Shooter --------------------
-            shooter.controlShooter(targetRPM, gamepad2);
 
             // -------------------- Intake --------------------
             intake.controlIntake(gamepad1);
 
             // -------------------- Hood / Flippers --------------------
             hood.controlFlippers(gamepad2);
+            if (gamepad2.dpad_left){
+                curTargetVelocity = 1213.333333;
+                setHood(hoodPosClose);
+            } else if (gamepad2.dpad_right){
+                curTargetVelocity = 1460;
+                setHood(hoodPosFar);
+            }
+            // -------------------- Shooter --------------------
+            shooter.controlShooter(curTargetVelocity, gamepad2);
 
             // -------------------- Vision / AprilTag --------------------
             if (gamepad1.square && vision.getAprilTagProcessor() != null) {
@@ -143,7 +160,7 @@ public class MightWorkOdometryReady extends LinearOpMode {
             // -------------------- Telemetry --------------------
             if (telemetryTimer.seconds() >= TELEMETRY_INTERVAL) {
                 telemetryTimer.reset();
-                shooter.updateTelemetry(telemetry);
+
                 telemetry.update();
             }
 

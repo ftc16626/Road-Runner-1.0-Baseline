@@ -10,10 +10,10 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 @TeleOp
 public class PIDF extends OpMode {
 
-    // wheel 1 pid sucks wheel is too tight cant over compensate yes
+    // wheel 1 P = 80 F = 13.9
     // wheel 2 P = 60 F = 12.4
     // wheel 3 P = 60 F = 15.45
-    public DcMotorEx wheel2;
+    public DcMotorEx wheel1;
     public double FarVelocity = 2300;
     public  double CloseVelocity = 1250;
     double curTargetVelocity = FarVelocity;
@@ -26,11 +26,11 @@ public class PIDF extends OpMode {
 
     @Override
     public void init(){
-        wheel2= hardwareMap.get(DcMotorEx.class, "shooter2");
-        wheel2.setMode((DcMotor.RunMode.RUN_USING_ENCODER));
-        wheel2.setDirection(DcMotorSimple.Direction.FORWARD);
+        wheel1= hardwareMap.get(DcMotorEx.class, "shooter3");
+        wheel1.setMode((DcMotor.RunMode.RUN_USING_ENCODER));
+        wheel1.setDirection(DcMotorSimple.Direction.FORWARD);
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P,0,0,F);
-        wheel2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+        wheel1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
         telemetry.addLine("int complete");
     }
     @Override
@@ -59,9 +59,9 @@ public class PIDF extends OpMode {
             P -= stepSizes [stepIndex];
         }
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P,0,0,F);
-        wheel2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,pidfCoefficients);
-        wheel2.setVelocity(curTargetVelocity);
-        double curVelocity = wheel2.getVelocity();
+        wheel1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,pidfCoefficients);
+        wheel1.setVelocity(curTargetVelocity);
+        double curVelocity = wheel1.getVelocity();
         double error = curTargetVelocity - curVelocity;
         telemetry.addData("Target Velocity", curTargetVelocity);
         telemetry.addData("Current Velocity", curVelocity);

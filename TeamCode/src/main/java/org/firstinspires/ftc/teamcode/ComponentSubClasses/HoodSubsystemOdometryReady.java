@@ -16,12 +16,10 @@ public class HoodSubsystemOdometryReady {
 
     private double hoodPosClose = 0.225;
     private double hoodPosFar = 0.40;
+    private double hoodPosGoal = 0.025;
+    public double curTargetVelocity = 1213.333333;
 
     public HoodSubsystemOdometryReady(HardwareMap hardwareMap) {
-        leftHoodServo = hardwareMap.get(Servo.class, "leftHoodServo");
-        rightHoodServo = hardwareMap.get(Servo.class, "rightHoodServo");
-        leftHoodServo.setDirection(Servo.Direction.REVERSE);
-        rightHoodServo.setDirection(Servo.Direction.FORWARD);
 
         flipper1 = hardwareMap.get(Servo.class, "flipper1");
         flipper2 = hardwareMap.get(Servo.class, "flipper2");
@@ -30,11 +28,7 @@ public class HoodSubsystemOdometryReady {
 
     public void controlFlippers(Gamepad gamepad) {
         // Hood RPM/position selection
-        if (gamepad.dpad_left) {
-            setHood(hoodPosClose);
-        } else if (gamepad.dpad_right) {
-            setHood(hoodPosFar);
-        }
+
 
         // Quick flipper pulses
         if (gamepad.circle) pulse(flipper3, 0.1, 0.53);
@@ -50,7 +44,8 @@ public class HoodSubsystemOdometryReady {
         if (gamepad.dpad_down) {
             flipper1.setPosition(0.47);
             flipper2.setPosition(0.47);
-            flipper3.setPosition(0.53);
+            flipper3.setPosition(0.55);
+            flipper3.setPosition(0.55);
         }
     }
 

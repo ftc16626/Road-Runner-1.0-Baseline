@@ -17,6 +17,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
@@ -32,7 +33,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 import java.lang.Math;
 import java.util.List;
 
-@Autonomous(name="RedUpAgainstTheGoalRR", group="Robot")
+@Autonomous(name="YOU_HAD_BETTER_PICK_ME_OR_I_WILL_EXPLODE", group="Robot")
 public class RenameTest extends LinearOpMode {
 
     // -------------------- Hardware --------------------
@@ -47,13 +48,20 @@ public class RenameTest extends LinearOpMode {
     private VisionPortal allSeeingEye;
     private AprilTagProcessor aprilTag;
 
-    private PIDControl pid1, pid2, pid3;
+    private double curTargetVelocity = 1213.33333;
     private ElapsedTime shooterTimer = new ElapsedTime();
 
     private double hoodPosClose = 0.225;
     private double targetRPM = 2050;
 
     private int artifactPattern = 0;
+    private enum FireState {
+        WAIT_FOR_COLOR,
+        SERVO_OUT,
+        SERVO_BACK,
+        DONE
+    }
+
     public class Everything {
         private CRServo intake;
         private Servo servoI, servoII, servoIII;
@@ -62,6 +70,8 @@ public class RenameTest extends LinearOpMode {
         private NormalizedColorSensor colorSensorV, colorSensorVI;
 
         ElapsedTime timer;
+        ElapsedTime servoTimer;
+
 
         public Everything(HardwareMap hardwareMapmap) {
 
@@ -86,6 +96,18 @@ public class RenameTest extends LinearOpMode {
             enableColorSensorLight(colorSensorVI);
         }
 
+        private ArtifactColor detectColor(NormalizedColorSensor s1) {
+            NormalizedRGBA c1 = s1.getNormalizedColors();
+            double r = (c1.red);
+            double g = (c1.green);
+            double b = (c1.blue);
+
+            // robust classifier
+            if (g > r + 0.03 && g > b + 0.02) return ArtifactColor.GREEN;
+            else if ((r + b) > 2.0 * g) return ArtifactColor.PURPLE;
+            else return ArtifactColor.NONE;
+        }
+
         public Action roller() {
             return new Action() {
                 private boolean initialized = false;
@@ -104,69 +126,82 @@ public class RenameTest extends LinearOpMode {
 
         public Action fire() {
             return new Action() {
-                private boolean initialized = false;
+
+                FireState state = FireState.WAIT_FOR_COLOR;
+                ElapsedTime stateTimer = new ElapsedTime();
+
+                boolean[] fired = {false, false, false}; // flipper1,2,3
+                ArtifactColor[] pattern = mapPattern(artifactPattern);
+                int patternIndex = 0;
 
                 @Override
                 public boolean run(@NonNull TelemetryPacket packet) {
-                    if (!initialized) {
-                        ArtifactColor[] requiredPattern = mapPattern(artifactPattern);
 
-                        boolean firstShot = true;
-                        boolean[] fired = {false, false, false}; // shooter1,2,3 fired flags
+                    // Read sensors every loop
+                    ArtifactColor s1 = detectColor(colorSensorI);
+                    ArtifactColor s2 = detectColor(colorSensorIII);
+                    ArtifactColor s3 = detectColor(colorSensorVI);
 
-                        for (ArtifactColor targetColor : requiredPattern) {
-                            boolean shotFired = false;
+                    // Telemetry (VERY IMPORTANT)
+                    packet.put("S1", s1);
+                    packet.put("S2", s2);
+                    packet.put("S3", s3);
+                    packet.put("State", state);
+                    packet.put("Pattern Index", patternIndex);
 
-                            while (opModeIsActive() && !shotFired) {
-                                // read each shooter
-                                ArtifactColor s1 = detectColor(colorSensorI, colorSensorII);
-                                ArtifactColor s2 = detectColor(colorSensorIII, colorSensorIV);
-                                ArtifactColor s3 = detectColor(colorSensorV, colorSensorVI);
-
-                                if (!fired[0] && s1 == targetColor) {
-                                    servoI.setPosition(0.9);
-                                    sleep(300);
-                                    servoI.setPosition(0.5);
-                                    sleep(200);
-                                    fired[0] = true;
-                                    shotFired = true;
-                                } else if (!fired[1] && s2 == targetColor) {
-                                    servoII.setPosition(0.9);
-                                    sleep(300);
-                                    servoII.setPosition(0.5);
-                                    sleep(200);
-                                    fired[1] = true;
-                                    shotFired = true;
-                                } else if (!fired[2] && s3 == targetColor) {
-                                    servoIII.setPosition(0.9);
-                                    sleep(300);
-                                    servoIII.setPosition(0.5);
-                                    sleep(200);
-                                    fired[2] = true;
-                                    shotFired = true;
-                                }
-
-                                if (shotFired && firstShot) {
-                                    // shift hood position for next shots
-                                    leftHood.setPosition(hoodPosClose);
-                                    rightHood.setPosition(hoodPosClose);
-                                    firstShot = false;
-                                }
-
-
-                                timer = new ElapsedTime();
-                                initialized = true;
-                            }
-
-                        }
-
+                    if (patternIndex >= pattern.length) {
+                        state = FireState.DONE;
                     }
-                    return timer.seconds() < 20;
+
+                    switch (state) {
+
+                        case WAIT_FOR_COLOR:
+                            ArtifactColor target = pattern[patternIndex];
+
+                            if (!fired[0] && s1 == target) {
+                                servoI.setPosition(0.1);
+                                fired[0] = true;
+                                stateTimer.reset();
+                                state = FireState.SERVO_OUT;
+                            } else if (!fired[1] && s2 == target) {
+                                servoII.setPosition(0.9);
+                                fired[1] = true;
+                                stateTimer.reset();
+                                state = FireState.SERVO_OUT;
+                            } else if (!fired[2] && s3 == target) {
+                                servoIII.setPosition(0.9);
+                                fired[2] = true;
+                                stateTimer.reset();
+                                state = FireState.SERVO_OUT;
+                            }
+                            break;
+
+                        case SERVO_OUT:
+                            if (stateTimer.milliseconds() > 300) {
+                                // retract all servos safely
+                                servoI.setPosition(0.53);
+                                servoII.setPosition(0.47);
+                                servoIII.setPosition(0.47);
+
+                                stateTimer.reset();
+                                state = FireState.SERVO_BACK;
+                            }
+                            break;
+
+                        case SERVO_BACK:
+                            patternIndex = patternIndex + 1;
+                            state = FireState.WAIT_FOR_COLOR;
+
+                            break;
+
+                        case DONE:
+                            return false; // Action complete
+                    }
+
+                    return true; // keep running
                 }
             };
         }
-
-
     }
 
 
@@ -213,10 +248,22 @@ public class RenameTest extends LinearOpMode {
         shooter1.setDirection(DcMotorEx.Direction.REVERSE);
         shooter2.setDirection(DcMotorEx.Direction.FORWARD);
         shooter3.setDirection(DcMotorEx.Direction.FORWARD);
+        double F1 = 13.9;
+        double P1 = 80;
 
-        pid1 = new PIDControl(shooter1, 28);
-        pid2 = new PIDControl(shooter2, 28);
-        pid3 = new PIDControl(shooter3, 28);
+
+        double F2 = 12.4;
+        double P2 = 60;
+
+
+        double F3 = 15.45;
+        double P3 = 60;
+
+
+        PIDFCoefficients pidfCoefficients1 = new PIDFCoefficients(P1,0,0,F1);
+        PIDFCoefficients pidfCoefficients2 = new PIDFCoefficients(P2,0,0,F2);
+        PIDFCoefficients pidfCoefficients3 = new PIDFCoefficients(P3,0,0,F3);
+
 
      //   servoI = hardwareMap.get(Servo.class, "flipper3");
      //   servoII = hardwareMap.get(Servo.class, "flipper2");
@@ -275,13 +322,22 @@ public class RenameTest extends LinearOpMode {
         // -------------------- Start Shooter Thread --------------------
         Thread shooterThread = new Thread(() -> {
             while (opModeIsActive() && shooterTimer.seconds() < 30) {
-                double out1 = pid1.update(targetRPM);
-                double out2 = pid2.update(targetRPM);
-                double out3 = pid3.update(targetRPM);
+                shooter1.setVelocity(curTargetVelocity);
 
-                shooter1.setPower(out1);
-                shooter2.setPower(out2);
-                shooter3.setPower(out3);
+                shooter2.setVelocity(curTargetVelocity);
+
+                shooter3.setVelocity(curTargetVelocity);
+
+                shooter1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,pidfCoefficients1);
+                shooter1.setVelocity(curTargetVelocity);
+
+                shooter2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,pidfCoefficients2);
+                shooter2.setVelocity(curTargetVelocity);
+
+                shooter3.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,pidfCoefficients3);
+                shooter3.setVelocity(curTargetVelocity);
+
+
 
                 try { Thread.sleep(20); } catch (InterruptedException e) { break; }
             }
@@ -347,10 +403,7 @@ public class RenameTest extends LinearOpMode {
 
 
         // -------------------- Firing Sequence --------------------
-        ArtifactColor[] requiredPattern = mapPattern(artifactPattern);
-
-        boolean firstShot = true;
-        boolean[] fired = {false, false, false}; // shooter1,2,3 fired flags
+   // shooter1,2,3 fired flags
 
       //  for (ArtifactColor targetColor : requiredPattern) {
          //   boolean shotFired = false;
@@ -406,7 +459,7 @@ public class RenameTest extends LinearOpMode {
 
     private void enableColorSensorLight(NormalizedColorSensor sensor) {
         if (sensor instanceof SwitchableLight) ((SwitchableLight) sensor).enableLight(true);
-        sensor.setGain(1);
+        sensor.setGain(2);
     }
 
     private ArtifactColor[] mapPattern(int id) {
@@ -418,19 +471,7 @@ public class RenameTest extends LinearOpMode {
         }
     }
 
-    private ArtifactColor detectColor(NormalizedColorSensor s1, NormalizedColorSensor s2) {
-        NormalizedRGBA c1 = s1.getNormalizedColors();
-        NormalizedRGBA c2 = s2.getNormalizedColors();
 
-        double r = (c1.red + c2.red)/2.0;
-        double g = (c1.green + c2.green)/2.0;
-        double b = (c1.blue + c2.blue)/2.0;
-
-        // robust classifier
-        if (g > r + 0.03 && g > b + 0.03) return ArtifactColor.GREEN;
-        else if ((r + b) > 2.0 * g) return ArtifactColor.PURPLE;
-        else return ArtifactColor.NONE;
-    }
 
     private void initAprilTag() {
         aprilTag = new AprilTagProcessor.Builder()
@@ -447,42 +488,6 @@ public class RenameTest extends LinearOpMode {
     }
 
     // -------------------- PID Control --------------------
-    private static class PIDControl {
-        private final DcMotorEx motor;
-        private final double ticksPerRev;
-        private double Kp = 8.0, Ki = 0.5, Kd = 1.3;
-        private double integral = 0.0, lastError = 0.0;
-        private final double integralLimit = 2000.0;
-        private int lastPos;
-        private long lastTimeNs;
-        private double lastRPM = 0.0;
 
-        public PIDControl(DcMotorEx motor, double ticksPerRev) {
-            this.motor = motor;
-            this.ticksPerRev = ticksPerRev;
-            this.lastPos = motor.getCurrentPosition();
-            this.lastTimeNs = System.nanoTime();
-        }
-
-        public synchronized double update(double targetRPM) {
-            int curPos = motor.getCurrentPosition();
-            long now = System.nanoTime();
-            int dPos = curPos - lastPos;
-            long dNs = Math.max(1, now - lastTimeNs);
-            double dt = dNs/1e9;
-
-            double currentRPM = Math.abs((dPos/dt)/ticksPerRev*60.0);
-            lastRPM = 0.7*lastRPM + 0.3*currentRPM;
-
-            double error = targetRPM - lastRPM;
-            integral += error*dt;
-            integral = Math.max(-integralLimit, Math.min(integral, integralLimit));
-            double derivative = (error - lastError)/dt;
-            if (Math.abs(derivative) > 5000) derivative = 0.0;
-            lastError = error;
-
-            double output = Kp*error + Ki*integral + Kd*derivative;
-            return Math.max(0.0, Math.min(1.0, output));
-        }
     }
-}
+
