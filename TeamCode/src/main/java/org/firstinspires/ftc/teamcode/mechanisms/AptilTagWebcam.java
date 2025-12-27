@@ -55,7 +55,7 @@ public class AptilTagWebcam {
     }
 
     public void displayyDetectionTelemetryy(AprilTagDetection detectedId){
-        if (detectedId == null) {return}
+        if (detectedId == null) {return;}
         if (detectedId.metadata != null) {
             telemetry.addLine(String.format("\n==== (ID %d) %s", detectedId.id, detectedId.metadata.name));
             telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detectedId.ftcPose.x, detectedId.ftcPose.y, detectedId.ftcPose.z));

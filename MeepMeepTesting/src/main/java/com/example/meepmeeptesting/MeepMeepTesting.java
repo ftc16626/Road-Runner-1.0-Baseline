@@ -15,13 +15,26 @@ public class MeepMeepTesting {
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
                 .build();
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-50, 47,Math.toRadians(135)))
+       // myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(0, 0,Math.toRadians(126)))
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-52, 47,Math.toRadians(126)))
                 //----------Grab the first balls-----------
-                .strafeTo(new Vector2d(-10,20))
-                .turn(Math.toRadians(-44.1))
-                .strafeTo(new Vector2d(-10,47))
-                .strafeTo(new Vector2d(-50,47))
+                .setReversed(true)
+                .splineToSplineHeading(new Pose2d(-10, 28, Math.toRadians(90)), Math.toRadians(50))
+                .setReversed(false)
+                .lineToY(57)
+                .lineToY(10)
                 .turn(Math.toRadians(44.1))
+                .splineToSplineHeading(new Pose2d(14.5, 30, Math.toRadians(90)), Math.toRadians(50))
+                .setReversed(false)
+                .lineToY(50)
+                .setReversed(true)
+                .splineToSplineHeading(new Pose2d(-8, 10, Math.toRadians(180-44.1)), Math.toRadians(50))
+
+
+
+                // .strafeTo(new Vector2d(-10,47))
+               // .strafeTo(new Vector2d(-50,47))
+              //  .turn(Math.toRadians(44.1))
                 //----------Grab the second balls---------
               //  .strafeTo(new Vector2d(13,20))
               //  .turn(Math.toRadians(-44.1))

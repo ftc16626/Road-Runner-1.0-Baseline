@@ -45,9 +45,9 @@ public class ColorSensors {
        PURPLE = <.06, <.07, >.09
         */
 
-       if (normRed <0.04 && normGreen >0.13 && normBlue >0.10) {
+       if (normRed <0.04 && normGreen >0.06 && normBlue >0.04) {
            return DetectedColor.GREEN;
-       } else if (normRed <0.06 && normGreen <0.07 && normBlue >0.09) {
+       } else if (normRed <0.08 && normGreen <0.09 && normBlue >0.08) {
            return DetectedColor.PURPLE;
        }
        else {
