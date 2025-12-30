@@ -132,10 +132,10 @@ public class MightWorkOdometryReady extends LinearOpMode {
             // -------------------- Hood / Flippers --------------------
             hood.controlFlippers(gamepad2);
             if (gamepad2.dpad_left){
-                curTargetVelocity = 1213.333333;
+                curTargetVelocity = 1313.333333;
                 setHood(hoodPosClose);
             } else if (gamepad2.dpad_right){
-                curTargetVelocity = 1460;
+                curTargetVelocity = 1560;
                 setHood(hoodPosFar);
             }
             // -------------------- Shooter --------------------
