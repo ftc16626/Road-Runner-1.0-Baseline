@@ -160,29 +160,40 @@ public class RenameTest extends LinearOpMode {
                 private ArtifactColor[] pattern = mapPattern(artifactPattern);
                 private int index = 0;
 
+                // Fired tracking
+                private boolean shooter1Fired = false;
+                private boolean shooter2Fired = false;
+                private boolean shooter3Fired = false;
+
+                private int firedPurpleCount = 0;
+                private int firedGreenCount = 0;
+
                 private boolean initialized = false;
                 private boolean shotThisStep = false;
 
+                private ArtifactColor inferMissingColor() {
+                    if (firedPurpleCount == 2) return ArtifactColor.GREEN;
+                    if (firedPurpleCount == 1 && firedGreenCount == 1) return ArtifactColor.PURPLE;
+                    return ArtifactColor.NONE;
+                }
+
                 @Override
                 public boolean run(@NonNull TelemetryPacket packet) {
-                    if (state != lastState) {
-                        timer.reset();
-                        lastState = state;
-                    }
 
-                    // One-time init
                     if (!initialized) {
                         timer.reset();
                         initialized = true;
                     }
 
-                    // Finish condition (Action COMPLETE)
+                    // End condition
                     if (index >= pattern.length) {
                         packet.put("Fire", "DONE");
                         return false;
                     }
 
-                    // Read sensors every loop
+                    ArtifactColor target = pattern[index];
+
+                    // Read sensors
                     ArtifactColor s1 = detectColor(colorSensorI);
                     ArtifactColor s2 = detectColor(colorSensorII);
                     ArtifactColor s3 = detectColor(colorSensorIII);
@@ -190,67 +201,112 @@ public class RenameTest extends LinearOpMode {
                     ArtifactColor s5 = detectColor(colorSensorV);
                     ArtifactColor s6 = detectColor(colorSensorVI);
 
-                    // Telemetry (THIS IS GOLD)
+                    boolean detected =
+                            (s1 == target || s2 == target ||
+                                    s3 == target || s4 == target ||
+                                    s5 == target || s6 == target);
+
+                    boolean nothingDetected =
+                            s1 == ArtifactColor.NONE &&
+                                    s2 == ArtifactColor.NONE &&
+                                    s3 == ArtifactColor.NONE &&
+                                    s4 == ArtifactColor.NONE &&
+                                    s5 == ArtifactColor.NONE &&
+                                    s6 == ArtifactColor.NONE;
+
+                    ArtifactColor inferred = inferMissingColor();
+
                     telemetry.addData("Fire State", state);
-                    telemetry.addData("Pattern Index", index);
-                    telemetry.addData("Target", pattern[index]);
-                    telemetry.addData("S1", s1);
-                    telemetry.addData("S2", s2);
-                    telemetry.addData("S3", s3);
-                    telemetry.addData("Timer (ms)", timer.milliseconds());
+                    telemetry.addData("Index", index);
+                    telemetry.addData("Target", target);
+                    telemetry.addData("Inferred", inferred);
+                    telemetry.addData("Purple Fired", firedPurpleCount);
+                    telemetry.addData("Green Fired", firedGreenCount);
                     telemetry.update();
 
                     switch (state) {
 
-
-                            // Accept match from ANY sensor
                         case WAIT_FOR_COLOR:
-                            if (!shotThisStep &&
-                                    (s1 == pattern[index] ||
-                                     //       s2 == pattern[index] ||
-                                            s3 == pattern[index] ||
-                                            s4 == pattern[index] ||
-                                            s5 == pattern[index] ||
-                                            s6 == pattern[index])) {
 
-                                if (s1 == pattern[index] || s2 == pattern[index]) servoIII.setPosition(0.1);
-                                else if (s3 == pattern[index] || s4 == pattern[index]) servoII.setPosition(0.9);
-                                else servoI.setPosition(0.9);
+                            // ---------- NORMAL SENSOR FIRING ----------
+                            if (!shotThisStep && detected) {
+
+                                if (!shooter3Fired && (s1 == target || s2 == target)) {
+                                    servoIII.setPosition(0.1);
+                                    shooter3Fired = true;
+                                }
+                                else if (!shooter2Fired && (s3 == target || s4 == target)) {
+                                    servoII.setPosition(0.9);
+                                    shooter2Fired = true;
+                                }
+                                else if (!shooter1Fired && (s5 == target || s6 == target)) {
+                                    servoI.setPosition(0.9);
+                                    shooter1Fired = true;
+                                }
+
+                                if (target == ArtifactColor.PURPLE) firedPurpleCount++;
+                                if (target == ArtifactColor.GREEN) firedGreenCount++;
 
                                 shotThisStep = true;
+                                timer.reset();
+                                state = FireState.SERVO_OUT;
+                            }
+
+                            // ---------- INFERRED FIRING ----------
+                            else if (!shotThisStep && nothingDetected && inferred == target) {
+
+                                telemetry.addLine("INFERRED COLOR FIRING");
+
+                                if (!shooter1Fired) {
+                                    servoI.setPosition(0.9);
+                                    shooter1Fired = true;
+                                }
+                                else if (!shooter2Fired) {
+                                    servoII.setPosition(0.9);
+                                    shooter2Fired = true;
+                                }
+                                else if (!shooter3Fired) {
+                                    servoIII.setPosition(0.1);
+                                    shooter3Fired = true;
+                                }
+
+                                if (target == ArtifactColor.PURPLE) firedPurpleCount++;
+                                if (target == ArtifactColor.GREEN) firedGreenCount++;
+
+                                shotThisStep = true;
+                                timer.reset();
                                 state = FireState.SERVO_OUT;
                             }
                             break;
 
-
                         case SERVO_OUT:
-                            if (timer.milliseconds() > 1000) {
-                                servoI.setPosition(0.47);
+                            if (timer.milliseconds() > 1500) {
+                                servoI.setPosition(0.53);
                                 servoII.setPosition(0.47);
-                                servoIII.setPosition(0.55);
+                                servoIII.setPosition(0.47);
+                                timer.reset();
                                 state = FireState.SERVO_BACK;
                             }
                             break;
 
                         case SERVO_BACK:
-                            if (timer.milliseconds() > 500) {
-                                index++;               // ADVANCE ONLY AFTER FIRING
-                                shotThisStep = false;  // RESET FOR NEXT BALL
+                            if (timer.milliseconds() > 1000) {
+                                index++;
+                                shotThisStep = false;
                                 state = FireState.WAIT_FOR_COLOR;
                             }
                             break;
-
                     }
 
-                    return true; // keep Action alive
+                    return true;
                 }
             };
-        }
-    }
+        }}
 
 
 
-    // -------------------- Artifact Color Enum --------------------
+
+        // -------------------- Artifact Color Enum --------------------
     private enum ArtifactColor { GREEN, PURPLE, NONE }
 
 
