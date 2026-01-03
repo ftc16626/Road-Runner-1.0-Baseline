@@ -12,7 +12,7 @@ public class PIDF extends OpMode {
 
     // wheel 1 P = 80 F = 13.9
     // wheel 2 P = 60 F = 12.4
-    // wheel 3 P = 60 F = 15.45
+    // wheel 3 P = 60 F = 12.045
     public DcMotorEx wheel1;
     public double FarVelocity = 2300;
     public  double CloseVelocity = 1250;

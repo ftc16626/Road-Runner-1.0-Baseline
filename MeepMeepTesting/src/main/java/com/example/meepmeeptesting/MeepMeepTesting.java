@@ -16,13 +16,22 @@ public class MeepMeepTesting {
                 .build();
 
        // myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(0, 0,Math.toRadians(126)))
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-52, 47,Math.toRadians(126)))
+
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(57, 19,Math.toRadians(160)))
                 //----------Grab the first balls-----------
 
-                        .setReversed(true)
-                .splineToSplineHeading(new Pose2d(-20, 10, Math.toRadians(90)), Math.toRadians(45))
-                .splineToConstantHeading(new Vector2d(-8, 50), Math.toRadians(90))
-             /*           .setReversed(true)
+                .setReversed(false)
+                .splineToSplineHeading(new Pose2d(36, 15, Math.toRadians(90)), Math.toRadians(25))
+
+                /* .setReversed(true)
+                .splineToSplineHeading(new Pose2d(16, 20, Math.toRadians(90)), Math.toRadians(50))
+                .setReversed(true)
+                        .lineToY(52)
+                .lineToY(50)
+                .splineToSplineHeading(new Pose2d(-10, 10, Math.toRadians(130)), Math.toRadians(50))
+*/
+
+                /*           .setReversed(true)
                 .splineToSplineHeading(new Pose2d(-8, 10, Math.toRadians(140)), Math.toRadians(90))
                         .setReversed(true)
                 .splineToSplineHeading(new Pose2d(13, 50, Math.toRadians(90)), Math.toRadians(90))

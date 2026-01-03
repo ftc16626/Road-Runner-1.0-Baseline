@@ -24,6 +24,26 @@ public class HoodSubsystemOdometryReady {
         flipper1 = hardwareMap.get(Servo.class, "flipper1");
         flipper2 = hardwareMap.get(Servo.class, "flipper2");
         flipper3 = hardwareMap.get(Servo.class, "flipper3");
+
+    }
+    private long pulseEndTime = 0;
+    private Servo pulsingServo = null;
+    private double pulseReturnPos = 0;
+
+    public void updateFlipperPulse() {
+        if (pulsingServo != null && System.currentTimeMillis() >= pulseEndTime) {
+            pulsingServo.setPosition(pulseReturnPos);
+            pulsingServo = null;
+        }
+    }
+
+    private void startPulse(Servo s, double out, double back, long durationMs) {
+        if (pulsingServo == null) { // prevent stacking pulses
+            s.setPosition(out);
+            pulsingServo = s;
+            pulseReturnPos = back;
+            pulseEndTime = System.currentTimeMillis() + durationMs;
+        }
     }
 
     public void controlFlippers(Gamepad gamepad) {
@@ -31,9 +51,11 @@ public class HoodSubsystemOdometryReady {
 
 
         // Quick flipper pulses
-        if (gamepad.circle) pulse(flipper3, 0.1, 0.53);
-        if (gamepad.a) pulse(flipper2, 0.9, 0.47);
-        if (gamepad.square) pulse(flipper1, 0.9, 0.47);
+        if (gamepad.circle) startPulse(flipper3, 0.1, 0.53, 100);
+        if (gamepad.a)      startPulse(flipper2, 0.9, 0.47, 100);
+        if (gamepad.square) startPulse(flipper1, 0.9, 0.47, 100);
+
+        updateFlipperPulse();
 
         // Set default positions
         if (gamepad.triangle) {
@@ -54,11 +76,7 @@ public class HoodSubsystemOdometryReady {
         rightHoodServo.setPosition(pos);
     }
 
-    private void pulse(Servo s, double a, double b) {
-        s.setPosition(a);
-        try { Thread.sleep(100); } catch (InterruptedException ignored) {}
-        s.setPosition(b);
-    }
+
 
     // -------------------- Odometry placeholders --------------------
     // Future integration: servo angle can be read for precise shot targeting.
