@@ -21,25 +21,27 @@ public class MeepMeepTesting {
                 //----------Grab the first balls-----------
 
                 .setReversed(false)
-                .splineToSplineHeading(new Pose2d(36, 15, Math.toRadians(90)), Math.toRadians(25))
-
-                /* .setReversed(true)
-                .splineToSplineHeading(new Pose2d(16, 20, Math.toRadians(90)), Math.toRadians(50))
+                .splineToLinearHeading(new Pose2d(34, 25, Math.toRadians(90)), Math.toRadians(180))
                 .setReversed(true)
-                        .lineToY(52)
-                .lineToY(50)
-                .splineToSplineHeading(new Pose2d(-10, 10, Math.toRadians(130)), Math.toRadians(50))
-*/
+                                .lineToY(60)
+                .setReversed(true)
+                .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
 
-                /*           .setReversed(true)
-                .splineToSplineHeading(new Pose2d(-8, 10, Math.toRadians(140)), Math.toRadians(90))
-                        .setReversed(true)
-                .splineToSplineHeading(new Pose2d(13, 50, Math.toRadians(90)), Math.toRadians(90))
-                        .setReversed(true)
-                .splineToSplineHeading(new Pose2d(-25, 10, Math.toRadians(140)), Math.toRadians(90))
-*/
+                .setReversed(false)
+                .splineToLinearHeading(new Pose2d(15, 25, Math.toRadians(90)), Math.toRadians(180))
+                .setReversed(true)
+                .lineToY(60)
 
+                .setReversed(true)
+                .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
 
+                .setReversed(false)
+                .splineToLinearHeading(new Pose2d(-13, 25, Math.toRadians(90)), Math.toRadians(180))
+                .setReversed(true)
+                .lineToY(60)
+
+                .setReversed(true)
+                .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
 
 
                 // .strafeTo(new Vector2d(-10,47))
