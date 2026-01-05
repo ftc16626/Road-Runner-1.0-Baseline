@@ -60,7 +60,7 @@ public class MightWorkOdometryReady extends LinearOpMode {
     // Layout reference for TeleOp (optional)
     private View relativeLayout;
     public Servo leftHoodServo, rightHoodServo;
-    public Servo flipper1, flipper2, flipper3;
+    public DcMotorEx shooter1, shooter2, shooter3;
 
     // -------------------- Odometry placeholders --------------------
     // private int leftOdomPrev = 0;
@@ -85,9 +85,15 @@ public class MightWorkOdometryReady extends LinearOpMode {
         rightHoodServo = hardwareMap.get(Servo.class, "rightHoodServo");
         leftHoodServo.setDirection(Servo.Direction.REVERSE);
         rightHoodServo.setDirection(Servo.Direction.FORWARD);
-        flipper1 = hardwareMap.get(Servo.class,"flipper1");
-        flipper2 = hardwareMap.get(Servo.class,"flipper2");
-        flipper3 = hardwareMap.get(Servo.class,"flipper3");
+
+        shooter1 = hardwareMap.get(DcMotorEx.class, "shooter1");
+        shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
+        shooter3 = hardwareMap.get(DcMotorEx.class, "shooter3");
+
+        shooter1.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        shooter2.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        shooter3.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        shooter1.setDirection(DcMotorSimple.Direction.REVERSE);
         // Optional layout
         int relativeLayoutId = hardwareMap.appContext.getResources()
                 .getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
@@ -142,11 +148,7 @@ public class MightWorkOdometryReady extends LinearOpMode {
                 curTargetVelocity = 1560;
                 setHood(hoodPosFar);
             }
-            if (gamepad2.left_bumper){
-                flipper1.setPosition(0.6);
-                flipper2.setPosition(0.6);
-                flipper3.setPosition(0.41);
-            }
+
             // -------------------- Shooter --------------------
             shooter.controlShooter(curTargetVelocity, gamepad2);
 

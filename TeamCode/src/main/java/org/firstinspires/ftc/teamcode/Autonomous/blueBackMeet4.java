@@ -34,25 +34,25 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 import java.lang.Math;
 import java.util.List;
 
-@Autonomous(name="RED_UP_AGAINST_THE_GOAL_MEET4", group="Robot")
-public class RenameTest extends LinearOpMode {
+@Autonomous(name="BLUEBACKMEET4", group="Robot")
+public class blueBackMeet4 extends LinearOpMode {
 
     // -------------------- Hardware --------------------
     private DcMotorEx shooter1, shooter2, shooter3;
-   // private Servo servoI, servoII, servoIII;
+    // private Servo servoI, servoII, servoIII;
     private Servo leftHood, rightHood;
-  //  private CRServo Intake;
+    //  private CRServo Intake;
 
-  //  private NormalizedColorSensor colorSensorI, colorSensorII;
-  //  private NormalizedColorSensor colorSensorIII, colorSensorIV;
-  //  private NormalizedColorSensor colorSensorV, colorSensorVI;
+    //  private NormalizedColorSensor colorSensorI, colorSensorII;
+    //  private NormalizedColorSensor colorSensorIII, colorSensorIV;
+    //  private NormalizedColorSensor colorSensorV, colorSensorVI;
     private VisionPortal allSeeingEye;
     private AprilTagProcessor aprilTag;
 
-    private double curTargetVelocity = 1253.33333-150;
+    private double curTargetVelocity = 1560;
     private ElapsedTime shooterTimer = new ElapsedTime();
 
-    private double hoodPosClose = 0.225;
+    private double hoodPosFar = 0.4;
     private double targetRPM = 2050;
     private CRServo intake;
 
@@ -125,9 +125,9 @@ public class RenameTest extends LinearOpMode {
                 @Override
                 public boolean run(@NonNull TelemetryPacket packet) {
                     if (!initialized) {
-                        leftHood.setPosition(hoodPosClose);
-                        rightHood.setPosition(hoodPosClose);
-                        curTargetVelocity = 1253.33333;
+                        leftHood.setPosition(hoodPosFar);
+                        rightHood.setPosition(hoodPosFar);
+
                         initialized = true;
                         timer = new ElapsedTime();
                     }
@@ -147,7 +147,7 @@ public class RenameTest extends LinearOpMode {
                         initialized = true;
                     }
 
-                    if (timer.seconds() >= 2.2) {
+                    if (timer.seconds() >= 3) {
                         intake.setPower(0);   // STOP THE SERVO
                         return false;         // Action done
                     }
@@ -159,9 +159,9 @@ public class RenameTest extends LinearOpMode {
 
         public Action fire() {
             return new Action() {
-                private static final double FIRE_TIMEOUT_SEC = 3.0;
 
                 private FireState state = FireState.WAIT_FOR_COLOR;
+                private static final double FIRE_TIMEOUT_SEC = 3.0;
                 private final ElapsedTime timer = new ElapsedTime();
 
                 private ArtifactColor[] pattern = mapPattern(artifactPattern);
@@ -197,7 +197,7 @@ public class RenameTest extends LinearOpMode {
                     ArtifactColor s5 = detectColor(colorSensorV);
                     ArtifactColor s6 = detectColor(colorSensorVI);
 
-                    // Telemetry (THIS IS GOLD)
+                    // Telemetry
                     telemetry.addData("Fire State", state);
                     telemetry.addData("Pattern Index", index);
                     telemetry.addData("Target", pattern[index]);
@@ -257,7 +257,7 @@ public class RenameTest extends LinearOpMode {
     }
 
 
-        // -------------------- Artifact Color Enum --------------------
+    // -------------------- Artifact Color Enum --------------------
     private enum ArtifactColor { GREEN, PURPLE, NONE }
 
 
@@ -269,26 +269,6 @@ public class RenameTest extends LinearOpMode {
         // -------------------- Initialize Drive --------------------
 
 
-        Pose2d startPose = (new Pose2d(-52, 47,Math.toRadians(126)));
-        Pose2d pickup1 = (new Pose2d(-8, 25, Math.toRadians(85)));
-        Pose2d pickup1end = (new Pose2d(-8, 50, Math.toRadians(85)));
-        Pose2d moveto2 = (new Pose2d(-10, 10, Math.toRadians(138)));
-        Pose2d pickup2 = (new Pose2d(16, 26, Math.toRadians(82)));
-        Pose2d pickup2end = (new Pose2d(20, 60, Math.toRadians(82)));
-        Pose2d pickup3 = (new Pose2d(38.5, 20, Math.toRadians(82)));
-        MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
-        Action driveAction = drive.actionBuilder(pickup1)
-                .setReversed(false)
-            .lineToY(50)
-                .build();
-        Action driveAction2 = drive.actionBuilder(pickup2)
-                .setReversed(false)
-                .lineToY(52)
-                .build();
-          Action driveAction3 = drive.actionBuilder(pickup3)
-                .setReversed(false)
-                .lineToY(60)
-               .build();
 
 
         // -------------------- Initialize Hardware --------------------
@@ -320,10 +300,10 @@ public class RenameTest extends LinearOpMode {
         PIDFCoefficients pidfCoefficients3 = new PIDFCoefficients(P3,0,0,F3);
 
 
-     //   servoI = hardwareMap.get(Servo.class, "flipper3");
-     //   servoII = hardwareMap.get(Servo.class, "flipper2");
-      //  servoIII = hardwareMap.get(Servo.class, "flipper1");
-       // Intake = hardwareMap.get(Servo.class, "roller");
+        //   servoI = hardwareMap.get(Servo.class, "flipper3");
+        //   servoII = hardwareMap.get(Servo.class, "flipper2");
+        //  servoIII = hardwareMap.get(Servo.class, "flipper1");
+        // Intake = hardwareMap.get(Servo.class, "roller");
 
         leftHood = hardwareMap.get(Servo.class, "leftHoodServo");
         rightHood = hardwareMap.get(Servo.class, "rightHoodServo");
@@ -345,9 +325,7 @@ public class RenameTest extends LinearOpMode {
                 AprilTagDetection d = detections.get(0);
                 artifactPattern = d.id;
                 // remap pattern IDs if needed
-                if (artifactPattern == 23) artifactPattern = 21;
-                else if (artifactPattern == 21) artifactPattern = 22;
-                else if (artifactPattern == 22) artifactPattern = 23;
+
                 telemetry.addData("AprilTag detected", d.id);
                 telemetry.addData("Mapped pattern", artifactPattern);
 
@@ -397,21 +375,53 @@ public class RenameTest extends LinearOpMode {
 
 
         // Pickup artifact 1
-        Actions.runBlocking(new SequentialAction(Everything.fire()));
-        Actions.runBlocking(new SequentialAction(Everything.hood()));
+
+        Pose2d startPose = (new Pose2d(60, -10,Math.toRadians(-180)));
+        Pose2d afterPose = (new Pose2d(50, -13, Math.toRadians(-159)));
+        Pose2d pickup1 = (new Pose2d(34, -25, Math.toRadians(-90)));
+        Pose2d pickup1end = (new Pose2d(34, -60, Math.toRadians(-90)));
+        Pose2d moveto2 = (new Pose2d(50, -13, Math.toRadians(-159)));
+        Pose2d pickup2 = (new Pose2d(15, -25, Math.toRadians(-90)));
+        Pose2d pickup2end = (new Pose2d(15, -60, Math.toRadians(-90)));
+        Pose2d moveto3 = (new Pose2d(50, -13, Math.toRadians(-159)));
+        Pose2d pickup3 = (new Pose2d(-13, -25, Math.toRadians(-90)));
+        Pose2d pickup3end = (new Pose2d(-13, -60, Math.toRadians(-90)));
+        MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
+        Action driveAction = drive.actionBuilder(pickup1)
+                .setReversed(true)
+                .lineToY(-60)
+                .build();
+        Action driveAction2 = drive.actionBuilder(pickup2)
+                .setReversed(true)
+                .lineToY(-60)
+                .build();
+        Action driveAction3 = drive.actionBuilder(pickup3)
+                .setReversed(true)
+                .lineToY(-60)
+                .build();
+
         Actions.runBlocking(
                 drive.actionBuilder(startPose)
-                        .setReversed(true)
-                        .splineToSplineHeading(new Pose2d(-8, 25, Math.toRadians(90)), Math.toRadians(50))
+                        .strafeTo(new Vector2d(50,-13))
+                        .turnTo(Math.toRadians(-159))
+                        .build()
+        );
+
+        Actions.runBlocking(new SequentialAction(Everything.hood()));
+        Actions.runBlocking(new SequentialAction(Everything.fire()));
+
+        Actions.runBlocking(
+                drive.actionBuilder(afterPose)
+                        .setReversed(false)
+                        .splineToLinearHeading(new Pose2d(34, -25, Math.toRadians(-90)), Math.toRadians(180))
                         .build()
         );
 
         Actions.runBlocking(new ParallelAction(driveAction, Everything.roller()));
         Actions.runBlocking(
                 drive.actionBuilder(pickup1end)
-                        .setReversed(false)
-                        .lineToY(10)
-                        .turn(Math.toRadians(40.1))
+                        .setReversed(true)
+                        .splineToSplineHeading(new Pose2d(50, -13, Math.toRadians(-159)), Math.toRadians(220))
                         .build()
         );
         Actions.runBlocking(new SequentialAction(Everything.fire()));
@@ -420,20 +430,34 @@ public class RenameTest extends LinearOpMode {
         // Move to firing position
         Actions.runBlocking(
                 drive.actionBuilder(moveto2)
-                        .setReversed(true)
-                        .splineToSplineHeading(new Pose2d(37, 20, Math.toRadians(90)), Math.toRadians(50))
+                        .setReversed(false)
+                        .splineToLinearHeading(new Pose2d(15, -25, Math.toRadians(-90)), Math.toRadians(180))
                         .build()
         );
 
-        Actions.runBlocking(new ParallelAction(driveAction3, Everything.roller()));
-      //  Actions.runBlocking(
-      //          drive.actionBuilder(pickup2end)
+        Actions.runBlocking(new ParallelAction(Everything.roller(),driveAction2));
+        Actions.runBlocking(
+                drive.actionBuilder(pickup2end)
+                        .setReversed(true)
+                        .splineToSplineHeading(new Pose2d(50, -13, Math.toRadians(-159)), Math.toRadians(220))
+                        .build()
+        );
+        Actions.runBlocking(new SequentialAction(Everything.fire()));
+        Actions.runBlocking(
+                drive.actionBuilder(moveto3)
+                        .setReversed(false)
+                        .splineToLinearHeading(new Pose2d(-13, -25, Math.toRadians(-90)), Math.toRadians(180))
+                        .build()
+        );
+        Actions.runBlocking(new ParallelAction(Everything.roller(),driveAction3));
+        Actions.runBlocking(
+                drive.actionBuilder(pickup3end)
+                        .setReversed(true)
+                        .splineToSplineHeading(new Pose2d(50, -13, Math.toRadians(-159)), Math.toRadians(220))
+                        .build()
+        );
+        Actions.runBlocking(new SequentialAction(Everything.fire()));
 
-      //                  .setReversed(true)
-      //                  .lineToY(50)
-     //                   .splineToSplineHeading(new Pose2d(-10, 10, Math.toRadians(130)), Math.toRadians(50))
-      //                  .build()
-      //  );
 
 
 
@@ -442,57 +466,57 @@ public class RenameTest extends LinearOpMode {
 
 
         // -------------------- Firing Sequence --------------------
-   // shooter1,2,3 fired flags
+        // shooter1,2,3 fired flags
 
-      //  for (ArtifactColor targetColor : requiredPattern) {
-         //   boolean shotFired = false;
+        //  for (ArtifactColor targetColor : requiredPattern) {
+        //   boolean shotFired = false;
 
-           // while (opModeIsActive() && !shotFired) {
-                // read each shooter
-           //     ArtifactColor s1 = detectColor(colorSensorI, colorSensorII);
-         //       ArtifactColor s2 = detectColor(colorSensorIII, colorSensorIV);
-          //      ArtifactColor s3 = detectColor(colorSensorV, colorSensorVI);
+        // while (opModeIsActive() && !shotFired) {
+        // read each shooter
+        //     ArtifactColor s1 = detectColor(colorSensorI, colorSensorII);
+        //       ArtifactColor s2 = detectColor(colorSensorIII, colorSensorIV);
+        //      ArtifactColor s3 = detectColor(colorSensorV, colorSensorVI);
 
-         //       if (!fired[0] && s1 == targetColor) {
-           //         servoI.setPosition(0.9); sleep(300);
-           //         servoI.setPosition(0.5); sleep(200);
-      //              fired[0] = true;
+        //       if (!fired[0] && s1 == targetColor) {
+        //         servoI.setPosition(0.9); sleep(300);
+        //         servoI.setPosition(0.5); sleep(200);
+        //              fired[0] = true;
         //            shotFired = true;
-          //      } else if (!fired[1] && s2 == targetColor) {
-            //        servoII.setPosition(0.9); sleep(300);
-              //      servoII.setPosition(0.5); sleep(200);
-            //        fired[1] = true;
-                    //shotFired = true;
-              //  } else if (!fired[2] && s3 == targetColor) {
-            //        servoIII.setPosition(0.9); sleep(300);
-               //     servoIII.setPosition(0.5); sleep(200);
-           //         fired[2] = true;
-          //          shotFired = true;
-              //  }
+        //      } else if (!fired[1] && s2 == targetColor) {
+        //        servoII.setPosition(0.9); sleep(300);
+        //      servoII.setPosition(0.5); sleep(200);
+        //        fired[1] = true;
+        //shotFired = true;
+        //  } else if (!fired[2] && s3 == targetColor) {
+        //        servoIII.setPosition(0.9); sleep(300);
+        //     servoIII.setPosition(0.5); sleep(200);
+        //         fired[2] = true;
+        //          shotFired = true;
+        //  }
 
-               // if (shotFired && firstShot) {
-                    // shift hood position for next shots
-               //     leftHood.setPosition(hoodPosClose);
-              //      rightHood.setPosition(hoodPosClose);
-                //    firstShot = false;
-               // }
+        // if (shotFired && firstShot) {
+        // shift hood position for next shots
+        //     leftHood.setPosition(hoodPosClose);
+        //      rightHood.setPosition(hoodPosClose);
+        //    firstShot = false;
+        // }
 
-                // Telemetry for alignment
-                TelemetryPacket packet = new TelemetryPacket();
-                packet.put("CurrentPose", drive.localizer.getPose().toString());
-                Pose2d diff = (drive.localizer.getPose());
-                packet.put("x", diff.position.x);
-                packet.put("y", diff.position.y);
-                packet.put("θ", Math.toDegrees(diff.heading.toDouble()));
+        // Telemetry for alignment
+        TelemetryPacket packet = new TelemetryPacket();
+        packet.put("CurrentPose", drive.localizer.getPose().toString());
+        Pose2d diff = (drive.localizer.getPose());
+        packet.put("x", diff.position.x);
+        packet.put("y", diff.position.y);
+        packet.put("θ", Math.toDegrees(diff.heading.toDouble()));
 
-                telemetry.update();
-            }
-     //   }
+        telemetry.update();
+    }
+    //   }
 
-  //      telemetry.addLine("Autonomous Complete");
- //       telemetry.update();
-   //     sleep(1000);
-   // }
+    //      telemetry.addLine("Autonomous Complete");
+    //       telemetry.update();
+    //     sleep(1000);
+    // }
 
     // -------------------- Utility Methods --------------------
 
@@ -527,5 +551,5 @@ public class RenameTest extends LinearOpMode {
     }
 
 
-    }
+}
 

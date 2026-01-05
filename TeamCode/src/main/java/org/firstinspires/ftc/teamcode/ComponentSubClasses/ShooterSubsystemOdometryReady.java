@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -27,6 +28,7 @@ import java.util.List;
 public class ShooterSubsystemOdometryReady {
 
     public DcMotorEx shooter1, shooter2, shooter3;
+    public Servo flipper1, flipper2, flipper3;
 
 
     public ShooterSubsystemOdometryReady(HardwareMap hardwareMap) {
@@ -38,6 +40,9 @@ public class ShooterSubsystemOdometryReady {
         shooter2.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         shooter3.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         shooter1.setDirection(DcMotorSimple.Direction.REVERSE);
+        flipper1 = hardwareMap.get(Servo.class,"flipper1");
+        flipper2 = hardwareMap.get(Servo.class,"flipper2");
+        flipper3 = hardwareMap.get(Servo.class,"flipper3");
 
 
     }
@@ -77,6 +82,9 @@ public class ShooterSubsystemOdometryReady {
 
 
         } else if (gamepad.left_bumper) {
+            flipper1.setPosition(0.6);
+            flipper2.setPosition(0.6);
+            flipper3.setPosition(0.41);
             curTargetVelocity = -500;
             double F1 = 13.9;
             double P1 = 80;

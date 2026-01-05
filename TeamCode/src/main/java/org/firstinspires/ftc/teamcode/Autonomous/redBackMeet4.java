@@ -159,6 +159,7 @@ public class redBackMeet4 extends LinearOpMode {
 
         public Action fire() {
             return new Action() {
+                private static final double FIRE_TIMEOUT_SEC = 3.0;
 
                 private FireState state = FireState.WAIT_FOR_COLOR;
                 private final ElapsedTime timer = new ElapsedTime();
@@ -211,6 +212,8 @@ public class redBackMeet4 extends LinearOpMode {
 
                         // Accept match from ANY sensor
                         case WAIT_FOR_COLOR:
+
+                            // NORMAL FIRE CONDITION
                             if (!shotThisStep &&
                                     (s1 == pattern[index] ||
                                             s2 == pattern[index] ||
@@ -226,22 +229,21 @@ public class redBackMeet4 extends LinearOpMode {
                                 shotThisStep = true;
                                 state = FireState.SERVO_OUT;
                             }
-                            break;
 
+                            // FAILSAFE NO SHOT AFTER 3 SECONDS
+                            else if (timer.seconds() > FIRE_TIMEOUT_SEC) {
 
-                        case SERVO_OUT:
-                            if (timer.milliseconds() > 1000) {
+                                telemetry.addLine(" FIRE TIMEOUT — SKIPPING SHOT");
+                                telemetry.update();
+
+                                // Reset servos to safe position
                                 servoI.setPosition(0.47);
                                 servoII.setPosition(0.47);
                                 servoIII.setPosition(0.55);
-                                state = FireState.SERVO_BACK;
-                            }
-                            break;
 
-                        case SERVO_BACK:
-                            if (timer.milliseconds() > 500) {
-                                index++;               // ADVANCE ONLY AFTER FIRING
-                                shotThisStep = false;  // RESET FOR NEXT BALL
+                                // Skip this target and move on
+                                index++;
+                                shotThisStep = false;
                                 state = FireState.WAIT_FOR_COLOR;
                             }
                             break;
@@ -267,27 +269,6 @@ public class redBackMeet4 extends LinearOpMode {
         // -------------------- Initialize Drive --------------------
 
 
-        Pose2d startPose = (new Pose2d(60, 10,Math.toRadians(180)));
-        Pose2d afterPose = (new Pose2d(50, 13, Math.toRadians(159)));
-        Pose2d pickup1 = (new Pose2d(34, 13, Math.toRadians(90)));
-        Pose2d pickup1end = (new Pose2d(34, 60, Math.toRadians(82)));
-        Pose2d moveto2 = (new Pose2d(50, 13, Math.toRadians(159)));
-        Pose2d pickup2 = (new Pose2d(16, 26, Math.toRadians(82)));
-        Pose2d pickup2end = (new Pose2d(20, 60, Math.toRadians(82)));
-        Pose2d pickup3 = (new Pose2d(16, 20, Math.toRadians(82)));
-        MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
-        Action driveAction = drive.actionBuilder(pickup1)
-                .setReversed(false)
-                .lineToY(70)
-                .build();
-        Action driveAction2 = drive.actionBuilder(pickup2)
-                .setReversed(false)
-                .lineToY(52)
-                .build();
-        Action driveAction3 = drive.actionBuilder(pickup3)
-                .setReversed(false)
-                .lineToY(60)
-                .build();
 
 
         // -------------------- Initialize Hardware --------------------
@@ -395,6 +376,30 @@ public class redBackMeet4 extends LinearOpMode {
 
         // Pickup artifact 1
 
+        Pose2d startPose = (new Pose2d(60, 10,Math.toRadians(180)));
+        Pose2d afterPose = (new Pose2d(50, 13, Math.toRadians(159)));
+        Pose2d pickup1 = (new Pose2d(34, 25, Math.toRadians(90)));
+        Pose2d pickup1end = (new Pose2d(34, 60, Math.toRadians(90)));
+        Pose2d moveto2 = (new Pose2d(50, 13, Math.toRadians(159)));
+        Pose2d pickup2 = (new Pose2d(15, 25, Math.toRadians(90)));
+        Pose2d pickup2end = (new Pose2d(15, 60, Math.toRadians(90)));
+        Pose2d moveto3 = (new Pose2d(50, 13, Math.toRadians(159)));
+        Pose2d pickup3 = (new Pose2d(-13, 25, Math.toRadians(90)));
+        Pose2d pickup3end = (new Pose2d(-13, 60, Math.toRadians(90)));
+        MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
+        Action driveAction = drive.actionBuilder(pickup1)
+                .setReversed(true)
+                .lineToY(60)
+                .build();
+        Action driveAction2 = drive.actionBuilder(pickup2)
+                .setReversed(true)
+                .lineToY(60)
+                .build();
+        Action driveAction3 = drive.actionBuilder(pickup3)
+                .setReversed(true)
+                .lineToY(60)
+                .build();
+
         Actions.runBlocking(
                 drive.actionBuilder(startPose)
                         .strafeTo(new Vector2d(50,13))
@@ -407,8 +412,8 @@ public class redBackMeet4 extends LinearOpMode {
 
         Actions.runBlocking(
                 drive.actionBuilder(afterPose)
-                        .lineToX(34)
-                        .turnTo(Math.toRadians(90))
+                        .setReversed(false)
+                        .splineToLinearHeading(new Pose2d(34, 25, Math.toRadians(90)), Math.toRadians(180))
                         .build()
         );
 
@@ -416,7 +421,7 @@ public class redBackMeet4 extends LinearOpMode {
         Actions.runBlocking(
                 drive.actionBuilder(pickup1end)
                         .setReversed(true)
-                        .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(50))
+                        .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
                         .build()
         );
         Actions.runBlocking(new SequentialAction(Everything.fire()));
@@ -426,19 +431,33 @@ public class redBackMeet4 extends LinearOpMode {
         Actions.runBlocking(
                 drive.actionBuilder(moveto2)
                         .setReversed(false)
-                        .splineToSplineHeading(new Pose2d(16, 20, Math.toRadians(90)), Math.toRadians(50))
+                        .splineToLinearHeading(new Pose2d(15, 25, Math.toRadians(90)), Math.toRadians(180))
                         .build()
         );
 
+        Actions.runBlocking(new ParallelAction(Everything.roller(),driveAction2));
+          Actions.runBlocking(
+                  drive.actionBuilder(pickup2end)
+                          .setReversed(true)
+                          .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
+                          .build()
+          );
+        Actions.runBlocking(new SequentialAction(Everything.fire()));
+        Actions.runBlocking(
+                drive.actionBuilder(moveto3)
+                        .setReversed(false)
+                        .splineToLinearHeading(new Pose2d(-13, 25, Math.toRadians(90)), Math.toRadians(180))
+                        .build()
+        );
         Actions.runBlocking(new ParallelAction(Everything.roller(),driveAction3));
-        //  Actions.runBlocking(
-        //          drive.actionBuilder(pickup2end)
+        Actions.runBlocking(
+                drive.actionBuilder(pickup3end)
+                        .setReversed(true)
+                        .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
+                        .build()
+        );
+        Actions.runBlocking(new SequentialAction(Everything.fire()));
 
-        //                  .setReversed(true)
-        //                  .lineToY(50)
-        //                   .splineToSplineHeading(new Pose2d(-10, 10, Math.toRadians(130)), Math.toRadians(50))
-        //                  .build()
-        //  );
 
 
 

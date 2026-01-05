@@ -11,6 +11,7 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -33,6 +34,7 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 import java.util.List;
 
 @Autonomous(name="TheBlueDownAutoYouShouldUse", group="Robot")
+@Disabled
 public class BlueDawnwithActions extends LinearOpMode {
 
     /* Declare OpMode members. */

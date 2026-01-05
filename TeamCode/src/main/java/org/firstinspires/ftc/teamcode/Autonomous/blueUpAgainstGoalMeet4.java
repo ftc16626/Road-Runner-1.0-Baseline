@@ -34,8 +34,8 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 import java.lang.Math;
 import java.util.List;
 
-@Autonomous(name="bluemeet4goal", group="Robot")
-public class bluemeet4goal extends LinearOpMode {
+@Autonomous(name="BLUE_UP_AGAINST_THE_GOAL_MEET4", group="Robot")
+public class blueUpAgainstGoalMeet4 extends LinearOpMode {
 
     // -------------------- Hardware --------------------
     private DcMotorEx shooter1, shooter2, shooter3;
@@ -49,11 +49,12 @@ public class bluemeet4goal extends LinearOpMode {
     private VisionPortal allSeeingEye;
     private AprilTagProcessor aprilTag;
 
-    private double curTargetVelocity = 1213.33333-150;
+    private double curTargetVelocity = 1253.33333-150;
     private ElapsedTime shooterTimer = new ElapsedTime();
 
     private double hoodPosClose = 0.225;
     private double targetRPM = 2050;
+    private CRServo intake;
 
     private int artifactPattern = 0;
     private enum FireState {
@@ -126,7 +127,7 @@ public class bluemeet4goal extends LinearOpMode {
                     if (!initialized) {
                         leftHood.setPosition(hoodPosClose);
                         rightHood.setPosition(hoodPosClose);
-                        curTargetVelocity = 1233.33333;
+                        curTargetVelocity = 1253.33333;
                         initialized = true;
                         timer = new ElapsedTime();
                     }
@@ -142,20 +143,27 @@ public class bluemeet4goal extends LinearOpMode {
                 public boolean run(@NonNull TelemetryPacket packet) {
                     if (!initialized) {
                         intake.setPower(-1);
-                        initialized = true;
                         timer = new ElapsedTime();
+                        initialized = true;
                     }
-                    return timer.seconds() < 0.1;
+
+                    if (timer.seconds() >= 2.2) {
+                        intake.setPower(0);   // STOP THE SERVO
+                        return false;         // Action done
+                    }
+
+                    return true;
                 }
             };
         }
-
 
         public Action fire() {
             return new Action() {
 
                 private FireState state = FireState.WAIT_FOR_COLOR;
+                private static final double FIRE_TIMEOUT_SEC = 3.0;
                 private final ElapsedTime timer = new ElapsedTime();
+
 
                 private ArtifactColor[] pattern = mapPattern(artifactPattern);
                 private int index = 0;
@@ -205,6 +213,8 @@ public class bluemeet4goal extends LinearOpMode {
 
                         // Accept match from ANY sensor
                         case WAIT_FOR_COLOR:
+
+                            // NORMAL FIRE CONDITION
                             if (!shotThisStep &&
                                     (s1 == pattern[index] ||
                                             s2 == pattern[index] ||
@@ -220,22 +230,21 @@ public class bluemeet4goal extends LinearOpMode {
                                 shotThisStep = true;
                                 state = FireState.SERVO_OUT;
                             }
-                            break;
 
+                            // FAILSAFE NO SHOT AFTER 3 SECONDS
+                            else if (timer.seconds() > FIRE_TIMEOUT_SEC) {
 
-                        case SERVO_OUT:
-                            if (timer.milliseconds() > 1000) {
+                                telemetry.addLine(" FIRE TIMEOUT — SKIPPING SHOT");
+                                telemetry.update();
+
+                                // Reset servos to safe position
                                 servoI.setPosition(0.47);
                                 servoII.setPosition(0.47);
                                 servoIII.setPosition(0.55);
-                                state = FireState.SERVO_BACK;
-                            }
-                            break;
 
-                        case SERVO_BACK:
-                            if (timer.milliseconds() > 500) {
-                                index++;               // ADVANCE ONLY AFTER FIRING
-                                shotThisStep = false;  // RESET FOR NEXT BALL
+                                // Skip this target and move on
+                                index++;
+                                shotThisStep = false;
                                 state = FireState.WAIT_FOR_COLOR;
                             }
                             break;
@@ -247,7 +256,6 @@ public class bluemeet4goal extends LinearOpMode {
             };
         }
     }
-
 
 
     // -------------------- Artifact Color Enum --------------------
@@ -263,12 +271,12 @@ public class bluemeet4goal extends LinearOpMode {
 
 
         Pose2d startPose = (new Pose2d(-52, -47,Math.toRadians(-126)));
-        Pose2d pickup1 = (new Pose2d(-8, -28, Math.toRadians(-90)));
-        Pose2d pickup1end = (new Pose2d(-8, -50, Math.toRadians(-90)));
-        Pose2d moveto2 = (new Pose2d(-8, -15, Math.toRadians(-47.9)));
-        Pose2d pickup2 = (new Pose2d(14.5, -30, Math.toRadians(-90)));
-        Pose2d pickup2end = (new Pose2d(17, -60, Math.toRadians(-90)));
-        Pose2d pickup3 = (new Pose2d(38.5, -30, Math.toRadians(-90)));
+        Pose2d pickup1 = (new Pose2d(-8, -25, Math.toRadians(-85)));
+        Pose2d pickup1end = (new Pose2d(-8, -50, Math.toRadians(-85)));
+        Pose2d moveto2 = (new Pose2d(-10, -10, Math.toRadians(-138)));
+        Pose2d pickup2 = (new Pose2d(16, -26, Math.toRadians(-82)));
+        Pose2d pickup2end = (new Pose2d(20, -60, Math.toRadians(-82)));
+        Pose2d pickup3 = (new Pose2d(38.5, -20, Math.toRadians(-82)));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
         Action driveAction = drive.actionBuilder(pickup1)
                 .setReversed(false)
@@ -276,7 +284,7 @@ public class bluemeet4goal extends LinearOpMode {
                 .build();
         Action driveAction2 = drive.actionBuilder(pickup2)
                 .setReversed(false)
-                .lineToY(-60)
+                .lineToY(-52)
                 .build();
         Action driveAction3 = drive.actionBuilder(pickup3)
                 .setReversed(false)
@@ -288,6 +296,7 @@ public class bluemeet4goal extends LinearOpMode {
         shooter1 = hardwareMap.get(DcMotorEx.class, "shooter1");
         shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
         shooter3 = hardwareMap.get(DcMotorEx.class, "shooter3");
+        intake = hardwareMap.get(CRServo.class, "roller");
         Everything Everything = new Everything(hardwareMap);
 
 
@@ -352,6 +361,7 @@ public class bluemeet4goal extends LinearOpMode {
 
         waitForStart();
         shooterTimer.reset();
+        intake.setPower(0);
 
         // -------------------- Start Shooter Thread --------------------
         Thread shooterThread = new Thread(() -> {
@@ -388,22 +398,21 @@ public class bluemeet4goal extends LinearOpMode {
 
 
         // Pickup artifact 1
-         Actions.runBlocking(new SequentialAction(Everything.fire()));
+        Actions.runBlocking(new SequentialAction(Everything.fire()));
         Actions.runBlocking(new SequentialAction(Everything.hood()));
         Actions.runBlocking(
-                drive.actionBuilder(drive.localizer.getPose())
+                drive.actionBuilder(startPose)
                         .setReversed(true)
-                        .splineToSplineHeading(new Pose2d(-8, -25, Math.toRadians(-90)), Math.toRadians(-50))
+                        .splineToSplineHeading(new Pose2d(-8, -25, Math.toRadians(-90)), Math.toRadians(50))
                         .build()
         );
-        Actions.runBlocking(new SequentialAction(driveAction));
-        // Actions.runBlocking(new ParallelAction(driveAction, Everything.roller()));
-        Actions.runBlocking(
-                drive.actionBuilder(drive.localizer.getPose())
-                        .setReversed(false)
 
-                        .lineToY(-5)
-                        .turn(Math.toRadians(-50.1))
+        Actions.runBlocking(new ParallelAction(driveAction, Everything.roller()));
+        Actions.runBlocking(
+                drive.actionBuilder(pickup1end)
+                        .setReversed(false)
+                        .lineToY(-10)
+                        .turn(Math.toRadians(-40.1))
                         .build()
         );
         Actions.runBlocking(new SequentialAction(Everything.fire()));
@@ -411,32 +420,21 @@ public class bluemeet4goal extends LinearOpMode {
 
         // Move to firing position
         Actions.runBlocking(
-                drive.actionBuilder(drive.localizer.getPose())
-                        .setReversed(false)
-                        .splineToSplineHeading(new Pose2d(17, -26, Math.toRadians(-42.1)), Math.toRadians(-50))
-                        .build()
-        );
-        Actions.runBlocking(new SequentialAction(driveAction2));
-        // Actions.runBlocking(new ParallelAction(driveAction2, Everything.roller()));
-        Actions.runBlocking(
-                drive.actionBuilder(drive.localizer.getPose())
+                drive.actionBuilder(moveto2)
                         .setReversed(true)
-                        .splineToSplineHeading(
-                                new Pose2d(-8, -10, Math.toRadians(-131.9)),
-                                Math.toRadians(-50)
-                        )
+                        .splineToSplineHeading(new Pose2d(37, -20, Math.toRadians(-90)), Math.toRadians(50))
                         .build()
         );
-        Actions.runBlocking(new SequentialAction(Everything.fire()));
-        // Actions.runBlocking(
-        //         drive.actionBuilder(moveto2)
-        //                 .setReversed(false)
-        //                 .strafeTo(new Vector2d(38.5,30))
-        //                 .turn(Math.toRadians(-44.1))
-        //                 .waitSeconds(1)
-        //                 .build()
+
+        Actions.runBlocking(new ParallelAction(driveAction3, Everything.roller()));
+        //  Actions.runBlocking(
+        //          drive.actionBuilder(pickup2end)
+
+        //                  .setReversed(true)
+        //                  .lineToY(50)
+        //                   .splineToSplineHeading(new Pose2d(-10, 10, Math.toRadians(130)), Math.toRadians(50))
+        //                  .build()
         //  );
-        // Actions.runBlocking(new ParallelAction(driveAction3, Everything.roller()));
 
 
 
@@ -529,7 +527,6 @@ public class bluemeet4goal extends LinearOpMode {
                 .build();
     }
 
-    // -------------------- PID Control --------------------
 
 }
 

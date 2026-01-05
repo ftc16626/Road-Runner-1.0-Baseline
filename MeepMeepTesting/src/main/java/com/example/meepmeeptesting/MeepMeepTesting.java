@@ -17,32 +17,43 @@ public class MeepMeepTesting {
 
        // myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(0, 0,Math.toRadians(126)))
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(57, 19,Math.toRadians(160)))
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-52, -47,Math.toRadians(-126)))
                 //----------Grab the first balls-----------
 
-                .setReversed(false)
-                .splineToLinearHeading(new Pose2d(34, 25, Math.toRadians(90)), Math.toRadians(180))
+              /*  .setReversed(false)
+                .splineToLinearHeading(new Pose2d(34, -25, Math.toRadians(-90)), Math.toRadians(180))
                 .setReversed(true)
-                                .lineToY(60)
+                                .lineToY(-60)
                 .setReversed(true)
-                .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
+                .splineToSplineHeading(new Pose2d(50, -13, Math.toRadians(-159)), Math.toRadians(220))
 
                 .setReversed(false)
-                .splineToLinearHeading(new Pose2d(15, 25, Math.toRadians(90)), Math.toRadians(180))
+                .splineToLinearHeading(new Pose2d(15, -25, Math.toRadians(-90)), Math.toRadians(180))
                 .setReversed(true)
-                .lineToY(60)
+                .lineToY(-60)
 
                 .setReversed(true)
-                .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
+                .splineToSplineHeading(new Pose2d(50, -13, Math.toRadians(-159)), Math.toRadians(220))
 
                 .setReversed(false)
-                .splineToLinearHeading(new Pose2d(-13, 25, Math.toRadians(90)), Math.toRadians(180))
+                .splineToLinearHeading(new Pose2d(-13, -25, Math.toRadians(-90)), Math.toRadians(180))
                 .setReversed(true)
-                .lineToY(60)
+                .lineToY(-60)
 
                 .setReversed(true)
-                .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
-
+                .splineToSplineHeading(new Pose2d(50, -13, Math.toRadians(-159)), Math.toRadians(220))
+*/
+                .setReversed(true)
+                .splineToSplineHeading(new Pose2d(-8, -25, Math.toRadians(-90)), Math.toRadians(50))
+                .setReversed(false)
+                .lineToY(-50)
+                .setReversed(false)
+                .lineToY(-10)
+                .turn(Math.toRadians(-40.1))
+                .setReversed(true)
+                .splineToSplineHeading(new Pose2d(37, -20, Math.toRadians(-90)), Math.toRadians(50))
+                .setReversed(false)
+                .lineToY(-60)
 
                 // .strafeTo(new Vector2d(-10,47))
                // .strafeTo(new Vector2d(-50,47))

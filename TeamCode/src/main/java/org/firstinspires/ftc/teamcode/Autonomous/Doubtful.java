@@ -15,6 +15,7 @@ import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -39,6 +40,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 import java.util.List;
 
 @Autonomous(name="TheRedUpAgainstWallAutoYouShouldUse", group="Robot")
+@Disabled
 public class Doubtful extends LinearOpMode {
 
     /* Hardware */
