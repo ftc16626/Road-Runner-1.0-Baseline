@@ -293,8 +293,8 @@ public class redBackMeet4 extends LinearOpMode {
         double P2 = 60;
 
 
-        double F3 = 15.45;
-        double P3 = 60;
+        double F3 = 12;
+        double P3 = 50;
 
 
         PIDFCoefficients pidfCoefficients1 = new PIDFCoefficients(P1,0,0,F1);
