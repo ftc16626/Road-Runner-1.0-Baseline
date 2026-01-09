@@ -109,8 +109,7 @@ public class redBackMeet4 extends LinearOpMode {
             normBlue = c1.blue;
 
             // robust classifier
-
-            if (normRed <0.045 && normGreen >0.06 && normBlue >0.04) {
+            if (normRed <0.045 && normGreen >0.09 && normBlue >0.04) {
                 return ArtifactColor.GREEN;
             } else if (normRed <0.08 && normGreen <0.1 && normBlue >0.06) {
                 return ArtifactColor.PURPLE;
@@ -159,7 +158,6 @@ public class redBackMeet4 extends LinearOpMode {
 
         public Action fire() {
             return new Action() {
-                private static final double FIRE_TIMEOUT_SEC = 3.0;
 
                 private FireState state = FireState.WAIT_FOR_COLOR;
                 private final ElapsedTime timer = new ElapsedTime();
@@ -167,95 +165,99 @@ public class redBackMeet4 extends LinearOpMode {
                 private ArtifactColor[] pattern = mapPattern(artifactPattern);
                 private int index = 0;
 
-                private boolean initialized = false;
-                private boolean shotThisStep = false;
+                // Which sensor matched this shot (1–6)
+                private int lockedSensor = -1;
 
                 @Override
                 public boolean run(@NonNull TelemetryPacket packet) {
-                    if (state != lastState) {
-                        timer.reset();
-                        lastState = state;
-                    }
 
-                    // One-time init
-                    if (!initialized) {
-                        timer.reset();
-                        initialized = true;
-                    }
-
-                    // Finish condition (Action COMPLETE)
+                    // DONE
                     if (index >= pattern.length) {
-                        packet.put("Fire", "DONE");
+                        telemetry.addLine("Fire DONE");
+                        telemetry.update();
                         return false;
                     }
 
-                    // Read sensors every loop
-                    ArtifactColor s1 = detectColor(colorSensorI);
-                    ArtifactColor s2 = detectColor(colorSensorII);
-                    ArtifactColor s3 = detectColor(colorSensorIII);
-                    ArtifactColor s4 = detectColor(colorSensorIV);
-                    ArtifactColor s5 = detectColor(colorSensorV);
-                    ArtifactColor s6 = detectColor(colorSensorVI);
+                    // Read sensors ONLY when waiting
+                    ArtifactColor s1 = ArtifactColor.NONE;
+                    ArtifactColor s2 = ArtifactColor.NONE;
+                    ArtifactColor s3 = ArtifactColor.NONE;
+                    ArtifactColor s4 = ArtifactColor.NONE;
+                    ArtifactColor s5 = ArtifactColor.NONE;
+                    ArtifactColor s6 = ArtifactColor.NONE;
 
-                    // Telemetry (THIS IS GOLD)
-                    telemetry.addData("Fire State", state);
-                    telemetry.addData("Pattern Index", index);
+                    if (state == FireState.WAIT_FOR_COLOR) {
+                        s1 = detectColor(colorSensorI);
+                        s2 = detectColor(colorSensorII);
+                        s3 = detectColor(colorSensorIII);
+                        s4 = detectColor(colorSensorIV);
+                        s5 = detectColor(colorSensorV);
+                        s6 = detectColor(colorSensorVI);
+                    }
+
+                    telemetry.addData("State", state);
+                    telemetry.addData("Index", index);
                     telemetry.addData("Target", pattern[index]);
+                    telemetry.addData("LockedSensor", lockedSensor);
                     telemetry.addData("S1", s1);
                     telemetry.addData("S2", s2);
                     telemetry.addData("S3", s3);
-                    telemetry.addData("Timer (ms)", timer.milliseconds());
                     telemetry.update();
 
                     switch (state) {
 
-
-                        // Accept match from ANY sensor
+                        // ---------------- WAIT ----------------
                         case WAIT_FOR_COLOR:
 
-                            // NORMAL FIRE CONDITION
-                            if (!shotThisStep &&
-                                    (s1 == pattern[index] ||
-                                            s2 == pattern[index] ||
-                                            s3 == pattern[index] ||
-                                            s4 == pattern[index] ||
-                                            s5 == pattern[index] ||
-                                            s6 == pattern[index])) {
-
-                                if (s1 == pattern[index] || s2 == pattern[index]) servoIII.setPosition(0.1);
-                                else if (s3 == pattern[index] || s4 == pattern[index]) servoII.setPosition(0.9);
-                                else servoI.setPosition(0.9);
-
-                                shotThisStep = true;
-                                state = FireState.SERVO_OUT;
+                            if (s1 == pattern[index] || s2 == pattern[index]) {
+                                servoIII.setPosition(0.1);
+                                lockedSensor = 1;
+                            }
+                            else if (s3 == pattern[index] || s4 == pattern[index]) {
+                                servoII.setPosition(0.9);
+                                lockedSensor = 2;
+                            }
+                            else if (s5 == pattern[index] || s6 == pattern[index]) {
+                                servoI.setPosition(0.9);
+                                lockedSensor = 3;
                             }
 
-                            // FAILSAFE NO SHOT AFTER 3 SECONDS
-                            else if (timer.seconds() > FIRE_TIMEOUT_SEC) {
-
-                                telemetry.addLine(" FIRE TIMEOUT — SKIPPING SHOT");
-                                telemetry.update();
-
-                                // Reset servos to safe position
-                                servoI.setPosition(0.47);
-                                servoII.setPosition(0.47);
-                                servoIII.setPosition(0.55);
-
-                                // Skip this target and move on
-                                index++;
-                                shotThisStep = false;
-                                state = FireState.WAIT_FOR_COLOR;
+                            if (lockedSensor != -1) {
+                                timer.reset();
+                                state = FireState.SERVO_OUT;
                             }
                             break;
 
+                        // ---------------- SERVO OUT ----------------
+                        case SERVO_OUT:
+                            // Let ball fully leave
+                            if (timer.milliseconds() > 1000) {
+                                timer.reset();
+                                state = FireState.SERVO_BACK;
+                            }
+                            break;
+
+                        // ---------------- SERVO BACK ----------------
+                        case SERVO_BACK:
+
+                            // Retract the servo we used
+                            if (lockedSensor == 1) servoIII.setPosition(0.53);
+                            if (lockedSensor == 2) servoII.setPosition(0.47);
+                            if (lockedSensor == 3) servoI.setPosition(0.47);
+
+                            if (timer.milliseconds() > 500) {
+                                // Advance EXACTLY once
+                                index++;
+                                lockedSensor = -1;
+                                state = FireState.WAIT_FOR_COLOR;
+                            }
+                            break;
                     }
 
-                    return true; // keep Action alive
+                    return true;
                 }
             };
-        }
-    }
-
+        }}
 
     // -------------------- Artifact Color Enum --------------------
     private enum ArtifactColor { GREEN, PURPLE, NONE }
@@ -377,7 +379,7 @@ public class redBackMeet4 extends LinearOpMode {
         // Pickup artifact 1
 
         Pose2d startPose = (new Pose2d(60, 10,Math.toRadians(180)));
-        Pose2d afterPose = (new Pose2d(50, 13, Math.toRadians(159)));
+        Pose2d afterPose = (new Pose2d(55, 13, Math.toRadians(159)));
         Pose2d pickup1 = (new Pose2d(34, 25, Math.toRadians(90)));
         Pose2d pickup1end = (new Pose2d(34, 60, Math.toRadians(90)));
         Pose2d moveto2 = (new Pose2d(50, 13, Math.toRadians(159)));
@@ -389,20 +391,20 @@ public class redBackMeet4 extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
         Action driveAction = drive.actionBuilder(pickup1)
                 .setReversed(true)
-                .lineToY(60)
+                .lineToY(70)
                 .build();
         Action driveAction2 = drive.actionBuilder(pickup2)
                 .setReversed(true)
-                .lineToY(60)
+                .lineToY(70)
                 .build();
         Action driveAction3 = drive.actionBuilder(pickup3)
                 .setReversed(true)
-                .lineToY(60)
+                .lineToY(70)
                 .build();
 
         Actions.runBlocking(
                 drive.actionBuilder(startPose)
-                        .strafeTo(new Vector2d(50,13))
+                        .strafeTo(new Vector2d(55,13))
                         .turnTo(Math.toRadians(159))
                         .build()
         );
@@ -417,6 +419,7 @@ public class redBackMeet4 extends LinearOpMode {
                         .build()
         );
 
+
         Actions.runBlocking(new ParallelAction(driveAction, Everything.roller()));
         Actions.runBlocking(
                 drive.actionBuilder(pickup1end)
@@ -424,7 +427,7 @@ public class redBackMeet4 extends LinearOpMode {
                         .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
                         .build()
         );
-        Actions.runBlocking(new SequentialAction(Everything.fire()));
+       Actions.runBlocking(new SequentialAction(Everything.fire()));
 
 
         // Move to firing position
@@ -436,6 +439,7 @@ public class redBackMeet4 extends LinearOpMode {
         );
 
         Actions.runBlocking(new ParallelAction(Everything.roller(),driveAction2));
+
           Actions.runBlocking(
                   drive.actionBuilder(pickup2end)
                           .setReversed(true)
@@ -449,7 +453,7 @@ public class redBackMeet4 extends LinearOpMode {
                         .splineToLinearHeading(new Pose2d(-13, 25, Math.toRadians(90)), Math.toRadians(180))
                         .build()
         );
-        Actions.runBlocking(new ParallelAction(Everything.roller(),driveAction3));
+        Actions.runBlocking(new SequentialAction(driveAction3));
         Actions.runBlocking(
                 drive.actionBuilder(pickup3end)
                         .setReversed(true)

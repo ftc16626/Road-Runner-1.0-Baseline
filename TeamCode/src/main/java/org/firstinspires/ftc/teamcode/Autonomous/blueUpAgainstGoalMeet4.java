@@ -34,7 +34,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 import java.lang.Math;
 import java.util.List;
 
-@Autonomous(name="BLUE_UP_AGAINST_THE_GOAL_MEET4", group="Robot")
+@Autonomous(name="BLUE_GOAL_MEET4", group="Robot")
 public class blueUpAgainstGoalMeet4 extends LinearOpMode {
 
     // -------------------- Hardware --------------------
@@ -109,8 +109,7 @@ public class blueUpAgainstGoalMeet4 extends LinearOpMode {
             normBlue = c1.blue;
 
             // robust classifier
-
-            if (normRed <0.045 && normGreen >0.06 && normBlue >0.04) {
+            if (normRed <0.045 && normGreen >0.09 && normBlue >0.04) {
                 return ArtifactColor.GREEN;
             } else if (normRed <0.08 && normGreen <0.1 && normBlue >0.06) {
                 return ArtifactColor.PURPLE;
@@ -271,12 +270,12 @@ public class blueUpAgainstGoalMeet4 extends LinearOpMode {
 
 
         Pose2d startPose = (new Pose2d(-52, -47,Math.toRadians(-126)));
-        Pose2d pickup1 = (new Pose2d(-8, -25, Math.toRadians(-85)));
-        Pose2d pickup1end = (new Pose2d(-8, -50, Math.toRadians(-85)));
-        Pose2d moveto2 = (new Pose2d(-10, -10, Math.toRadians(-138)));
-        Pose2d pickup2 = (new Pose2d(16, -26, Math.toRadians(-82)));
-        Pose2d pickup2end = (new Pose2d(20, -60, Math.toRadians(-82)));
-        Pose2d pickup3 = (new Pose2d(38.5, -20, Math.toRadians(-82)));
+        Pose2d pickup1 = (new Pose2d(-8, -25, Math.toRadians(-90)));
+        Pose2d pickup1end = (new Pose2d(-8, -50, Math.toRadians(-90)));
+        Pose2d moveto2 = (new Pose2d(-10, -10, Math.toRadians(-126)));
+        Pose2d pickup2 = (new Pose2d(16, -26, Math.toRadians(-90)));
+        Pose2d pickup2end = (new Pose2d(20, -60, Math.toRadians(-90)));
+        Pose2d pickup3 = (new Pose2d(38.5, -20, Math.toRadians(-90)));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
         Action driveAction = drive.actionBuilder(pickup1)
                 .setReversed(false)
@@ -399,7 +398,7 @@ public class blueUpAgainstGoalMeet4 extends LinearOpMode {
 
         // Pickup artifact 1
         Actions.runBlocking(new SequentialAction(Everything.fire()));
-        Actions.runBlocking(new SequentialAction(Everything.hood()));
+       Actions.runBlocking(new SequentialAction(Everything.hood()));
         Actions.runBlocking(
                 drive.actionBuilder(startPose)
                         .setReversed(true)
@@ -407,7 +406,7 @@ public class blueUpAgainstGoalMeet4 extends LinearOpMode {
                         .build()
         );
 
-        Actions.runBlocking(new ParallelAction(driveAction, Everything.roller()));
+         Actions.runBlocking(new ParallelAction(driveAction, Everything.roller()));
         Actions.runBlocking(
                 drive.actionBuilder(pickup1end)
                         .setReversed(false)
@@ -427,14 +426,6 @@ public class blueUpAgainstGoalMeet4 extends LinearOpMode {
         );
 
         Actions.runBlocking(new ParallelAction(driveAction3, Everything.roller()));
-        //  Actions.runBlocking(
-        //          drive.actionBuilder(pickup2end)
-
-        //                  .setReversed(true)
-        //                  .lineToY(50)
-        //                   .splineToSplineHeading(new Pose2d(-10, 10, Math.toRadians(130)), Math.toRadians(50))
-        //                  .build()
-        //  );
 
 
 

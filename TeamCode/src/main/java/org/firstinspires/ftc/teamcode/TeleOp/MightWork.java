@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.TeleOp;
 import android.app.Activity;
 import android.view.View;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -23,6 +24,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 @TeleOp(name = "willwork", group = "robot")
+@Disabled
 public class MightWork extends LinearOpMode {
 
     // Drive

@@ -17,7 +17,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 
-    @TeleOp(name = "Steven: Color", group = "robot")
+    @TeleOp(name = "z Tool Steven: Color", group = "z")
 
     public class steven extends LinearOpMode {
 

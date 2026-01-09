@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 @TeleOp
+        (name = "z Tool PIDF tuning", group = "z")
 public class PIDF extends OpMode {
 
     // wheel 1 P = 80 F = 13.9
