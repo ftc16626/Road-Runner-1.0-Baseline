@@ -165,26 +165,44 @@ public class redBackMeet4 extends LinearOpMode {
                 private ArtifactColor[] pattern = mapPattern(artifactPattern);
                 private int index = 0;
 
-                // Which sensor matched this shot (1–6)
                 private int lockedSensor = -1;
+                private boolean failSafeTriggered = false;
 
                 @Override
                 public boolean run(@NonNull TelemetryPacket packet) {
+                    // Check Match Timer Fail-safe (10 seconds)
+                    if (shooterTimer.seconds() > 10.0 && !failSafeTriggered) {
+                        // Move all servos to shooting position
+                        servoI.setPosition(0.9);
+                        servoII.setPosition(0.9);
+                        servoIII.setPosition(0.1);
 
-                    // DONE
+                        timer.reset();
+                        failSafeTriggered = true;
+                    }
+
+                    // Fail-safe logic: Wait for servos to deploy, then reset and exit
+                    if (failSafeTriggered) {
+                        if (timer.milliseconds() > 800) { // Time for balls to exit
+                            servoIII.setPosition(0.53);
+                            servoII.setPosition(0.47);
+                            servoI.setPosition(0.47);
+                            telemetry.addLine("FAILSAFE EXECUTED");
+                            telemetry.update();
+                            return false; // Exit state machine
+                        }
+                        return true; // Keep running until reset is done
+                    }
+
+                    // NORMAL STATE MACHINE LOGIC BELOW
                     if (index >= pattern.length) {
                         telemetry.addLine("Fire DONE");
                         telemetry.update();
                         return false;
                     }
 
-                    // Read sensors ONLY when waiting
-                    ArtifactColor s1 = ArtifactColor.NONE;
-                    ArtifactColor s2 = ArtifactColor.NONE;
-                    ArtifactColor s3 = ArtifactColor.NONE;
-                    ArtifactColor s4 = ArtifactColor.NONE;
-                    ArtifactColor s5 = ArtifactColor.NONE;
-                    ArtifactColor s6 = ArtifactColor.NONE;
+                    ArtifactColor s1 = ArtifactColor.NONE, s2 = ArtifactColor.NONE, s3 = ArtifactColor.NONE;
+                    ArtifactColor s4 = ArtifactColor.NONE, s5 = ArtifactColor.NONE, s6 = ArtifactColor.NONE;
 
                     if (state == FireState.WAIT_FOR_COLOR) {
                         s1 = detectColor(colorSensorI);
@@ -195,29 +213,19 @@ public class redBackMeet4 extends LinearOpMode {
                         s6 = detectColor(colorSensorVI);
                     }
 
+                    telemetry.addData("Match Time", shooterTimer.seconds());
                     telemetry.addData("State", state);
-                    telemetry.addData("Index", index);
-                    telemetry.addData("Target", pattern[index]);
-                    telemetry.addData("LockedSensor", lockedSensor);
-                    telemetry.addData("S1", s1);
-                    telemetry.addData("S2", s2);
-                    telemetry.addData("S3", s3);
                     telemetry.update();
 
                     switch (state) {
-
-                        // ---------------- WAIT ----------------
                         case WAIT_FOR_COLOR:
-
                             if (s1 == pattern[index] || s2 == pattern[index]) {
                                 servoIII.setPosition(0.1);
                                 lockedSensor = 1;
-                            }
-                            else if (s3 == pattern[index] || s4 == pattern[index]) {
+                            } else if (s3 == pattern[index] || s4 == pattern[index]) {
                                 servoII.setPosition(0.9);
                                 lockedSensor = 2;
-                            }
-                            else if (s5 == pattern[index] || s6 == pattern[index]) {
+                            } else if (s5 == pattern[index] || s6 == pattern[index]) {
                                 servoI.setPosition(0.9);
                                 lockedSensor = 3;
                             }
@@ -228,32 +236,25 @@ public class redBackMeet4 extends LinearOpMode {
                             }
                             break;
 
-                        // ---------------- SERVO OUT ----------------
                         case SERVO_OUT:
-                            // Let ball fully leave
                             if (timer.milliseconds() > 1000) {
                                 timer.reset();
                                 state = FireState.SERVO_BACK;
                             }
                             break;
 
-                        // ---------------- SERVO BACK ----------------
                         case SERVO_BACK:
-
-                            // Retract the servo we used
                             if (lockedSensor == 1) servoIII.setPosition(0.53);
                             if (lockedSensor == 2) servoII.setPosition(0.47);
                             if (lockedSensor == 3) servoI.setPosition(0.47);
 
                             if (timer.milliseconds() > 500) {
-                                // Advance EXACTLY once
                                 index++;
                                 lockedSensor = -1;
                                 state = FireState.WAIT_FOR_COLOR;
                             }
                             break;
                     }
-
                     return true;
                 }
             };
@@ -379,10 +380,10 @@ public class redBackMeet4 extends LinearOpMode {
         // Pickup artifact 1
 
         Pose2d startPose = (new Pose2d(60, 10,Math.toRadians(180)));
-        Pose2d afterPose = (new Pose2d(55, 13, Math.toRadians(159)));
+        Pose2d afterPose = (new Pose2d(55, 13, Math.toRadians(157)));
         Pose2d pickup1 = (new Pose2d(34, 25, Math.toRadians(90)));
         Pose2d pickup1end = (new Pose2d(34, 60, Math.toRadians(90)));
-        Pose2d moveto2 = (new Pose2d(50, 13, Math.toRadians(159)));
+        Pose2d moveto2 = (new Pose2d(55, 13, Math.toRadians(157)));
         Pose2d pickup2 = (new Pose2d(15, 25, Math.toRadians(90)));
         Pose2d pickup2end = (new Pose2d(15, 60, Math.toRadians(90)));
         Pose2d moveto3 = (new Pose2d(50, 13, Math.toRadians(159)));
@@ -405,7 +406,7 @@ public class redBackMeet4 extends LinearOpMode {
         Actions.runBlocking(
                 drive.actionBuilder(startPose)
                         .strafeTo(new Vector2d(55,13))
-                        .turnTo(Math.toRadians(159))
+                        .turnTo(Math.toRadians(157))
                         .build()
         );
 
@@ -424,7 +425,7 @@ public class redBackMeet4 extends LinearOpMode {
         Actions.runBlocking(
                 drive.actionBuilder(pickup1end)
                         .setReversed(true)
-                        .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
+                        .splineToSplineHeading(new Pose2d(55, 13, Math.toRadians(157)), Math.toRadians(220))
                         .build()
         );
        Actions.runBlocking(new SequentialAction(Everything.fire()));
@@ -434,33 +435,34 @@ public class redBackMeet4 extends LinearOpMode {
         Actions.runBlocking(
                 drive.actionBuilder(moveto2)
                         .setReversed(false)
-                        .splineToLinearHeading(new Pose2d(15, 25, Math.toRadians(90)), Math.toRadians(180))
+                        .splineToLinearHeading(new Pose2d(34, 25, Math.toRadians(90)), Math.toRadians(180))
+                        //.splineToLinearHeading(new Pose2d(15, 25, Math.toRadians(90)), Math.toRadians(180))
                         .build()
         );
-
-        Actions.runBlocking(new ParallelAction(Everything.roller(),driveAction2));
-
-          Actions.runBlocking(
-                  drive.actionBuilder(pickup2end)
-                          .setReversed(true)
-                          .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
-                          .build()
-          );
-        Actions.runBlocking(new SequentialAction(Everything.fire()));
-        Actions.runBlocking(
-                drive.actionBuilder(moveto3)
-                        .setReversed(false)
-                        .splineToLinearHeading(new Pose2d(-13, 25, Math.toRadians(90)), Math.toRadians(180))
-                        .build()
-        );
-        Actions.runBlocking(new SequentialAction(driveAction3));
-        Actions.runBlocking(
-                drive.actionBuilder(pickup3end)
-                        .setReversed(true)
-                        .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
-                        .build()
-        );
-        Actions.runBlocking(new SequentialAction(Everything.fire()));
+//
+//        Actions.runBlocking(new ParallelAction(Everything.roller(),driveAction2));
+//
+//          Actions.runBlocking(
+//                  drive.actionBuilder(pickup2end)
+//                          .setReversed(true)
+//                          .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
+//                          .build()
+//          );
+//        Actions.runBlocking(new SequentialAction(Everything.fire()));
+//        Actions.runBlocking(
+//                drive.actionBuilder(moveto3)
+//                        .setReversed(false)
+//                        .splineToLinearHeading(new Pose2d(-10 , 25, Math.toRadians(90)), Math.toRadians(180))
+//                        .build()
+//        );
+//        Actions.runBlocking(new ParallelAction(driveAction3,Everything.roller()));
+//        Actions.runBlocking(
+//                drive.actionBuilder(pickup3end)
+//                        .setReversed(true)
+//                        .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
+//                        .build()
+//        );
+//        Actions.runBlocking(new SequentialAction(Everything.fire()));
 
 
 
