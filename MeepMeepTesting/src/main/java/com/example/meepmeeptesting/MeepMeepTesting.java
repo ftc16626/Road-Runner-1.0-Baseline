@@ -16,31 +16,50 @@ public class MeepMeepTesting {
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
                 .build();
 
-        // myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(0, 0,Math.toRadians(126)))
+         myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-52, 47,Math.toRadians(126)))
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(57, 19,Math.toRadians(160)))
+       // myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(57, 19,Math.toRadians(160)))
                 //----------Grab the first balls-----------
+                         .setReversed(true)
+                         .splineToSplineHeading(new Pose2d(-8, 25, Math.toRadians(90)), Math.toRadians(50))
+                         .setReversed(false)
+                         .lineToY(50)
+                         .setReversed(false)
+                         .lineToY(10)
+                         .turnTo(Math.toRadians(126))
+                         .setReversed(true)
+                         .splineToSplineHeading(new Pose2d(15, 25, Math.toRadians(90)), Math.toRadians(50))
+                         .setReversed(false)
+                         .lineToY(50)
+                         .setReversed(true)
+                         .splineToSplineHeading(new Pose2d(-8, 10, Math.toRadians(126)), Math.toRadians(50))
+                         .setReversed(true)
+                         .strafeTo(new Vector2d(-16,50))
+                         .build());
 
-                        .splineToLinearHeading(new Pose2d(34, 25, Math.toRadians(90)), Math.toRadians(180))
-                        .setReversed(true)
-                        .lineToY(60)
-                        .setReversed(true)
-                        .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
-                        .setReversed(false)
-                        .splineToLinearHeading(new Pose2d(15, 25, Math.toRadians(90)), Math.toRadians(180))
-                        .setReversed(true)
-                        .lineToY(60)
-                        .setReversed(true)
-                        .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
 
-                        .setReversed(false)
-                        .splineToLinearHeading(new Pose2d(-13, 25, Math.toRadians(90)), Math.toRadians(180))
-                        .setReversed(true)
-                        .lineToY(60)
 
-                        .setReversed(true)
-                        .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
-                .build());
+//
+//                        .splineToLinearHeading(new Pose2d(34, 25, Math.toRadians(90)), Math.toRadians(180))
+//                        .setReversed(true)
+//                        .lineToY(60)
+//                        .setReversed(true)
+//                        .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
+//                        .setReversed(false)
+//                        .splineToLinearHeading(new Pose2d(15, 25, Math.toRadians(90)), Math.toRadians(180))
+//                        .setReversed(true)
+//                        .lineToY(60)
+//                        .setReversed(true)
+//                        .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
+//
+//                        .setReversed(false)
+//                        .splineToLinearHeading(new Pose2d(-13, 25, Math.toRadians(90)), Math.toRadians(180))
+//                        .setReversed(true)
+//                        .lineToY(60)
+//
+//                        .setReversed(true)
+//                        .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
+//                .build());
 
 
                 meepMeep.setBackground(MeepMeep.Background.FIELD_DECODE_JUICE_DARK)

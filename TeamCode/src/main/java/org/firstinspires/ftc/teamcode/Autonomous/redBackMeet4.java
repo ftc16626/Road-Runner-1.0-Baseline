@@ -439,30 +439,30 @@ public class redBackMeet4 extends LinearOpMode {
                         //.splineToLinearHeading(new Pose2d(15, 25, Math.toRadians(90)), Math.toRadians(180))
                         .build()
         );
-//
-//        Actions.runBlocking(new ParallelAction(Everything.roller(),driveAction2));
-//
-//          Actions.runBlocking(
-//                  drive.actionBuilder(pickup2end)
-//                          .setReversed(true)
-//                          .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
-//                          .build()
-//          );
-//        Actions.runBlocking(new SequentialAction(Everything.fire()));
-//        Actions.runBlocking(
-//                drive.actionBuilder(moveto3)
-//                        .setReversed(false)
-//                        .splineToLinearHeading(new Pose2d(-10 , 25, Math.toRadians(90)), Math.toRadians(180))
-//                        .build()
-//        );
-//        Actions.runBlocking(new ParallelAction(driveAction3,Everything.roller()));
-//        Actions.runBlocking(
-//                drive.actionBuilder(pickup3end)
-//                        .setReversed(true)
-//                        .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
-//                        .build()
-//        );
-//        Actions.runBlocking(new SequentialAction(Everything.fire()));
+
+        Actions.runBlocking(new ParallelAction(Everything.roller(),driveAction2));
+
+          Actions.runBlocking(
+                  drive.actionBuilder(pickup2end)
+                          .setReversed(true)
+                          .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
+                          .build()
+          );
+        Actions.runBlocking(new SequentialAction(Everything.fire()));
+        Actions.runBlocking(
+                drive.actionBuilder(moveto3)
+                        .setReversed(false)
+                        .splineToLinearHeading(new Pose2d(-10 , 25, Math.toRadians(90)), Math.toRadians(180))
+                        .build()
+        );
+        Actions.runBlocking(new ParallelAction(driveAction3,Everything.roller()));
+        Actions.runBlocking(
+                drive.actionBuilder(pickup3end)
+                        .setReversed(true)
+                        .splineToSplineHeading(new Pose2d(50, 13, Math.toRadians(159)), Math.toRadians(220))
+                        .build()
+        );
+        Actions.runBlocking(new SequentialAction(Everything.fire()));
 
 
 

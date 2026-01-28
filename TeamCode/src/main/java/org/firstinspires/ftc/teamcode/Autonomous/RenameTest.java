@@ -166,26 +166,44 @@ public class RenameTest extends LinearOpMode {
                 private ArtifactColor[] pattern = mapPattern(artifactPattern);
                 private int index = 0;
 
-                // Which sensor matched this shot (1–6)
                 private int lockedSensor = -1;
+                private boolean failSafeTriggered = false;
 
                 @Override
                 public boolean run(@NonNull TelemetryPacket packet) {
+                    // Check Match Timer Fail-safe (10 seconds)
+                    if (shooterTimer.seconds() > 10.0 && !failSafeTriggered) {
+                        // Move all servos to shooting position
+                        servoI.setPosition(0.9);
+                        servoII.setPosition(0.9);
+                        servoIII.setPosition(0.1);
 
-                    // DONE
+                        timer.reset();
+                        failSafeTriggered = true;
+                    }
+
+                    // Fail-safe logic: Wait for servos to deploy, then reset and exit
+                    if (failSafeTriggered) {
+                        if (timer.milliseconds() > 800) { // Time for balls to exit
+                            servoIII.setPosition(0.53);
+                            servoII.setPosition(0.47);
+                            servoI.setPosition(0.47);
+                            telemetry.addLine("FAILSAFE EXECUTED");
+                            telemetry.update();
+                            return false; // Exit state machine
+                        }
+                        return true; // Keep running until reset is done
+                    }
+
+                    // NORMAL STATE MACHINE LOGIC BELOW
                     if (index >= pattern.length) {
                         telemetry.addLine("Fire DONE");
                         telemetry.update();
                         return false;
                     }
 
-                    // Read sensors ONLY when waiting
-                    ArtifactColor s1 = ArtifactColor.NONE;
-                    ArtifactColor s2 = ArtifactColor.NONE;
-                    ArtifactColor s3 = ArtifactColor.NONE;
-                    ArtifactColor s4 = ArtifactColor.NONE;
-                    ArtifactColor s5 = ArtifactColor.NONE;
-                    ArtifactColor s6 = ArtifactColor.NONE;
+                    ArtifactColor s1 = ArtifactColor.NONE, s2 = ArtifactColor.NONE, s3 = ArtifactColor.NONE;
+                    ArtifactColor s4 = ArtifactColor.NONE, s5 = ArtifactColor.NONE, s6 = ArtifactColor.NONE;
 
                     if (state == FireState.WAIT_FOR_COLOR) {
                         s1 = detectColor(colorSensorI);
@@ -196,29 +214,19 @@ public class RenameTest extends LinearOpMode {
                         s6 = detectColor(colorSensorVI);
                     }
 
+                    telemetry.addData("Match Time", shooterTimer.seconds());
                     telemetry.addData("State", state);
-                    telemetry.addData("Index", index);
-                    telemetry.addData("Target", pattern[index]);
-                    telemetry.addData("LockedSensor", lockedSensor);
-                    telemetry.addData("S1", s1);
-                    telemetry.addData("S2", s2);
-                    telemetry.addData("S3", s3);
                     telemetry.update();
 
                     switch (state) {
-
-                        // ---------------- WAIT ----------------
                         case WAIT_FOR_COLOR:
-
                             if (s1 == pattern[index] || s2 == pattern[index]) {
                                 servoIII.setPosition(0.1);
                                 lockedSensor = 1;
-                            }
-                            else if (s3 == pattern[index] || s4 == pattern[index]) {
+                            } else if (s3 == pattern[index] || s4 == pattern[index]) {
                                 servoII.setPosition(0.9);
                                 lockedSensor = 2;
-                            }
-                            else if (s5 == pattern[index] || s6 == pattern[index]) {
+                            } else if (s5 == pattern[index] || s6 == pattern[index]) {
                                 servoI.setPosition(0.9);
                                 lockedSensor = 3;
                             }
@@ -229,32 +237,25 @@ public class RenameTest extends LinearOpMode {
                             }
                             break;
 
-                        // ---------------- SERVO OUT ----------------
                         case SERVO_OUT:
-                            // Let ball fully leave
                             if (timer.milliseconds() > 1000) {
                                 timer.reset();
                                 state = FireState.SERVO_BACK;
                             }
                             break;
 
-                        // ---------------- SERVO BACK ----------------
                         case SERVO_BACK:
-
-                            // Retract the servo we used
                             if (lockedSensor == 1) servoIII.setPosition(0.53);
                             if (lockedSensor == 2) servoII.setPosition(0.47);
                             if (lockedSensor == 3) servoI.setPosition(0.47);
 
                             if (timer.milliseconds() > 500) {
-                                // Advance EXACTLY once
                                 index++;
                                 lockedSensor = -1;
                                 state = FireState.WAIT_FOR_COLOR;
                             }
                             break;
                     }
-
                     return true;
                 }
             };
@@ -278,7 +279,7 @@ public class RenameTest extends LinearOpMode {
         Pose2d pickup1 = (new Pose2d(-8, 25, Math.toRadians(90)));
         Pose2d pickup1end = (new Pose2d(-8, 50, Math.toRadians(90)));
         Pose2d moveto2 = (new Pose2d(-10, 10, Math.toRadians(126)));
-        Pose2d pickup2 = (new Pose2d(16, 26, Math.toRadians(90)));
+        Pose2d pickup2 = (new Pose2d(15, 25, Math.toRadians(90)));
         Pose2d pickup2end = (new Pose2d(20, 60, Math.toRadians(90)));
         Pose2d pickup3 = (new Pose2d(38.5, 20, Math.toRadians(90)));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
@@ -288,7 +289,7 @@ public class RenameTest extends LinearOpMode {
                 .build();
         Action driveAction2 = drive.actionBuilder(pickup2)
                 .setReversed(false)
-                .lineToY(52)
+                .lineToY(60)
                 .build();
           Action driveAction3 = drive.actionBuilder(pickup3)
                 .setReversed(false)
@@ -426,12 +427,25 @@ public class RenameTest extends LinearOpMode {
         Actions.runBlocking(
                 drive.actionBuilder(moveto2)
                         .setReversed(true)
-                        .splineToSplineHeading(new Pose2d(37, 20, Math.toRadians(90)), Math.toRadians(50))
+                        .splineToSplineHeading(new Pose2d(15, 25, Math.toRadians(90)), Math.toRadians(50))
                         .build()
         );
 
 
-         Actions.runBlocking(new ParallelAction(driveAction3, Everything.roller()));
+         Actions.runBlocking(new ParallelAction(driveAction2, Everything.roller()));
+        Actions.runBlocking(
+                drive.actionBuilder(pickup2end)
+                        .setReversed(true)
+                        .splineToSplineHeading(new Pose2d(-8, 10, Math.toRadians(126)), Math.toRadians(50))
+                        .build()
+        );
+        Actions.runBlocking(new SequentialAction(Everything.fire()));
+        Actions.runBlocking(
+                drive.actionBuilder(pickup1end)
+                        .setReversed(false)
+                        .strafeTo(new Vector2d(-16,50))
+                        .build()
+        );
 
 
 
