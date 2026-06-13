@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -11,6 +12,7 @@ import org.firstinspires.ftc.teamcode.ComponentSubClasses.IntakeSubsystemOdometr
 
 
 @TeleOp (name = "FieldCentric")
+@Disabled
 public class FieldCentricGo extends LinearOpMode {
     private IntakeSubsystemOdometryReady intake;
     @Override
@@ -27,10 +29,6 @@ public class FieldCentricGo extends LinearOpMode {
         rightBackMotor.setDirection(DcMotor.Direction.REVERSE);
         intake = new IntakeSubsystemOdometryReady(hardwareMap);
 
-        leftFrontMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        leftBackMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightFrontMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightBackMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
 
