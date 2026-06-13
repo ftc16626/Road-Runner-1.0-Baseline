@@ -62,6 +62,7 @@ public class MightWorkOdometryReady extends LinearOpMode {
     public Servo leftHoodServo, rightHoodServo;
     public DcMotorEx shooter1, shooter2, shooter3;
 
+
     // -------------------- Odometry placeholders --------------------
     // private int leftOdomPrev = 0;
     // private int rightOdomPrev = 0;
