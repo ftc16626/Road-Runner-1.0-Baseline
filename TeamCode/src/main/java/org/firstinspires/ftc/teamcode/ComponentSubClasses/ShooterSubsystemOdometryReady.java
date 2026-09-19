@@ -81,7 +81,7 @@ public class ShooterSubsystemOdometryReady {
             shooter3.setVelocity(curTargetVelocity);
 
 
-        } else if (gamepad.left_bumper) {
+        } /*else if (gamepad.left_bumper) {
             flipper1.setPosition(0.6);
             flipper2.setPosition(0.6);
             flipper3.setPosition(0.41);
@@ -113,7 +113,7 @@ public class ShooterSubsystemOdometryReady {
             shooter2.setVelocity(curTargetVelocity);
             shooter3.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,pidfCoefficients3);
             shooter3.setVelocity(curTargetVelocity);
-        } else {
+        }*/ else {
             shooter1.setPower(0);
             shooter2.setPower(0);
             shooter3.setPower(0);

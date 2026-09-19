@@ -51,25 +51,24 @@ public class HoodSubsystemOdometryReady {
 
 
         // Quick flipper pulses
-        if (gamepad.circle) startPulse(flipper3, 0.1, 0.53, 100);
-        if (gamepad.a)      startPulse(flipper2, 0.9, 0.47, 100);
-        if (gamepad.square) startPulse(flipper1, 0.9, 0.47, 100);
+        /*if (gamepad.triangle) startPulse(flipper3, 0.1, 0.53, 100);
+        if (gamepad.triangle)      startPulse(flipper2, 0.9, 0.47, 100);
+        if (gamepad.triangle) startPulse(flipper1, 0.9, 0.47, 100);*/
 
         updateFlipperPulse();
 
         // Set default positions
-        if (gamepad.triangle) {
-            flipper1.setPosition(0.53);
-            flipper2.setPosition(0.53);
-            flipper3.setPosition(0.49);
+        if (gamepad.a) {
+            flipper1.setPosition(0.9);
+            flipper2.setPosition(0.9);
+            flipper3.setPosition(0.1);
         }
-        if (gamepad.dpad_down) {
+        else {
             flipper1.setPosition(0.47);
             flipper2.setPosition(0.47);
-            flipper3.setPosition(0.55);
-            flipper3.setPosition(0.55);
+            flipper3.setPosition(0.53);
         }
-    }
+     }
 
     private void setHood(double pos) {
         leftHoodServo.setPosition(pos);

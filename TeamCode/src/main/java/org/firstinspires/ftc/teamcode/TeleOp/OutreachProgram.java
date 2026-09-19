@@ -3,31 +3,21 @@ package org.firstinspires.ftc.teamcode.TeleOp;
 import android.app.Activity;
 import android.view.View;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.hardware.SwitchableLight;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.ComponentSubClasses.DriveSubsystemOdometryReady;
 import org.firstinspires.ftc.teamcode.ComponentSubClasses.HoodSubsystemOdometryReady;
 import org.firstinspires.ftc.teamcode.ComponentSubClasses.IntakeSubsystemOdometryReady;
 import org.firstinspires.ftc.teamcode.ComponentSubClasses.ShooterSubsystemOdometryReady;
 import org.firstinspires.ftc.teamcode.ComponentSubClasses.VisionSubsystemOdometryReady;
-import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Main TeleOp class, odometry-ready.
@@ -35,9 +25,9 @@ import java.util.concurrent.TimeUnit;
  * All current PID, servo, and button mappings preserved.
  * (Is this language simple enough?)
  */
-@TeleOp(name = "Tele-Op_Meet_4", group = "1")
+@TeleOp(name = "outreachProgram", group = "1")
 
-public class MightWorkOdometryReady extends LinearOpMode {
+public class OutreachProgram extends LinearOpMode {
 
     // -------------------- Subsystems --------------------
     private DriveSubsystemOdometryReady drive;
@@ -113,6 +103,8 @@ public class MightWorkOdometryReady extends LinearOpMode {
 
         // -------------------- Main loop --------------------
         while (opModeIsActive()) {
+            setHood(hoodPosFar);
+            curTargetVelocity = 1560;
             double dtLoop = loopTimer.seconds();
             loopTimer.reset();
 
@@ -138,17 +130,17 @@ public class MightWorkOdometryReady extends LinearOpMode {
 
 
             // -------------------- Intake --------------------
-            intake.controlIntake(gamepad1);
+       //     intake.controlIntake(gamepad1);
 
             // -------------------- Hood / Flippers --------------------
-            hood.controlFlippers(gamepad2);
-            if (gamepad2.dpad_left){
+            hood.controlFlippers(gamepad1);
+            /*if (gamepad2.dpad_left){
                 curTargetVelocity = 1313.333333;
                 setHood(hoodPosClose);
             } else if (gamepad2.dpad_right){
                 curTargetVelocity = 1560;
                 setHood(hoodPosFar);
-            }
+            } */
 
             // -------------------- Shooter --------------------
             shooter.controlShooter(curTargetVelocity, gamepad1);

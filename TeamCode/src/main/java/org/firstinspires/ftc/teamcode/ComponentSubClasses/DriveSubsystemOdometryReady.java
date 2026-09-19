@@ -48,7 +48,7 @@ public class DriveSubsystemOdometryReady {
         double rf = drive - turn + strafe;
         double rb = drive - turn - strafe;
 
-        double denom = Math.max(Math.abs(drive) + Math.abs(strafe) + Math.abs(turn), 1.0);
+        double denom = Math.max(Math.abs(drive) + Math.abs(strafe) + Math.abs(turn), 0.5);
 
         leftFrontMotor.setPower(lf / denom);
         leftBackMotor.setPower(lb / denom);
